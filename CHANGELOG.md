@@ -1,5 +1,10 @@
 # Novità
 
+## [0.3.2] - 2026-11-06
+
+- Corretto: dopo aver scelto l'ordinamento compariva un rettangolo bianco intorno al menu. Ora il pulsante torna normale, con la sua freccia.
+- In tutta l'app il bordo di "focus" si vede solo usando una tastiera, non dopo un tocco.
+
 ## [0.3.1] - 2026-11-06
 
 - Tenendo premuto un capo si attiva la selezione multipla con quel capo già selezionato (con una leggera vibrazione). Poi basta toccare gli altri capi per aggiungerli.

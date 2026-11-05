@@ -325,9 +325,17 @@
           </button>
           <label class="tool sort">
             <span class="visually-hidden">Ordina</span>
-            <select value={wardrobeView.sort} onchange={(e) => (wardrobeView.sort = e.currentTarget.value as ItemSort)}>
+            <select
+              value={wardrobeView.sort}
+              onchange={(e) => {
+                wardrobeView.sort = e.currentTarget.value as ItemSort;
+                // Dopo la scelta il menu non resta "attivo" (su Android disegnerebbe un rettangolo).
+                e.currentTarget.blur();
+              }}
+            >
               {#each SORTS as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
             </select>
+            <span class="chev" aria-hidden="true"><Icon name="down" size={16} /></span>
           </label>
           <button class="tool" onclick={() => (selecting = true)}>Seleziona</button>
           <button class="tool" onclick={() => (showDuplicates = true)}>
@@ -542,14 +550,40 @@
     font-weight: 600;
   }
   .sort {
-    padding: 0 6px 0 12px;
+    position: relative;
+    padding: 0 30px 0 14px;
   }
   .sort select {
+    appearance: none;
+    -webkit-appearance: none;
     border: 0;
+    outline: none;
     background: transparent;
+    color: inherit;
     font-size: 0.875rem;
     min-height: 36px;
-    max-width: 140px;
+    max-width: 150px;
+    padding: 0;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+  .sort select:focus,
+  .sort select:focus-visible {
+    outline: none;
+    box-shadow: none;
+  }
+  /* Bordo colorato solo con la tastiera, non dopo un tocco. */
+  .sort:has(select:focus-visible) {
+    border-color: var(--accent);
+  }
+  .chev {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    pointer-events: none;
+    color: var(--text-muted);
   }
   .selbar {
     display: flex;
