@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   adjustLight,
   applyBackgroundMask,
+  backgroundFromTint,
   brushStroke,
   centeredRect,
+  cleanMask,
   clampRect,
   cloneImg,
   copyAlpha,
@@ -173,3 +175,57 @@ describe('colori', () => {
 function createImgFrom(img: Img): Img {
   return cloneImg(img);
 }
+
+describe('scontorno AI dal velo magenta del plugin', () => {
+  /** Simula il plugin: copre il capo con magenta al 50% e aggiunge un po' di rumore (JPEG/PNG). */
+  function tint(img: Img, isSubject: (x: number, y: number) => boolean): Img {
+    const out = cloneImg(img);
+    for (let y = 0; y < img.height; y++)
+      for (let x = 0; x < img.width; x++) {
+        const i = (y * img.width + x) * 4;
+        const noise = ((x * 31 + y * 17) % 7) - 3;
+        if (isSubject(x, y)) {
+          out.data[i] = (img.data[i]! + 255) / 2 + noise;
+          out.data[i + 1] = img.data[i + 1]! / 2 + noise;
+          out.data[i + 2] = (img.data[i + 2]! + 255) / 2 + noise;
+        } else {
+          out.data[i] = img.data[i]! + noise;
+          out.data[i + 1] = img.data[i + 1]! + noise;
+          out.data[i + 2] = img.data[i + 2]! + noise;
+        }
+      }
+    return out;
+  }
+  const inside = (x: number, y: number) => x > 15 && x < 45 && y > 15 && y < 65;
+
+  it('ricava la sagoma di un capo scuro su un copriletto fantasia', () => {
+    const img = createImg(60, 80);
+    for (let y = 0; y < 80; y++)
+      for (let x = 0; x < 60; x++)
+        setPx(img, x, y, inside(x, y) ? [30, 32, 38, 255] : (x + y) % 6 < 3 ? [200, 195, 180, 255] : [150, 145, 130, 255]);
+    const mask = backgroundFromTint(img, tint(img, inside));
+    let wrong = 0;
+    for (let y = 0; y < 80; y++) for (let x = 0; x < 60; x++) if (mask[y * 60 + x] !== (inside(x, y) ? 0 : 1)) wrong++;
+    expect(wrong).toBe(0);
+  });
+
+  it('funziona anche con capi chiari e colorati', () => {
+    for (const color of [[245, 245, 245], [230, 195, 55], [60, 90, 130], [200, 35, 40]] as const) {
+      const img = createImg(60, 80, [120, 110, 100, 255]);
+      for (let y = 0; y < 80; y++) for (let x = 0; x < 60; x++) if (inside(x, y)) setPx(img, x, y, [...color, 255]);
+      const mask = backgroundFromTint(img, tint(img, inside));
+      expect(mask[40 * 60 + 30], `capo ${color}`).toBe(0);
+      expect(mask[2 * 60 + 2], `sfondo ${color}`).toBe(1);
+    }
+  });
+
+  it('pulisce i puntini isolati', () => {
+    const m = new Uint8Array(25).fill(1);
+    m[12] = 0;
+    expect(cleanMask(m, 5, 5)[12]).toBe(1);
+  });
+
+  it('rifiuta immagini di dimensioni diverse', () => {
+    expect(() => backgroundFromTint(createImg(2, 2), createImg(3, 2))).toThrow();
+  });
+});

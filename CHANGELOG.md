@@ -1,5 +1,11 @@
 # Novità
 
+## [0.2.1] - 2026-11-05
+
+- Corretto: il pulsante "Automatico (AI)" sembrava non fare nulla perché la domanda per scaricare il modulo compariva dietro l'editor. Ora i dialoghi stanno sempre sopra a tutto (vale anche per "Ripristina originale" e "Uscire senza salvare?").
+- Corretto: lo scontorno automatico ora toglie davvero lo sfondo. Il plugin restituisce la foto con il capo velato di colore: l'app ricava la sagoma confrontandola con l'originale, anche su sfondi a fantasia come un copriletto.
+- Download del modulo di scontorno più affidabile (controllo anche quando il telefono non segnala la fine).
+
 ## [0.2.0] - 2026-11-05
 
 - Pulsante "+" nell'Armadio: Scatta foto, Dalla galleria, Multi-foto (fino a 20 capi in una volta).

@@ -257,3 +257,48 @@ export function transparentShare(img: Img): number {
   for (let i = 3; i < img.data.length; i += 4) if (img.data[i]! < 128) n++;
   return n / (img.width * img.height);
 }
+
+/**
+ * Lo scontorno AI (plugin ML Kit) non restituisce una foto trasparente: restituisce la foto
+ * con il soggetto coperto da un velo magenta al 50% (255, 0, 255). Confrontando ogni pixel con
+ * l'originale si ricava lo sfondo: dove il pixel è rimasto uguale all'originale è sfondo,
+ * dove assomiglia alla miscela con il magenta è il capo. Restituisce 1 = sfondo, 0 = capo.
+ */
+export function backgroundFromTint(original: Img, tinted: Img): Uint8Array {
+  if (original.width !== tinted.width || original.height !== tinted.height) {
+    throw new Error('Le immagini devono avere la stessa dimensione');
+  }
+  const n = original.width * original.height;
+  const mask = new Uint8Array(n);
+  const o = original.data;
+  const t = tinted.data;
+  for (let p = 0; p < n; p++) {
+    const i = p * 4;
+    const r = o[i]!;
+    const g = o[i + 1]!;
+    const b = o[i + 2]!;
+    // Miscela attesa con il magenta al 50%.
+    const br = (r + 255) / 2;
+    const bg = g / 2;
+    const bb = (b + 255) / 2;
+    const dOrig = (t[i]! - r) ** 2 + (t[i + 1]! - g) ** 2 + (t[i + 2]! - b) ** 2;
+    const dBlend = (t[i]! - br) ** 2 + (t[i + 1]! - bg) ** 2 + (t[i + 2]! - bb) ** 2;
+    mask[p] = dOrig <= dBlend ? 1 : 0;
+  }
+  return mask;
+}
+
+/** Toglie i puntini isolati da una maschera (un pixel diverso da quasi tutti i vicini prende il loro valore). */
+export function cleanMask(mask: Uint8Array, width: number, height: number): Uint8Array {
+  const out = new Uint8Array(mask);
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const p = y * width + x;
+      let sum = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if (dx || dy) sum += mask[p + dy * width + dx]!;
+      if (sum >= 7) out[p] = 1;
+      else if (sum <= 1) out[p] = 0;
+    }
+  }
+  return out;
+}

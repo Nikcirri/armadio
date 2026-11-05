@@ -43,7 +43,7 @@
     font-size: 0.9375rem;
     line-height: 1.4;
     box-shadow: 0 6px 24px rgb(0 0 0 / 0.2);
-    z-index: 90;
+    z-index: 95;
     animation: in 160ms ease-out;
     /* Non blocca i tocchi sui pulsanti sotto, tranne il suo pulsante. */
     pointer-events: none;

@@ -43,7 +43,7 @@
     position: fixed;
     inset: 0;
     background: rgb(0 0 0 / 0.45);
-    z-index: 60;
+    z-index: 85;
   }
   .dialog {
     position: fixed;
@@ -56,7 +56,7 @@
     background: var(--surface);
     border-radius: 20px;
     padding: 20px;
-    z-index: 61;
+    z-index: 86;
     display: flex;
     flex-direction: column;
     gap: 12px;

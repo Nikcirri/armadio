@@ -170,3 +170,11 @@ export function imgToJpegBlob(img: Img, quality = 0.92): Promise<Blob> {
     c.toBlob((b) => (b ? resolve(b) : reject(new Error('Impossibile creare il JPEG'))), 'image/jpeg', quality),
   );
 }
+
+/** PNG senza perdita di qualità (per lo scontorno AI: serve confrontare i pixel con l'originale). */
+export function imgToPngBlob(img: Img): Promise<Blob> {
+  const c = imgToCanvas(img);
+  return new Promise((resolve, reject) =>
+    c.toBlob((b) => (b ? resolve(b) : reject(new Error('Impossibile creare il PNG'))), 'image/png'),
+  );
+}
