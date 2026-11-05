@@ -3,7 +3,7 @@
   import { needsBackupReminder } from '../logic/backupFormat';
   import { nowIso } from '../logic/util';
   import { live } from '../state/live.svelte';
-  import { openAltroPage, type AltroPageId } from '../state/nav.svelte';
+  import { openAltroPage, openLaundry, type AltroPageId } from '../state/nav.svelte';
   import { settings } from '../state/settings.svelte';
   import Icon, { type IconName } from './Icon.svelte';
   import Sheet from './Sheet.svelte';
@@ -62,9 +62,9 @@
         <Icon name="save" size={16} /> Salva un backup
       </button>
     {:else}
-      <span class="pill" aria-label="Stato dei capi">
+      <button class="pill" aria-label="Apri la lavanderia: {counts.value.clean} puliti, {counts.value.toWash} da lavare" onclick={openLaundry}>
         {counts.value.clean} puliti · {counts.value.toWash} da lavare
-      </span>
+      </button>
     {/if}
     <button class="icon-btn" aria-label="Menu" onclick={() => (menuOpen = true)}><Icon name="more" /></button>
   </div>
@@ -109,6 +109,11 @@
     align-items: center;
     gap: 2px;
     flex: none;
+  }
+  .pill {
+    border: 0;
+    min-height: 36px;
+    cursor: pointer;
   }
   .pill,
   .badge {

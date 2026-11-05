@@ -19,12 +19,16 @@
 
 <style>
   .page {
-    position: absolute;
-    inset: 0;
+    /* Copre l'area tra la barra in alto e quella in basso, anche se la lista sotto è scorsa. */
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(var(--topbar-h) + var(--safe-top));
+    bottom: calc(var(--navbar-h) + var(--safe-bottom));
     display: flex;
     flex-direction: column;
     background: var(--surface);
-    z-index: 5;
+    z-index: 25;
     animation: slide 180ms ease-out;
   }
   header {

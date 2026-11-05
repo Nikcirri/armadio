@@ -1,5 +1,16 @@
 # Novità
 
+## [0.4.0] - 2026-11-06
+
+- Nuova pagina Lavanderia: si apre toccando "puliti · da lavare" in alto o il pulsante "Lavanderia" nell'Armadio.
+- Macchie da pre-trattare in cima, con il tasto "Fatto" quando le hai trattate.
+- Carichi suggeriti per programma (a mano, delicati, 30°, 40°, a secco) leggendo le etichette di lavaggio: vince sempre il programma più delicato.
+- I chiari vengono separati dagli scuri e dai rossi per non macchiarli. Se preferisci, "Lava tutto insieme" unisce i carichi e ti avvisa del rischio.
+- Tasti rapidi per ogni carico: "Stesi", "Da stirare" e "Tutto pulito" (per il secco "Ritirati puliti"), sempre con "Annulla".
+- Elenchi per i capi stesi ad asciugare, da stirare, da sistemare e per quelli che hanno raggiunto il numero di utilizzi prima del lavaggio.
+- Cambio stagione guidato: scegli se riporre o tirare fuori, vedi l'anteprima, togli i capi che vuoi tenere e conferma. Riponi tutto nella "scatola cambio stagione" e poi lo rimetti dove vuoi. I capi in valigia, in prestito o in lavanderia vengono saltati e te lo dice. C'è sempre "Annulla".
+- Le pagine interne restano ferme al loro posto anche se prima avevi fatto scorrere la lista.
+
 ## [0.3.2] - 2026-11-06
 
 - Corretto: dopo aver scelto l'ordinamento compariva un rettangolo bianco intorno al menu. Ora il pulsante torna normale, con la sua freccia.

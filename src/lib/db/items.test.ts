@@ -10,7 +10,9 @@ import {
   bulkAddToTrip,
   bulkSetLocation,
   bulkSetStatus,
+  clearStain,
   deleteItemsHard,
+  ensureLocation,
   duplicateItem,
   getWearDates,
   pickEditable,
@@ -176,5 +178,24 @@ describe('scheda capo e azioni di massa', () => {
     await db.outfits.add(outfit);
     await bulkAddToOutfit(db, [a.id, a.id], outfit.id);
     expect((await db.outfits.get(outfit.id))?.itemIds).toEqual([a.id]);
+  });
+});
+
+describe('lavanderia e cambio stagione', () => {
+  it('toglie la macchia lasciando il capo da lavare', async () => {
+    const [cat] = await getCategories(db);
+    const it0 = await addItem(db, { name: 'Felpa', categoryId: cat!.id, colors: [], photoIds: [] });
+    await db.items.update(it0.id, { status: 'toWash', hasStain: true });
+    await clearStain(db, it0.id);
+    expect(await db.items.get(it0.id)).toMatchObject({ status: 'toWash', hasStain: false });
+  });
+
+  it('trova la scatola cambio stagione e la ricrea se manca', async () => {
+    const box = await ensureLocation(db, 'seasonBox', 'Scatola cambio stagione');
+    expect((await db.lists.get(box))?.extra.key).toBe('seasonBox');
+    await db.lists.delete(box);
+    const again = await ensureLocation(db, 'seasonBox', 'Scatola cambio stagione');
+    expect(again).not.toBe(box);
+    expect(await ensureLocation(db, 'seasonBox', 'x')).toBe(again);
   });
 });

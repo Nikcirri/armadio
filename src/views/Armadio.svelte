@@ -40,6 +40,9 @@
   import FiltersSheet from './armadio/FiltersSheet.svelte';
   import ItemSheet from './armadio/ItemSheet.svelte';
   import QuickAddSheet from './armadio/QuickAddSheet.svelte';
+  import LaundryPage from './armadio/LaundryPage.svelte';
+  import SeasonChangeSheet from './armadio/SeasonChangeSheet.svelte';
+  import { closeLaundry, nav, openLaundry } from '../lib/state/nav.svelte';
 
   type EditorState =
     | { kind: 'new'; img: Img }
@@ -65,6 +68,7 @@
   let selecting = $state(false);
   let selected = $state<string[]>([]);
   let bulkPicker = $state<BulkPicker>(null);
+  let seasonChange = $state(false);
 
   const seasonBoxId = $derived(lists.value.find((l) => l.kind === 'location' && l.extra.key === 'seasonBox')?.id ?? null);
   const filters = $derived(wardrobeView.filters);
@@ -77,6 +81,9 @@
   const filterCount = $derived(activeFilterCount(filters));
   const catById = $derived(new Map(categories.value.map((c) => [c.id, c])));
   const duplicates = $derived(findDuplicates(items.value, wishlist.value));
+  const inLaundry = $derived(
+    items.value.filter((i) => i.status === 'toWash' || i.status === 'drying' || i.status === 'toIron').length,
+  );
 
   // Modalità selezione: il tasto Indietro la chiude.
   $effect(() => {
@@ -213,7 +220,8 @@
     const n = selected.length;
     exitSelection();
     bulkPicker = null;
-    showUndoToast(message.replace('{n}', n === 1 ? '1 capo' : `${n} capi`), () => restoreBulk(db, snap));
+    const text = message.replace('{n}', n === 1 ? '1 capo' : `${n} capi`).replace(/\{s:([^|}]*)\|([^}]*)\}/g, (_, one, many) => (n === 1 ? one : many));
+    showUndoToast(text, () => restoreBulk(db, snap));
   }
 
   async function applyStatus(id: string) {
@@ -228,7 +236,7 @@
   async function applyLocation(id: string) {
     const name = lists.value.find((l) => l.id === id)?.name ?? '';
     try {
-      afterBulk(`{n} spostati in ${name}`, await bulkSetLocation(db, [...selected], id));
+      afterBulk(`{n} {s:spostato|spostati} in ${name}`, await bulkSetLocation(db, [...selected], id));
     } catch (e) {
       reportError(e);
     }
@@ -246,7 +254,7 @@
   async function applyOutfit(id: string) {
     const name = outfits.value.find((o) => o.id === id)?.name ?? '';
     try {
-      afterBulk(`{n} aggiunti a “${name}”`, await bulkAddToOutfit(db, [...selected], id));
+      afterBulk(`{n} {s:aggiunto|aggiunti} a “${name}”`, await bulkAddToOutfit(db, [...selected], id));
     } catch (e) {
       reportError(e);
     }
@@ -337,10 +345,12 @@
             </select>
             <span class="chev" aria-hidden="true"><Icon name="down" size={16} /></span>
           </label>
+          <button class="tool" onclick={openLaundry}>Lavanderia{inLaundry ? ` (${inLaundry})` : ''}</button>
           <button class="tool" onclick={() => (selecting = true)}>Seleziona</button>
           <button class="tool" onclick={() => (showDuplicates = true)}>
             Doppioni{duplicates.length ? ` (${duplicates.length})` : ''}
           </button>
+          <button class="tool" onclick={() => (seasonChange = true)}>Cambio stagione</button>
         </div>
       </div>
     {/if}
@@ -451,6 +461,14 @@
     onchange={(f) => (wardrobeView.filters = f)}
     onclose={() => (showFilters = false)}
   />
+{/if}
+
+{#if nav.laundryOpen}
+  <LaundryPage onclose={closeLaundry} onopenitem={(id) => (openItem = id)} />
+{/if}
+
+{#if seasonChange}
+  <SeasonChangeSheet onclose={() => (seasonChange = false)} />
 {/if}
 
 {#if showDuplicates}

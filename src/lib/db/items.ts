@@ -349,3 +349,38 @@ export async function bulkAddToOutfit(db: ArmadioDB, ids: string[], outfitId: st
     return { items: [], trips: [], outfits: [outfit] };
   });
 }
+
+// ---------- Lavanderia e cambio stagione (Fase 4) ----------
+
+/** Macchia pre-trattata: il capo resta "Da lavare" ma senza l'avviso. */
+export async function clearStain(db: ArmadioDB, id: string): Promise<void> {
+  await db.items.update(id, { hasStain: false, updatedAt: nowIso() });
+}
+
+/**
+ * Id della posizione con questa chiave (es. "seasonBox", "main").
+ * Se l'utente l'ha eliminata, la ricrea con il nome indicato.
+ */
+export async function ensureLocation(db: ArmadioDB, key: 'seasonBox' | 'main', name: string): Promise<string> {
+  return db.transaction('rw', db.lists, async () => {
+    const found = await db.lists
+      .where('kind')
+      .equals('location')
+      .filter((l) => l.extra.key === key)
+      .first();
+    if (found) return found.id;
+    const all = await db.lists.where('kind').equals('location').toArray();
+    const now = nowIso();
+    const id = newId();
+    await db.lists.add({
+      id,
+      kind: 'location',
+      name,
+      order: all.reduce((m, l) => Math.max(m, l.order), -1) + 1,
+      extra: { key },
+      createdAt: now,
+      updatedAt: now,
+    });
+    return id;
+  });
+}

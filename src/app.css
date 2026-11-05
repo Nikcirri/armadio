@@ -89,7 +89,7 @@
   --topbar-h: 56px;
   --navbar-h: 64px;
   --radius: 14px;
-  /* Livelli: pagine 5 · pulsante + 20 · fogli 40 · editor 70 · foto a schermo intero 75 ·
+  /* Livelli: pulsante + 20 · pagine 25 · fogli 40 · editor 70 · foto a schermo intero 75 ·
      attesa 80 · dialoghi 85 · toast 95. Un dialogo deve sempre stare sopra a tutto il resto. */
   color-scheme: light;
 }
