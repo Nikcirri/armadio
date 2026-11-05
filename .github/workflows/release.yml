@@ -42,8 +42,9 @@ jobs:
           if [ "$CODE" -lt 1 ]; then CODE=1; fi
           echo "APP_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
           echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
-          if gh release view "v$NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            echo "La Release v$NAME esiste già: niente da fare."
+          # Si salta solo se la Release esiste E contiene già l'APK (una Release rimasta a metà va completata).
+          if gh release view "v$NAME" --repo "$GITHUB_REPOSITORY" --json assets -q '.assets[].name' 2>/dev/null | grep -qx "Armadio-v$NAME.apk"; then
+            echo "La Release v$NAME con l'APK esiste già: niente da fare."
             echo "SKIP=true" >> "$GITHUB_ENV"
           else
             echo "Versione $NAME (codice $CODE) da pubblicare."
@@ -136,7 +137,9 @@ jobs:
           } >> out/notes.md
 
       - name: Pubblica la Release
+        id: publish
         if: env.SKIP != 'true'
+        continue-on-error: true
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.APP_VERSION_NAME }}
@@ -145,3 +148,24 @@ jobs:
           name: Armadio v${{ env.APP_VERSION_NAME }}
           body_path: out/notes.md
           files: out/Armadio-v${{ env.APP_VERSION_NAME }}.apk
+
+      # Se GitHub ha avuto un problema temporaneo, si riprova con la riga di comando (fino a 3 volte).
+      - name: Riprova la pubblicazione
+        if: env.SKIP != 'true' && steps.publish.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${APP_VERSION_NAME}"
+          FILE="out/Armadio-v${APP_VERSION_NAME}.apk"
+          for attempt in 1 2 3; do
+            echo "Tentativo $attempt"
+            sleep $((attempt * 20))
+            if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              gh release upload "$TAG" "$FILE" --clobber --repo "$GITHUB_REPOSITORY" && exit 0
+            else
+              gh release create "$TAG" "$FILE" --repo "$GITHUB_REPOSITORY" --title "Armadio ${TAG}" \
+                --notes-file out/notes.md --target "$GITHUB_SHA" --latest && exit 0
+            fi
+          done
+          echo "::error::Pubblicazione non riuscita dopo 3 tentativi"
+          exit 1
