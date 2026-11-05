@@ -1,13 +1,85 @@
-/* Palette "Sabbia" — le altre 3 palette arrivano nella Fase 1. */
-:root {
+/* Palette (SPEC.md, sezione 7): 4 palette × chiaro / scuro OLED.
+   Gli attributi data-palette e data-mode sono impostati su <html> da theme.svelte.ts. */
+:root,
+[data-palette='sabbia'] {
   --bg: #f5efe6;
   --surface: #fbf8f3;
   --surface-2: #ebe2d4;
   --text: #2b2520;
   --text-muted: #6f6357;
-  --accent: #8a6a4a;
-  --accent-contrast: #ffffff;
+  --accent: #7a5c3f;
   --border: #ddd2c2;
+}
+[data-palette='cipria'] {
+  --bg: #f8eeee;
+  --surface: #fdf8f7;
+  --surface-2: #f0dedd;
+  --text: #2e2224;
+  --text-muted: #77605f;
+  --accent: #8c4a55;
+  --border: #e6d0cf;
+}
+[data-palette='salvia'] {
+  --bg: #eef1ea;
+  --surface: #f8faf6;
+  --surface-2: #dde4d6;
+  --text: #222a22;
+  --text-muted: #5f6b5c;
+  --accent: #4d6449;
+  --border: #cfd8c8;
+}
+[data-palette='lavanda'] {
+  --bg: #f1eff7;
+  --surface: #faf9fd;
+  --surface-2: #e2deef;
+  --text: #26232f;
+  --text-muted: #67627a;
+  --accent: #62559a;
+  --border: #d6d1e8;
+}
+[data-mode='dark'][data-palette='sabbia'],
+[data-mode='dark']:not([data-palette]) {
+  --bg: #000000;
+  --surface: #121110;
+  --surface-2: #211e1b;
+  --text: #f1ebe3;
+  --text-muted: #b3a797;
+  --accent: #d2b48c;
+  --border: #2e2a26;
+}
+[data-mode='dark'][data-palette='cipria'] {
+  --bg: #000000;
+  --surface: #141011;
+  --surface-2: #241c1d;
+  --text: #f5e9ea;
+  --text-muted: #bfa5a7;
+  --accent: #e3a3aa;
+  --border: #33282a;
+}
+[data-mode='dark'][data-palette='salvia'] {
+  --bg: #000000;
+  --surface: #0f120f;
+  --surface-2: #1c221b;
+  --text: #e9efe6;
+  --text-muted: #a4b1a0;
+  --accent: #a8c49f;
+  --border: #283026;
+}
+[data-mode='dark'][data-palette='lavanda'] {
+  --bg: #000000;
+  --surface: #111018;
+  --surface-2: #1e1c28;
+  --text: #ece9f6;
+  --text-muted: #aca7c2;
+  --accent: #b7aef0;
+  --border: #2b2838;
+}
+
+:root {
+  --accent-contrast: #ffffff;
+  --danger: #b3261e;
+  --warning-bg: #fff4d6;
+  --warning-text: #6b4e00;
   --font-serif: 'Noto Serif', Georgia, 'Times New Roman', serif;
   --font-sans: system-ui, -apple-system, 'Roboto', 'Segoe UI', sans-serif;
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
@@ -16,21 +88,15 @@
   --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
   --topbar-h: 56px;
   --navbar-h: 64px;
+  --radius: 14px;
   color-scheme: light;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #000000;
-    --surface: #121110;
-    --surface-2: #211e1b;
-    --text: #f1ebe3;
-    --text-muted: #b3a797;
-    --accent: #d2b48c;
-    --accent-contrast: #1a1410;
-    --border: #2e2a26;
-    color-scheme: dark;
-  }
+[data-mode='dark'] {
+  --accent-contrast: #14110e;
+  --danger: #f2b8b5;
+  --warning-bg: #3a2f10;
+  --warning-text: #f3dc9b;
+  color-scheme: dark;
 }
 
 *,
@@ -63,7 +129,191 @@ button {
 input,
 select,
 textarea {
+  font: inherit;
   font-size: 16px;
+  color: var(--text);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+/* ---------- Componenti di base riutilizzabili ---------- */
+
+.btn {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+}
+.btn-danger {
+  background: transparent;
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+.btn-block {
+  width: 100%;
+}
+.icon-btn {
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text);
+}
+.icon-btn:disabled {
+  opacity: 0.3;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.field > span {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.input {
+  min-height: 48px;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.section-title {
+  margin: 24px 4px 8px;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.row {
+  min-height: 56px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.row:last-child {
+  border-bottom: 0;
+}
+.row .grow {
+  flex: 1;
+  min-width: 0;
+}
+.row .sub {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+.segmented button {
+  flex: 1;
+  min-height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+.segmented button[aria-pressed='true'] {
+  background: var(--surface);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
+}
+
+.note {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 8px 4px 0;
+}
+.warning {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--warning-bg);
+  color: var(--warning-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

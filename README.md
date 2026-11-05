@@ -16,7 +16,9 @@ Scarica e installa la nuova versione dallo stesso link: si installa sopra quella
 
 ## Backup
 
-Il backup arriva nella Fase 1. Ricorda: se disinstalli l'app, i dati vengono cancellati.
+Apri **Altro → Backup e dati → Esporta backup** e scegli dove salvarlo (per esempio Google Drive o una chat WhatsApp con te stesso). Per recuperare i dati: **Altro → Backup e dati → Ripristina da un backup** e scegli il file .zip.
+
+Ricorda: se disinstalli l'app, i dati vengono cancellati. Il backup è l'unica copia.
 
 ## Per chi sviluppa
 

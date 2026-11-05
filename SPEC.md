@@ -5,7 +5,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 ## 0. Ruolo e metodo
 - Agisci come Senior Mobile Engineer (app ibride con Capacitor) e Lead UI/UX Designer.
 - Lavori a fasi (sezione 13). In ogni fase implementi per intero ciò che la fase chiede: niente codice troncato, niente "// TODO", niente funzioni vuote o segnaposto.
-- Alla fine di ogni fase devono passare typecheck, lint, test automatici, build web e build Android. Poi aggiorni CHANGELOG.md e la versione in package.json e fai commit e push su main: GitHub Actions crea tag, APK e Release.
+- Alla fine di ogni fase devono passare typecheck, test automatici, build web e build Android. Poi aggiorni CHANGELOG.md e la versione in package.json e fai commit e push su main: GitHub Actions crea tag, APK e Release.
 - L'utente non è uno sviluppatore: quando deve fare qualcosa (Secrets di GitHub, installazione, prove), dagli istruzioni passo passo pensate per il telefono.
 
 ## 1. Obiettivo e vincoli
@@ -202,7 +202,7 @@ Tre schermate: nome; preset Donna, Uomo o Neutro; palette e tema. Poi la scelta 
 L'app non richiede mai internet. Unica eccezione: "Controlla aggiornamenti" interroga l'ultima Release del repository GitHub, confronta la versione e propone di scaricare il nuovo APK. Avviene quando l'utente tocca il pulsante e, se c'è connessione, al massimo una volta al giorno in silenzio. Nessun altro traffico di rete.
 
 ## 12. Qualità del codice
-- TypeScript strict, ESLint, Prettier. Codice e nomi in inglese; testi dell'interfaccia in italiano raccolti in un unico file di stringhe.
+- TypeScript strict con svelte-check. Codice e nomi in inglese; testi dell'interfaccia in italiano scritti direttamente nei componenti (l'app è solo in italiano), messaggi di errore per l'utente in `src/lib/errors.ts` e nei moduli di logica.
 - Tutta la logica (soglie di lavaggio, semaforo, generatore, calcolo valigia, statistiche, colori, migrazioni, unione dei backup) in funzioni pure con test Vitest.
 - Gestore errori globale: nessun crash, toast comprensibile e registro errori esportabile dalle Impostazioni.
 - README.md per l'utente: come installare, aggiornare e fare il backup. CHANGELOG.md aggiornato a ogni versione.
