@@ -12,6 +12,12 @@ function messageOf(e: unknown): string {
   }
 }
 
+/** Testo breve dell'errore, da mostrare tra parentesi quando aiuta a capire cosa è successo. */
+export function errorText(e: unknown): string {
+  const raw = e instanceof Error ? e.message : String(e);
+  return raw.length > 120 ? `${raw.slice(0, 117)}…` : raw;
+}
+
 /** Errori con un messaggio già pensato per l'utente. */
 export class UserError extends Error {
   constructor(message: string) {

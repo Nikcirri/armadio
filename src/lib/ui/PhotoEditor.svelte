@@ -15,7 +15,7 @@
   import { backgroundMask } from '../media/pipeline';
   import { aiCutout, aiCutoutSupported, installAiModule, isAiModuleReady } from '../media/segmentation';
   import { confirmDialog, registerOverlay, withBusy } from '../state/ui.svelte';
-  import { reportError } from '../errors';
+  import { errorText, reportError } from '../errors';
   import { tapFeedback } from '../platform';
   import Icon from './Icon.svelte';
 
@@ -90,7 +90,7 @@
   });
 
   function commit(next: { base?: Img; current: Img }) {
-    history = [...history.slice(-7), { base, current }];
+    history = [...history.slice(-4), { base, current }];
     if (next.base) base = next.base;
     current = next.current;
     changed = true;
@@ -261,7 +261,10 @@
       commit({ current: out });
       lastCutout = 'ai';
     } catch (e) {
-      reportError(e, 'Lo scontorno automatico non è riuscito: prova “Dagli angoli” o il pennello.');
+      reportError(
+        e,
+        `Lo scontorno automatico non è riuscito (${errorText(e)}). Prova “Dagli angoli” o il pennello.`,
+      );
     }
   }
 
@@ -308,7 +311,7 @@
       pan = { x: e.clientX, y: e.clientY, px: panX, py: panY };
       return;
     }
-    history = [...history.slice(-7), { base, current: cloneImg(current) }];
+    history = [...history.slice(-4), { base, current: cloneImg(current) }];
     changed = true;
     stroke = { last: toImage(e), data: new ImageData(current.data as Uint8ClampedArray<ArrayBuffer>, current.width, current.height) };
     paint(...stroke.last);

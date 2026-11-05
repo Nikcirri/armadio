@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import {
   adjustLight,
   applyBackgroundMask,
-  backgroundFromTint,
+  applyConfidence,
   brushStroke,
   centeredRect,
-  cleanMask,
+  resizeMask,
+  subjectShare,
   clampRect,
   cloneImg,
   copyAlpha,
@@ -176,56 +177,36 @@ function createImgFrom(img: Img): Img {
   return cloneImg(img);
 }
 
-describe('scontorno AI dal velo magenta del plugin', () => {
-  /** Simula il plugin: copre il capo con magenta al 50% e aggiunge un po' di rumore (JPEG/PNG). */
-  function tint(img: Img, isSubject: (x: number, y: number) => boolean): Img {
-    const out = cloneImg(img);
-    for (let y = 0; y < img.height; y++)
-      for (let x = 0; x < img.width; x++) {
-        const i = (y * img.width + x) * 4;
-        const noise = ((x * 31 + y * 17) % 7) - 3;
-        if (isSubject(x, y)) {
-          out.data[i] = (img.data[i]! + 255) / 2 + noise;
-          out.data[i + 1] = img.data[i + 1]! / 2 + noise;
-          out.data[i + 2] = (img.data[i + 2]! + 255) / 2 + noise;
-        } else {
-          out.data[i] = img.data[i]! + noise;
-          out.data[i + 1] = img.data[i + 1]! + noise;
-          out.data[i + 2] = img.data[i + 2]! + noise;
-        }
-      }
-    return out;
-  }
-  const inside = (x: number, y: number) => x > 15 && x < 45 && y > 15 && y < 65;
-
-  it('ricava la sagoma di un capo scuro su un copriletto fantasia', () => {
-    const img = createImg(60, 80);
-    for (let y = 0; y < 80; y++)
-      for (let x = 0; x < 60; x++)
-        setPx(img, x, y, inside(x, y) ? [30, 32, 38, 255] : (x + y) % 6 < 3 ? [200, 195, 180, 255] : [150, 145, 130, 255]);
-    const mask = backgroundFromTint(img, tint(img, inside));
-    let wrong = 0;
-    for (let y = 0; y < 80; y++) for (let x = 0; x < 60; x++) if (mask[y * 60 + x] !== (inside(x, y) ? 0 : 1)) wrong++;
-    expect(wrong).toBe(0);
+describe('scontorno AI: maschera di confidenza', () => {
+  it('ingrandisce la maschera mantenendo la forma', () => {
+    // 4×2: metà sinistra sfondo (0), metà destra capo (255).
+    const small = new Uint8Array([0, 0, 255, 255, 0, 0, 255, 255]);
+    const big = resizeMask(small, 4, 2, 40, 20);
+    expect(big).toHaveLength(800);
+    expect(big[10 * 40 + 2]).toBe(0);
+    expect(big[10 * 40 + 37]).toBe(255);
+    expect(big[10 * 40 + 20]).toBeGreaterThan(60);
+    expect(big[10 * 40 + 20]).toBeLessThan(200);
   });
 
-  it('funziona anche con capi chiari e colorati', () => {
-    for (const color of [[245, 245, 245], [230, 195, 55], [60, 90, 130], [200, 35, 40]] as const) {
-      const img = createImg(60, 80, [120, 110, 100, 255]);
-      for (let y = 0; y < 80; y++) for (let x = 0; x < 60; x++) if (inside(x, y)) setPx(img, x, y, [...color, 255]);
-      const mask = backgroundFromTint(img, tint(img, inside));
-      expect(mask[40 * 60 + 30], `capo ${color}`).toBe(0);
-      expect(mask[2 * 60 + 2], `sfondo ${color}`).toBe(1);
-    }
+  it('con la stessa dimensione copia la maschera', () => {
+    const m = new Uint8Array([1, 2, 3, 4]);
+    expect(Array.from(resizeMask(m, 2, 2, 2, 2))).toEqual([1, 2, 3, 4]);
+    expect(() => resizeMask(new Uint8Array(3), 2, 2, 4, 4)).toThrow();
   });
 
-  it('pulisce i puntini isolati', () => {
-    const m = new Uint8Array(25).fill(1);
-    m[12] = 0;
-    expect(cleanMask(m, 5, 5)[12]).toBe(1);
+  it('trasforma la confidenza in trasparenza con bordo morbido', () => {
+    const base = createImg(3, 1, [10, 20, 30, 255]);
+    const out = applyConfidence(base, new Uint8Array([20, 128, 240]));
+    expect(px(out, 0, 0)[3]).toBe(0);
+    expect(px(out, 1, 0)[3]).toBeGreaterThan(100);
+    expect(px(out, 1, 0)[3]).toBeLessThan(160);
+    expect(px(out, 2, 0)).toEqual([10, 20, 30, 255]);
+    expect(() => applyConfidence(base, new Uint8Array(2))).toThrow();
   });
 
-  it('rifiuta immagini di dimensioni diverse', () => {
-    expect(() => backgroundFromTint(createImg(2, 2), createImg(3, 2))).toThrow();
+  it('misura quanta parte della foto è capo', () => {
+    expect(subjectShare(new Uint8Array([0, 255, 255, 10]))).toBe(0.5);
+    expect(subjectShare(new Uint8Array([]))).toBe(0);
   });
 });

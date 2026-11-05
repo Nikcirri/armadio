@@ -1,5 +1,12 @@
 # Novità
 
+## [0.2.2] - 2026-11-05
+
+- Corretto: lo scontorno automatico poteva far chiudere l'app. Ora usa un componente nativo dell'app che lavora in secondo piano su una copia ridotta della foto, senza bloccare lo schermo.
+- Bordi dello scontorno più morbidi e naturali (l'AI indica quanto è sicura per ogni punto).
+- Se lo scontorno non riesce, il messaggio mostra il motivo tra parentesi.
+- L'editor usa meno memoria (tiene gli ultimi 5 passi da annullare).
+
 ## [0.2.1] - 2026-11-05
 
 - Corretto: il pulsante "Automatico (AI)" sembrava non fare nulla perché la domanda per scaricare il modulo compariva dietro l'editor. Ora i dialoghi stanno sempre sopra a tutto (vale anche per "Ripristina originale" e "Uscire senza salvare?").

@@ -4,10 +4,12 @@ import {
   GoogleSubjectSegmentationModuleInstallState as InstallState,
   SubjectSegmentation,
 } from '@capacitor-mlkit/subject-segmentation';
-import { applyBackgroundMask, backgroundFromTint, cleanMask, type Img } from '../logic/imageOps';
+import { applyConfidence, resizeMask, subjectShare, type Img } from '../logic/imageOps';
 import { u8ToBase64 } from '../backup/device';
 import { UserError } from '../errors';
-import { decodeBlob, imgToPngBlob, resizeImg } from './pipeline';
+import { Cutout, base64ToBytes } from './cutoutPlugin';
+import { fitSize } from './constants';
+import { imgToJpegBlob, resizeImg } from './pipeline';
 
 // Scontorno AI sul telefono con ML Kit Subject Segmentation (solo app Android).
 // Il modulo di Google si scarica una volta sola (serve internet), poi funziona offline.
@@ -56,36 +58,33 @@ export async function installAiModule(onProgress?: (percent: number) => void): P
   }
 }
 
+/** Lato lungo della copia passata all'AI: abbastanza per una sagoma precisa, poca memoria. */
+const AI_MAX_SIDE = 1024;
+
 /**
- * Restituisce `base` con lo sfondo trasparente.
- * Il plugin restituisce la foto con il capo velato di magenta: la sagoma si ricava confrontandola con l'originale.
+ * Restituisce `base` con lo sfondo trasparente calcolato dall'AI sul telefono.
+ * L'AI lavora su una copia ridotta (file temporaneo nella cache); la sagoma viene poi
+ * ingrandita alla dimensione della foto con bordi morbidi.
  */
 export async function aiCutout(base: Img): Promise<Img> {
-  const png = await imgToPngBlob(base);
-  const name = `cutout-${Date.now()}.png`;
+  const size = fitSize(base.width, base.height, AI_MAX_SIDE);
+  const small = resizeImg(base, size.width, size.height);
+  const jpeg = await imgToJpegBlob(small, 0.92);
+  const name = `cutout-${Date.now()}.jpg`;
   await Filesystem.writeFile({
     path: name,
     directory: Directory.Cache,
-    data: u8ToBase64(new Uint8Array(await png.arrayBuffer())),
+    data: u8ToBase64(new Uint8Array(await jpeg.arrayBuffer())),
   });
-  const { uri } = await Filesystem.getUri({ path: name, directory: Directory.Cache });
-  let outputPath: string | null = null;
   try {
-    const result = await SubjectSegmentation.processImage({ path: uri, confidence: 0.5 });
-    outputPath = result.path.startsWith('file://') ? result.path : `file://${result.path}`;
-    const res = await fetch(Capacitor.convertFileSrc(outputPath));
-    if (!res.ok) throw new Error(`Risultato dello scontorno non leggibile (${res.status})`);
-    const tinted = await decodeBlob(await res.blob(), Math.max(result.width, result.height, base.width, base.height));
-    const aligned = resizeImg(tinted, base.width, base.height);
-    const mask = cleanMask(backgroundFromTint(base, aligned), base.width, base.height);
-    let bg = 0;
-    for (let i = 0; i < mask.length; i++) bg += mask[i]!;
-    if (bg / mask.length > 0.985) {
+    const { uri } = await Filesystem.getUri({ path: name, directory: Directory.Cache });
+    const res = await Cutout.segment({ path: uri, maxSide: AI_MAX_SIDE });
+    const mask = resizeMask(base64ToBytes(res.mask), res.width, res.height, base.width, base.height);
+    if (subjectShare(mask) < 0.015) {
       throw new UserError('Non ho trovato nessun capo nella foto. Prova “Dagli angoli” o il pennello.');
     }
-    return applyBackgroundMask(base, mask);
+    return applyConfidence(base, mask);
   } finally {
     await Filesystem.deleteFile({ path: name, directory: Directory.Cache }).catch(() => undefined);
-    if (outputPath) await Filesystem.deleteFile({ path: outputPath }).catch(() => undefined);
   }
 }
