@@ -121,7 +121,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Ricerca su nome, brand, note e tessuto. Filtri combinabili a chip: categoria, stato, posizione (con interruttore "nascondi scatola cambio stagione"), proprietario, colore, stagione, pesantezza, taglio, occasione, preferiti. Contatore dei risultati e "Azzera filtri".
 - Ordinamento: più recenti, più indossati, meno indossati, non indossati da più tempo, miglior costo per utilizzo, nome A-Z, prezzo.
 - Controlla doppioni: gruppi di capi con stessa categoria e stesso colore principale (e tessuto simile), confrontati anche con la wishlist.
-- Selezione multipla: cambia stato, sposta posizione, metti in valigia (scegli il viaggio), aggiungi a un outfit, elimina. Ogni azione di massa ha "Annulla".
+- Selezione multipla: si attiva con il pulsante "Seleziona" oppure tenendo premuto un capo (che risulta già selezionato, con una leggera vibrazione). Azioni: cambia stato, sposta posizione, metti in valigia (scegli il viaggio), aggiungi a un outfit, elimina. Ogni azione di massa ha "Annulla".
 - Cambio stagione guidato: scegli la stagione da riporre → anteprima dei capi → sposta in "Scatola cambio stagione"; operazione inversa per tirarli fuori.
 - Scheda capo (foglio a tutta altezza, sempre modificabile, salvataggio esplicito con avviso se esci senza salvare):
   - foto (fino a 4) con lightbox ed editor, preferito;

@@ -33,6 +33,7 @@
   import PhotoThumb from '../lib/ui/PhotoThumb.svelte';
   import PickerSheet from '../lib/ui/PickerSheet.svelte';
   import TabIcon from '../lib/ui/TabIcon.svelte';
+  import { longpress } from '../lib/ui/longpress';
   import BatchReviewSheet from './armadio/BatchReviewSheet.svelte';
   import CategoryPickerSheet from './armadio/CategoryPickerSheet.svelte';
   import DuplicatesSheet from './armadio/DuplicatesSheet.svelte';
@@ -95,6 +96,17 @@
     }
     selected = selected.includes(item.id) ? selected.filter((id) => id !== item.id) : [...selected, item.id];
     void tapFeedback();
+  }
+
+  /** Tenendo premuto un capo si entra nella selezione con quel capo già scelto. */
+  function onLongPress(item: ItemRecord) {
+    if (!selecting) {
+      selecting = true;
+      selected = [item.id];
+    } else if (!selected.includes(item.id)) {
+      selected = [...selected, item.id];
+    }
+    void tapFeedback('medium');
   }
 
   function selectAllVisible() {
@@ -351,7 +363,13 @@
           {@const b = badge(item)}
           {@const isSel = selected.includes(item.id)}
           <li>
-            <button class="tile" class:sel={isSel} aria-pressed={selecting ? isSel : undefined} onclick={() => onTile(item)}>
+            <button
+              class="tile"
+              class:sel={isSel}
+              aria-pressed={selecting ? isSel : undefined}
+              onclick={() => onTile(item)}
+              use:longpress={{ onlong: () => onLongPress(item) }}
+            >
               <span class="pic">
                 <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
                 {#if item.favorite}<span class="fav" aria-label="Preferito">❤️</span>{/if}
@@ -583,6 +601,10 @@
     flex-direction: column;
     gap: 4px;
     cursor: pointer;
+    /* Tenendo premuto: niente selezione del testo né menu dell'immagine. */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
   .pic {
     position: relative;

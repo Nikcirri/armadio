@@ -1,5 +1,10 @@
 # Novità
 
+## [0.3.1] - 2026-11-06
+
+- Tenendo premuto un capo si attiva la selezione multipla con quel capo già selezionato (con una leggera vibrazione). Poi basta toccare gli altri capi per aggiungerli.
+- Se mentre tieni premuto stai scorrendo la lista, la selezione non parte.
+
 ## [0.3.0] - 2026-11-05
 
 - Armadio: ricerca per nome, brand, tessuto, taglia e note (anche senza accenti).
