@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { busy } from '../state/ui.svelte';
+  import { busy, cancelBusy } from '../state/ui.svelte';
 
   const percent = $derived(busy.total > 0 ? Math.round((busy.done / busy.total) * 100) : null);
 </script>
@@ -12,6 +12,11 @@
       {#if percent !== null}
         <div class="bar"><div style:width="{percent}%"></div></div>
         <p class="count">{busy.done} di {busy.total}</p>
+      {/if}
+      {#if busy.cancellable}
+        <button class="btn btn-ghost cancel" disabled={busy.cancelled} onclick={cancelBusy}>
+          {busy.cancelled ? 'Mi fermo…' : 'Annulla'}
+        </button>
       {/if}
     </div>
   </div>
@@ -35,6 +40,9 @@
   }
   p {
     margin: 12px 0 0;
+  }
+  .cancel {
+    margin-top: 12px;
   }
   .count {
     font-size: 0.875rem;

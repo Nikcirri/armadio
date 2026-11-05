@@ -1,7 +1,6 @@
-/** Dimensioni di salvataggio (SPEC.md, sezione 6). */
-export const MAIN_MAX_SIDE = 1200;
-export const THUMB_MAX_SIDE = 320;
-export const WEBP_QUALITY = 0.8;
+import { MAIN_MAX_SIDE, THUMB_MAX_SIDE, WEBP_QUALITY } from './constants';
+
+export { MAIN_MAX_SIDE, THUMB_MAX_SIDE, WEBP_QUALITY };
 
 /** Converte un canvas in Blob WebP (PNG se il WebP non è supportato). */
 export function canvasToBlob(canvas: HTMLCanvasElement, quality = WEBP_QUALITY): Promise<Blob> {

@@ -112,26 +112,52 @@ export function resolveDialog(ok: boolean): void {
 
 // ---------- Attesa con avanzamento ----------
 
-export const busy = $state<{ message: string | null; done: number; total: number }>({
+export const busy = $state<{
+  message: string | null;
+  done: number;
+  total: number;
+  cancellable: boolean;
+  cancelled: boolean;
+}>({
   message: null,
   done: 0,
   total: 0,
+  cancellable: false,
+  cancelled: false,
 });
 
-/** Mostra un'attesa bloccante mentre `fn` lavora. */
+/**
+ * Mostra un'attesa bloccante mentre `fn` lavora.
+ * Con `cancellable` compare il tasto Annulla: `fn` controlla `isCancelled()` tra un passo e l'altro.
+ */
 export async function withBusy<T>(
   message: string,
-  fn: (progress: (done: number, total: number) => void) => Promise<T>,
+  fn: (progress: (done: number, total: number) => void, isCancelled: () => boolean) => Promise<T>,
+  opts: { cancellable?: boolean } = {},
 ): Promise<T> {
   busy.message = message;
   busy.done = 0;
   busy.total = 0;
+  busy.cancellable = opts.cancellable ?? false;
+  busy.cancelled = false;
   try {
-    return await fn((done, total) => {
-      busy.done = done;
-      busy.total = total;
-    });
+    return await fn(
+      (done, total) => {
+        busy.done = done;
+        busy.total = total;
+      },
+      () => busy.cancelled,
+    );
   } finally {
     busy.message = null;
+    busy.cancellable = false;
   }
+}
+
+export function setBusyMessage(message: string): void {
+  if (busy.message !== null) busy.message = message;
+}
+
+export function cancelBusy(): void {
+  busy.cancelled = true;
 }

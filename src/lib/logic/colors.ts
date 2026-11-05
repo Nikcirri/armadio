@@ -1,0 +1,204 @@
+import type { ColorId } from '../db/types';
+
+// SPEC.md, sezione 6: palette dei colori dei capi.
+export interface PaletteColor {
+  id: ColorId;
+  label: string;
+  hex: string;
+  neutral: boolean;
+  /** Escluso dal rilevamento automatico (difficile da riconoscere in foto). */
+  manualOnly?: boolean;
+}
+
+export const GARMENT_COLORS: readonly PaletteColor[] = [
+  { id: 'black', label: 'Nero', hex: '#1c1c1e', neutral: true },
+  { id: 'white', label: 'Bianco', hex: '#f7f7f5', neutral: true },
+  { id: 'cream', label: 'Panna/Beige', hex: '#e3d3b4', neutral: true },
+  { id: 'grey', label: 'Grigio', hex: '#9a9a9e', neutral: true },
+  { id: 'navy', label: 'Blu navy', hex: '#1f2f56', neutral: true },
+  { id: 'denim', label: 'Azzurro/Denim', hex: '#5b7fae', neutral: true },
+  { id: 'green', label: 'Verde', hex: '#3f8f4f', neutral: false },
+  { id: 'olive', label: 'Oliva', hex: '#6b6b35', neutral: false },
+  { id: 'red', label: 'Rosso', hex: '#c62f2f', neutral: false },
+  { id: 'burgundy', label: 'Bordeaux', hex: '#6d1f2f', neutral: false },
+  { id: 'pink', label: 'Rosa', hex: '#e79ab4', neutral: false },
+  { id: 'yellow', label: 'Giallo', hex: '#e9c93b', neutral: false },
+  { id: 'orange', label: 'Arancio', hex: '#e07a2e', neutral: false },
+  { id: 'purple', label: 'Viola', hex: '#7a4a9e', neutral: false },
+  { id: 'brown', label: 'Marrone/Cuoio', hex: '#7a5032', neutral: true },
+  { id: 'metallic', label: 'Oro/Argento', hex: '#c8b273', neutral: false, manualOnly: true },
+  { id: 'pattern', label: 'Fantasia', hex: '#888888', neutral: false, manualOnly: true },
+];
+
+export function colorInfo(id: ColorId): PaletteColor {
+  return GARMENT_COLORS.find((c) => c.id === id) ?? GARMENT_COLORS[0]!;
+}
+
+export type Lab = [number, number, number];
+
+function srgbToLinear(c: number): number {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+}
+
+/** Converte RGB (0-255) nello spazio colore CIE Lab (D65). */
+export function rgbToLab(r: number, g: number, b: number): Lab {
+  const R = srgbToLinear(r);
+  const G = srgbToLinear(g);
+  const B = srgbToLinear(b);
+  const x = (R * 0.4124 + G * 0.3576 + B * 0.1805) / 0.95047;
+  const y = R * 0.2126 + G * 0.7152 + B * 0.0722;
+  const z = (R * 0.0193 + G * 0.1192 + B * 0.9505) / 1.08883;
+  const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116);
+  const fx = f(x);
+  const fy = f(y);
+  const fz = f(z);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+export function hexToRgb(hex: string): [number, number, number] {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+/** Distanza percettiva tra due colori (CIE76). */
+export function deltaE(a: Lab, b: Lab): number {
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+
+const PALETTE_LAB: { id: ColorId; lab: Lab }[] = GARMENT_COLORS.filter((c) => !c.manualOnly).map((c) => ({
+  id: c.id,
+  lab: rgbToLab(...hexToRgb(c.hex)),
+}));
+
+/** Colore della palette più vicino. */
+export function nearestColor(lab: Lab): ColorId {
+  let best = PALETTE_LAB[0]!;
+  let bestD = Infinity;
+  for (const p of PALETTE_LAB) {
+    const d = deltaE(lab, p.lab);
+    if (d < bestD) {
+      bestD = d;
+      best = p;
+    }
+  }
+  return best.id;
+}
+
+/** Generatore pseudo-casuale con seme: stesso input, stesso risultato. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+export interface Cluster {
+  center: Lab;
+  count: number;
+}
+
+/** k-means con inizializzazione k-means++ (deterministico). */
+export function kmeans(points: readonly Lab[], k: number, iterations = 12, seed = 42): Cluster[] {
+  if (points.length === 0) return [];
+  const rand = mulberry32(seed);
+  const kk = Math.min(k, points.length);
+  const centers: Lab[] = [points[Math.floor(rand() * points.length)]!];
+  while (centers.length < kk) {
+    const d2 = points.map((p) => Math.min(...centers.map((c) => deltaE(p, c) ** 2)));
+    const sum = d2.reduce((a, b) => a + b, 0);
+    if (sum === 0) break;
+    let r = rand() * sum;
+    let idx = 0;
+    for (; idx < d2.length - 1; idx++) {
+      r -= d2[idx]!;
+      if (r <= 0) break;
+    }
+    centers.push(points[idx]!);
+  }
+  const assign = new Int32Array(points.length);
+  for (let it = 0; it < iterations; it++) {
+    for (let i = 0; i < points.length; i++) {
+      let best = 0;
+      let bestD = Infinity;
+      for (let c = 0; c < centers.length; c++) {
+        const d = deltaE(points[i]!, centers[c]!);
+        if (d < bestD) {
+          bestD = d;
+          best = c;
+        }
+      }
+      assign[i] = best;
+    }
+    const sums = centers.map(() => [0, 0, 0, 0]);
+    for (let i = 0; i < points.length; i++) {
+      const s = sums[assign[i]!]!;
+      const p = points[i]!;
+      s[0]! += p[0];
+      s[1]! += p[1];
+      s[2]! += p[2];
+      s[3]! += 1;
+    }
+    sums.forEach((s, c) => {
+      if (s[3]! > 0) centers[c] = [s[0]! / s[3]!, s[1]! / s[3]!, s[2]! / s[3]!];
+    });
+  }
+  const counts = centers.map(() => 0);
+  for (let i = 0; i < points.length; i++) counts[assign[i]!]! += 1;
+  return centers.map((center, i) => ({ center, count: counts[i]! })).filter((c) => c.count > 0);
+}
+
+export interface PixelSource {
+  width: number;
+  height: number;
+  data: Uint8ClampedArray;
+}
+
+/**
+ * Campiona i pixel della parte centrale (esclude il 12% di bordo) ignorando quelli trasparenti.
+ * Restituisce al massimo ~3000 punti in Lab.
+ */
+export function samplePixels(img: PixelSource, border = 0.12, maxPoints = 3000): Lab[] {
+  const x0 = Math.floor(img.width * border);
+  const x1 = Math.ceil(img.width * (1 - border));
+  const y0 = Math.floor(img.height * border);
+  const y1 = Math.ceil(img.height * (1 - border));
+  const area = Math.max(1, (x1 - x0) * (y1 - y0));
+  const step = Math.max(1, Math.floor(Math.sqrt(area / maxPoints)));
+  const out: Lab[] = [];
+  for (let y = y0; y < y1; y += step) {
+    for (let x = x0; x < x1; x += step) {
+      const i = (y * img.width + x) * 4;
+      if ((img.data[i + 3] ?? 0) < 200) continue;
+      out.push(rgbToLab(img.data[i]!, img.data[i + 1]!, img.data[i + 2]!));
+    }
+  }
+  return out;
+}
+
+/**
+ * Colori probabili del capo: il principale e, se occupa almeno il 25%, un secondo.
+ * Se ci sono 3 colori diversi ciascuno sopra il 18% aggiunge "Fantasia".
+ */
+export function detectColors(img: PixelSource): ColorId[] {
+  const points = samplePixels(img);
+  if (points.length < 20) return [];
+  const clusters = kmeans(points, 4);
+  const total = clusters.reduce((a, c) => a + c.count, 0);
+  const shares = new Map<ColorId, number>();
+  for (const c of clusters) {
+    const id = nearestColor(c.center);
+    shares.set(id, (shares.get(id) ?? 0) + c.count / total);
+  }
+  const ranked = [...shares.entries()].sort((a, b) => b[1] - a[1]);
+  const result: ColorId[] = [ranked[0]![0]];
+  const second = ranked[1];
+  if (second && second[1] >= 0.25) result.push(second[0]);
+  const strong = ranked.filter(([, s]) => s >= 0.18);
+  if (strong.length >= 3) result.push('pattern');
+  return result;
+}

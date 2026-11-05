@@ -15,6 +15,7 @@
   import Toast from './lib/ui/Toast.svelte';
   import TopBar from './lib/ui/TopBar.svelte';
   import Altro from './views/Altro.svelte';
+  import Armadio from './views/Armadio.svelte';
   import ComingSoon from './views/ComingSoon.svelte';
   import Onboarding from './views/Onboarding.svelte';
 
@@ -100,6 +101,8 @@
     <main class="content">
       {#if activeId === 'altro'}
         <Altro />
+      {:else if activeId === 'armadio'}
+        <Armadio />
       {:else}
         {#key activeId}
           <ComingSoon tab={activeTab} />
