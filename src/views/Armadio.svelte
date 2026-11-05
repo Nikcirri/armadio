@@ -1,42 +1,107 @@
 <script lang="ts">
   import { db } from '../lib/db';
-  import { addItem, addPhotoToItem } from '../lib/db/items';
-  import { getCategories } from '../lib/db/repo';
-  import type { CategoryRecord, ItemRecord } from '../lib/db/types';
+  import {
+    addItem,
+    addPhotoToItem,
+    bulkAddToOutfit,
+    bulkAddToTrip,
+    bulkSetLocation,
+    bulkSetStatus,
+    restoreBulk,
+    type BulkSnapshot,
+  } from '../lib/db/items';
+  import { deleteItemCascade, getCategories, restoreItemDeletion, type ItemDeletionSnapshot } from '../lib/db/repo';
+  import type { CategoryRecord, ItemRecord, ItemStatus, ListRecord, OutfitRecord, TripRecord, WishlistRecord } from '../lib/db/types';
   import type { Img } from '../lib/logic/imageOps';
   import { draftNames } from '../lib/logic/itemPhotos';
+  import { SORTS, activeFilterCount, filterItems, findDuplicates, needsWash, sortItems, type ItemSort } from '../lib/logic/items';
+  import { STATUSES, statusInfo } from '../lib/logic/labels';
+  import { formatDateIt } from '../lib/logic/util';
   import { MAX_BATCH, chooseFromGallery, takePhoto } from '../lib/media/acquire';
   import { bumpPhoto } from '../lib/media/photoCache.svelte';
   import { loadPhotoImg, replacePhoto, storePhoto } from '../lib/media/photos';
   import { colorsOf, decodeBlob } from '../lib/media/pipeline';
+  import { tapFeedback } from '../lib/platform';
   import { live } from '../lib/state/live.svelte';
-  import { showToast, withBusy } from '../lib/state/ui.svelte';
+  import { registerOverlay, confirmDialog, showToast, showUndoToast, withBusy } from '../lib/state/ui.svelte';
+  import { resetWardrobeFilters, wardrobeView } from '../lib/state/wardrobe.svelte';
   import { reportError } from '../lib/errors';
   import Fab, { type FabAction } from '../lib/ui/Fab.svelte';
+  import Icon from '../lib/ui/Icon.svelte';
   import Lightbox from '../lib/ui/Lightbox.svelte';
   import PhotoEditor from '../lib/ui/PhotoEditor.svelte';
   import PhotoThumb from '../lib/ui/PhotoThumb.svelte';
+  import PickerSheet from '../lib/ui/PickerSheet.svelte';
   import TabIcon from '../lib/ui/TabIcon.svelte';
   import BatchReviewSheet from './armadio/BatchReviewSheet.svelte';
   import CategoryPickerSheet from './armadio/CategoryPickerSheet.svelte';
-  import ItemPhotosSheet from './armadio/ItemPhotosSheet.svelte';
+  import DuplicatesSheet from './armadio/DuplicatesSheet.svelte';
+  import FiltersSheet from './armadio/FiltersSheet.svelte';
+  import ItemSheet from './armadio/ItemSheet.svelte';
   import QuickAddSheet from './armadio/QuickAddSheet.svelte';
 
   type EditorState =
     | { kind: 'new'; img: Img }
     | { kind: 'existing'; img: Img; itemId: string; photoId: string }
     | { kind: 'addToItem'; img: Img; itemId: string };
+  type BulkPicker = 'status' | 'location' | 'trip' | 'outfit' | null;
 
-  const items = live(() => db.items.orderBy('createdAt').reverse().toArray(), [] as ItemRecord[]);
+  const items = live(() => db.items.toArray(), [] as ItemRecord[]);
   const categories = live(() => getCategories(db), [] as CategoryRecord[]);
+  const lists = live(() => db.lists.toArray(), [] as ListRecord[]);
+  const trips = live(() => db.trips.filter((t) => t.status !== 'done').toArray(), [] as TripRecord[]);
+  const outfits = live(() => db.outfits.toArray(), [] as OutfitRecord[]);
+  const wishlist = live(() => db.wishlist.toArray(), [] as WishlistRecord[]);
 
-  // $state.raw: le immagini sono grandi array di pixel, non servono proxy reattivi.
   let editor = $state.raw<EditorState | null>(null);
   let quickAdd = $state.raw<{ img: Img } | null>(null);
   let pickingBatch = $state(false);
   let review = $state.raw<string[] | null>(null);
   let openItem = $state<string | null>(null);
   let lightbox = $state.raw<{ photoIds: string[]; index: number; name: string } | null>(null);
+  let showFilters = $state(false);
+  let showDuplicates = $state(false);
+  let selecting = $state(false);
+  let selected = $state<string[]>([]);
+  let bulkPicker = $state<BulkPicker>(null);
+
+  const seasonBoxId = $derived(lists.value.find((l) => l.kind === 'location' && l.extra.key === 'seasonBox')?.id ?? null);
+  const filters = $derived(wardrobeView.filters);
+  const visible = $derived(sortItems(filterItems(items.value, filters, seasonBoxId), wardrobeView.sort));
+  const hiddenInBox = $derived(
+    filters.hideSeasonBox && seasonBoxId && !filters.locationIds.includes(seasonBoxId)
+      ? items.value.filter((i) => i.locationId === seasonBoxId).length
+      : 0,
+  );
+  const filterCount = $derived(activeFilterCount(filters));
+  const catById = $derived(new Map(categories.value.map((c) => [c.id, c])));
+  const duplicates = $derived(findDuplicates(items.value, wishlist.value));
+
+  // Modalità selezione: il tasto Indietro la chiude.
+  $effect(() => {
+    if (!selecting) return;
+    return registerOverlay(() => exitSelection());
+  });
+
+  function exitSelection() {
+    selecting = false;
+    selected = [];
+  }
+
+  function onTile(item: ItemRecord) {
+    if (!selecting) {
+      openItem = item.id;
+      return;
+    }
+    selected = selected.includes(item.id) ? selected.filter((id) => id !== item.id) : [...selected, item.id];
+    void tapFeedback();
+  }
+
+  function selectAllVisible() {
+    selected = selected.length === visible.length ? [] : visible.map((i) => i.id);
+  }
+
+  // ---------- Foto e nuovi capi ----------
 
   async function acquireOne(source: 'camera' | 'gallery'): Promise<Img | null> {
     const blob = source === 'camera' ? await takePhoto() : (await chooseFromGallery(false))[0];
@@ -102,8 +167,7 @@
       return;
     }
     if (!blobs.length) return;
-    const existing = (await db.items.toArray()).map((i) => i.name);
-    const names = draftNames(category.name, blobs.length, existing);
+    const names = draftNames(category.name, blobs.length, items.value.map((i) => i.name));
     const created: string[] = [];
     let failed = 0;
     await withBusy(
@@ -131,19 +195,89 @@
     if (created.length) review = created;
   }
 
+  // ---------- Azioni di massa ----------
+
+  function afterBulk(message: string, snap: BulkSnapshot) {
+    const n = selected.length;
+    exitSelection();
+    bulkPicker = null;
+    showUndoToast(message.replace('{n}', n === 1 ? '1 capo' : `${n} capi`), () => restoreBulk(db, snap));
+  }
+
+  async function applyStatus(id: string) {
+    const status = id as ItemStatus;
+    try {
+      afterBulk(`{n} → ${statusInfo(status).label}`, await bulkSetStatus(db, [...selected], status));
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  async function applyLocation(id: string) {
+    const name = lists.value.find((l) => l.id === id)?.name ?? '';
+    try {
+      afterBulk(`{n} spostati in ${name}`, await bulkSetLocation(db, [...selected], id));
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  async function applyTrip(id: string) {
+    const name = trips.value.find((t) => t.id === id)?.name ?? '';
+    try {
+      afterBulk(`{n} in valigia per ${name}`, await bulkAddToTrip(db, [...selected], id));
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  async function applyOutfit(id: string) {
+    const name = outfits.value.find((o) => o.id === id)?.name ?? '';
+    try {
+      afterBulk(`{n} aggiunti a “${name}”`, await bulkAddToOutfit(db, [...selected], id));
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
+  async function bulkDelete() {
+    const ids = [...selected];
+    const ok = await confirmDialog({
+      title: ids.length === 1 ? 'Eliminare 1 capo?' : `Eliminare ${ids.length} capi?`,
+      message: 'Vengono tolti anche da outfit, viaggi e agenda. Lo storico di quando li hai indossati resta.',
+      confirmLabel: 'Elimina',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      const snaps: ItemDeletionSnapshot[] = [];
+      for (const id of ids) snaps.push(await deleteItemCascade(db, id));
+      exitSelection();
+      showUndoToast(ids.length === 1 ? '1 capo eliminato' : `${ids.length} capi eliminati`, async () => {
+        for (const s of snaps.reverse()) await restoreItemDeletion(db, s);
+      });
+    } catch (e) {
+      reportError(e);
+    }
+  }
+
   const actions: FabAction[] = [
     { label: 'Scatta foto', hint: 'Fotocamera posteriore', run: () => void newItem('camera') },
     { label: 'Dalla galleria', hint: 'Una foto o uno screenshot', run: () => void newItem('gallery') },
     { label: 'Multi-foto', hint: `Fino a ${MAX_BATCH} capi in una volta`, run: () => (pickingBatch = true) },
   ];
 
-  const catById = $derived(new Map(categories.value.map((c) => [c.id, c])));
+  function badge(item: ItemRecord): string | null {
+    if (item.status !== 'clean') return `${statusInfo(item.status).emoji} ${statusInfo(item.status).short}`;
+    if (needsWash(item)) return '🧺 Da lavare presto';
+    return null;
+  }
 </script>
 
 <div class="armadio">
   {#if items.ready && items.value.length === 0}
     <section class="empty">
-      <div class="badge"><TabIcon tab="armadio" size={36} /></div>
+      <div class="badge-big"><TabIcon tab="armadio" size={36} /></div>
       <h1>Il tuo armadio è vuoto</h1>
       <p>Aggiungi il primo capo con una foto. Puoi anche caricarne fino a {MAX_BATCH} in una volta.</p>
       <div class="cta">
@@ -153,35 +287,169 @@
       </div>
     </section>
   {:else}
-    <div class="head">
-      <h1>Armadio</h1>
-      <span class="count">{items.value.length} {items.value.length === 1 ? 'capo' : 'capi'}</span>
-    </div>
-    <p class="note">Ricerca, filtri e scheda completa arrivano con la Fase 3.</p>
-    <ul class="grid">
-      {#each items.value as item (item.id)}
-        <li>
-          <button class="tile" onclick={() => (openItem = item.id)}>
-            <span class="pic"><PhotoThumb photoId={item.photoIds[0]} alt={item.name} /></span>
-            <span class="name">{item.name}</span>
-            <span class="cat">{catById.get(item.categoryId)?.name ?? ''}</span>
+    {#if selecting}
+      <div class="selbar">
+        <button class="icon-btn" aria-label="Esci dalla selezione" onclick={exitSelection}><Icon name="close" /></button>
+        <strong class="grow">{selected.length} {selected.length === 1 ? 'selezionato' : 'selezionati'}</strong>
+        <button class="btn btn-ghost small" onclick={selectAllVisible}>
+          {selected.length === visible.length && visible.length > 0 ? 'Nessuno' : 'Tutti'}
+        </button>
+      </div>
+    {:else}
+      <div class="toolbar">
+        <label class="search">
+          <span class="visually-hidden">Cerca</span>
+          <input
+            class="input"
+            type="search"
+            placeholder="Cerca per nome, brand, tessuto…"
+            value={filters.query}
+            oninput={(e) => (wardrobeView.filters = { ...filters, query: e.currentTarget.value })}
+          />
+        </label>
+        <div class="tools">
+          <button class="tool" class:active={filterCount > 0} onclick={() => (showFilters = true)}>
+            Filtri{filterCount ? ` (${filterCount})` : ''}
           </button>
-        </li>
-      {/each}
-    </ul>
+          <label class="tool sort">
+            <span class="visually-hidden">Ordina</span>
+            <select value={wardrobeView.sort} onchange={(e) => (wardrobeView.sort = e.currentTarget.value as ItemSort)}>
+              {#each SORTS as s (s.id)}<option value={s.id}>{s.label}</option>{/each}
+            </select>
+          </label>
+          <button class="tool" onclick={() => (selecting = true)}>Seleziona</button>
+          <button class="tool" onclick={() => (showDuplicates = true)}>
+            Doppioni{duplicates.length ? ` (${duplicates.length})` : ''}
+          </button>
+        </div>
+      </div>
+    {/if}
+
+    <div class="summary">
+      <span>{visible.length} di {items.value.length} {items.value.length === 1 ? 'capo' : 'capi'}</span>
+      {#if filterCount > 0 || filters.query}
+        <button class="link" onclick={() => { resetWardrobeFilters(); wardrobeView.filters = { ...wardrobeView.filters, query: '' }; }}>
+          Azzera filtri
+        </button>
+      {/if}
+    </div>
+    {#if hiddenInBox > 0}
+      <p class="note hint">
+        {hiddenInBox === 1 ? '1 capo è nella scatola cambio stagione ed è nascosto.' : `${hiddenInBox} capi sono nella scatola cambio stagione e sono nascosti.`}
+        <button class="link" onclick={() => (wardrobeView.filters = { ...filters, hideSeasonBox: false })}>Mostrali</button>
+      </p>
+    {/if}
+
+    {#if visible.length === 0}
+      <div class="nothing">
+        <p>Nessun capo con questi filtri.</p>
+        <button class="btn" onclick={() => { resetWardrobeFilters(); wardrobeView.filters = { ...wardrobeView.filters, query: '' }; }}>Azzera filtri</button>
+      </div>
+    {:else}
+      <ul class="grid">
+        {#each visible as item (item.id)}
+          {@const b = badge(item)}
+          {@const isSel = selected.includes(item.id)}
+          <li>
+            <button class="tile" class:sel={isSel} aria-pressed={selecting ? isSel : undefined} onclick={() => onTile(item)}>
+              <span class="pic">
+                <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
+                {#if item.favorite}<span class="fav" aria-label="Preferito">❤️</span>{/if}
+                {#if item.hasStain}<span class="stain" aria-label="Macchia">🧪</span>{/if}
+                {#if b}<span class="state">{b}</span>{/if}
+                {#if selecting}<span class="check" class:on={isSel} aria-hidden="true">{#if isSel}<Icon name="check" size={18} />{/if}</span>{/if}
+              </span>
+              <span class="name">{item.name}</span>
+              <span class="cat">
+                {catById.get(item.categoryId)?.name ?? ''}{item.lastWornDate ? ` · ${formatDateIt(item.lastWornDate).replace(/ \d{4}$/, '')}` : ''}
+              </span>
+            </button>
+          </li>
+        {/each}
+      </ul>
+    {/if}
   {/if}
 </div>
 
-<Fab {actions} label="Aggiungi capo" />
+{#if selecting}
+  <div class="bulkbar" role="toolbar" aria-label="Azioni sui capi selezionati">
+    <button disabled={!selected.length} onclick={() => (bulkPicker = 'status')}>Stato</button>
+    <button disabled={!selected.length} onclick={() => (bulkPicker = 'location')}>Sposta</button>
+    <button disabled={!selected.length} onclick={() => (bulkPicker = 'trip')}>Valigia</button>
+    <button disabled={!selected.length} onclick={() => (bulkPicker = 'outfit')}>Outfit</button>
+    <button class="danger" disabled={!selected.length} onclick={bulkDelete}>Elimina</button>
+  </div>
+{:else}
+  <Fab {actions} label="Aggiungi capo" />
+{/if}
+
+{#if bulkPicker === 'status'}
+  <PickerSheet
+    title="Cambia stato"
+    options={STATUSES.map((s) => ({ id: s.id, label: s.label, emoji: s.emoji }))}
+    note="“Pulito” azzera gli utilizzi dall’ultimo lavaggio."
+    onpick={applyStatus}
+    onclose={() => (bulkPicker = null)}
+  />
+{:else if bulkPicker === 'location'}
+  <PickerSheet
+    title="Sposta in"
+    options={lists.value.filter((l) => l.kind === 'location').sort((a, b) => a.order - b.order).map((l) => ({ id: l.id, label: l.name }))}
+    onpick={applyLocation}
+    onclose={() => (bulkPicker = null)}
+  />
+{:else if bulkPicker === 'trip'}
+  <PickerSheet
+    title="Metti in valigia per"
+    options={trips.value.map((t) => ({ id: t.id, label: t.name, sub: formatDateIt(t.startDate) }))}
+    empty="Non hai viaggi in programma. Potrai crearli nell’Agenda (Fase 7)."
+    onpick={applyTrip}
+    onclose={() => (bulkPicker = null)}
+  />
+{:else if bulkPicker === 'outfit'}
+  <PickerSheet
+    title="Aggiungi all’outfit"
+    options={outfits.value.map((o) => ({ id: o.id, label: o.name, sub: `${o.itemIds.length} capi` }))}
+    empty="Non hai ancora outfit. Il creatore di outfit arriva con la Fase 5."
+    onpick={applyOutfit}
+    onclose={() => (bulkPicker = null)}
+  />
+{/if}
+
+{#if showFilters}
+  <FiltersSheet
+    {filters}
+    categories={categories.value}
+    lists={lists.value}
+    resultCount={visible.length}
+    onchange={(f) => (wardrobeView.filters = f)}
+    onclose={() => (showFilters = false)}
+  />
+{/if}
+
+{#if showDuplicates}
+  <DuplicatesSheet
+    groups={duplicates}
+    categories={categories.value}
+    onopen={(id) => {
+      showDuplicates = false;
+      openItem = id;
+    }}
+    onclose={() => (showDuplicates = false)}
+  />
+{/if}
 
 {#if openItem}
-  <ItemPhotosSheet
-    itemId={openItem}
-    onclose={() => (openItem = null)}
-    onopenphoto={(photoIds, index, name) => (lightbox = { photoIds, index, name })}
-    oneditphoto={editPhoto}
-    onaddphoto={addPhoto}
-  />
+  {#key openItem}
+    <ItemSheet
+      itemId={openItem}
+      onclose={() => (openItem = null)}
+      onopenphoto={(photoIds, index, name) => (lightbox = { photoIds, index, name })}
+      oneditphoto={editPhoto}
+      onaddphoto={addPhoto}
+      onopenitem={(id) => (openItem = id)}
+    />
+  {/key}
 {/if}
 
 {#if pickingBatch}
@@ -222,26 +490,85 @@
 
 <style>
   .armadio {
-    padding: 16px 16px 110px;
+    padding: 12px 16px 120px;
   }
-  .head {
+  .toolbar {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin: 4px 4px 0;
+    flex-direction: column;
+    gap: 8px;
   }
-  h1 {
-    margin: 0;
-    font-size: 1.75rem;
+  .search .input {
+    min-height: 44px;
   }
-  .count {
-    color: var(--text-muted);
+  .tools {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .tool {
+    flex: none;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface);
     font-size: 0.875rem;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  .tool.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .sort {
+    padding: 0 6px 0 12px;
+  }
+  .sort select {
+    border: 0;
+    background: transparent;
+    font-size: 0.875rem;
+    min-height: 36px;
+    max-width: 140px;
+  }
+  .selbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 52px;
+  }
+  .selbar .grow {
+    flex: 1;
+  }
+  .small {
+    min-height: 40px;
+  }
+  .summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 4px 0;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+  .link {
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-weight: 600;
+    min-height: 36px;
+    padding: 0 4px;
+    cursor: pointer;
+  }
+  .hint {
+    margin: 2px 4px 0;
   }
   .grid {
     list-style: none;
     padding: 0;
-    margin: 12px 0 0;
+    margin: 10px 0 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
     gap: 12px;
@@ -258,11 +585,62 @@
     cursor: pointer;
   }
   .pic {
+    position: relative;
     display: block;
     aspect-ratio: 3 / 4;
     border-radius: 14px;
     overflow: hidden;
     border: 1px solid var(--border);
+  }
+  .tile.sel .pic {
+    outline: 3px solid var(--accent);
+    outline-offset: -1px;
+  }
+  .fav,
+  .stain {
+    position: absolute;
+    top: 4px;
+    font-size: 0.9rem;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.3));
+  }
+  .fav {
+    right: 6px;
+  }
+  .stain {
+    left: 6px;
+  }
+  .state {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    padding: 3px 6px;
+    border-radius: 8px;
+    background: rgb(0 0 0 / 0.6);
+    color: #fff;
+    font-size: 0.6875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .check {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: rgb(0 0 0 / 0.35);
+    display: grid;
+    place-items: center;
+    color: #fff;
+  }
+  .check.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
   }
   .name {
     font-size: 0.875rem;
@@ -275,6 +653,44 @@
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: -2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nothing {
+    text-align: center;
+    padding: 48px 12px;
+    color: var(--text-muted);
+  }
+  .bulkbar {
+    position: fixed;
+    left: 8px;
+    right: 8px;
+    bottom: calc(var(--navbar-h) + var(--safe-bottom) + 8px);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    padding: 6px;
+    border-radius: 18px;
+    background: var(--text);
+    box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
+    z-index: 21;
+  }
+  .bulkbar button {
+    min-height: 48px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--bg);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .bulkbar button:disabled {
+    opacity: 0.4;
+  }
+  .bulkbar .danger {
+    color: #ff9a92;
   }
   .empty {
     min-height: 70vh;
@@ -286,7 +702,11 @@
     gap: 10px;
     padding: 24px 12px;
   }
-  .empty .badge {
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+  }
+  .badge-big {
     width: 80px;
     height: 80px;
     border-radius: 50%;

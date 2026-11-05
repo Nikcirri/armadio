@@ -2,7 +2,26 @@ import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { ArmadioDB } from './schema';
 import { getCategories, setupNewWardrobe } from './repo';
-import { addItem, addPhotoToItem, deleteItemsHard, removeItemPhoto, setItemCover, updateItemFields } from './items';
+import {
+  addItem,
+  addPhotoToItem,
+  addWear,
+  bulkAddToOutfit,
+  bulkAddToTrip,
+  bulkSetLocation,
+  bulkSetStatus,
+  deleteItemsHard,
+  duplicateItem,
+  getWearDates,
+  pickEditable,
+  removeItemPhoto,
+  removeLastWear,
+  restoreBulk,
+  saveItem,
+  setItemCover,
+  updateItemFields,
+} from './items';
+import { createOutfit, createTrip } from '../logic/factories';
 
 let db: ArmadioDB;
 let n = 0;
@@ -62,5 +81,100 @@ describe('capi e foto', () => {
     await deleteItemsHard(db, [i1.id, i2.id]);
     expect(await db.items.count()).toBe(0);
     expect(await db.photos.count()).toBe(0);
+  });
+});
+
+describe('scheda capo e azioni di massa', () => {
+  async function oneItem(over: Partial<import('./types').ItemRecord> = {}) {
+    const [cat] = await getCategories(db);
+    const item = await addItem(db, { name: 'Jeans', categoryId: cat!.id, colors: ['denim'], photoIds: [] });
+    if (Object.keys(over).length) await db.items.update(item.id, over);
+    return (await db.items.get(item.id))!;
+  }
+
+  it('salva la scheda con le regole dello stato e cambia slot con la categoria', async () => {
+    const it0 = await oneItem({ status: 'toWash', hasStain: true, wearsSinceWash: 3 });
+    const cats = await getCategories(db);
+    const shoes = cats.find((c) => c.slotType === 'shoes')!;
+    await saveItem(db, it0.id, { ...pickEditable(it0), status: 'clean', categoryId: shoes.id, name: '  ' });
+    const saved = (await db.items.get(it0.id))!;
+    expect(saved.status).toBe('clean');
+    expect(saved.wearsSinceWash).toBe(0);
+    expect(saved.hasStain).toBe(false);
+    expect(saved.slotType).toBe('shoes');
+    expect(saved.name).toBe(shoes.name);
+
+    await saveItem(db, it0.id, { ...pickEditable(saved), status: 'onLoan', loanTo: 'Sara', loanDate: '2026-11-01' });
+    expect(await db.items.get(it0.id)).toMatchObject({ status: 'onLoan', loanTo: 'Sara', loanDate: '2026-11-01' });
+  });
+
+  it('collega il capo "In valigia" al viaggio scelto', async () => {
+    const it0 = await oneItem();
+    const trip = createTrip({ name: 'Roma', startDate: '2026-11-10', endDate: '2026-11-12' });
+    await db.trips.add(trip);
+    await saveItem(db, it0.id, { ...pickEditable(it0), status: 'packed' }, trip.id);
+    expect((await db.trips.get(trip.id))?.packedItemIds).toEqual([it0.id]);
+  });
+
+  it('i tasti + e − aggiornano storico e contatori', async () => {
+    const it0 = await oneItem();
+    await addWear(db, it0.id, '2026-11-01');
+    await addWear(db, it0.id, '2026-11-03');
+    let cur = (await db.items.get(it0.id))!;
+    expect([cur.wearCount, cur.lastWornDate, cur.wearsSinceWash]).toEqual([2, '2026-11-03', 2]);
+    expect(await getWearDates(db, it0.id)).toEqual(['2026-11-03', '2026-11-01']);
+    expect(await removeLastWear(db, it0.id)).toBe(true);
+    cur = (await db.items.get(it0.id))!;
+    expect([cur.wearCount, cur.lastWornDate, cur.wearsSinceWash]).toEqual([1, '2026-11-01', 1]);
+    await removeLastWear(db, it0.id);
+    expect(await removeLastWear(db, it0.id)).toBe(false);
+  });
+
+  it('con utilizzi contati prima dello storico, + e − spostano di uno', async () => {
+    const it0 = await oneItem({ wearCount: 25, lastWornDate: '2026-10-01', wearsSinceWash: 1 });
+    await addWear(db, it0.id, '2026-11-05');
+    expect((await db.items.get(it0.id))).toMatchObject({ wearCount: 26, lastWornDate: '2026-11-05', wearsSinceWash: 2 });
+    await removeLastWear(db, it0.id);
+    expect((await db.items.get(it0.id))).toMatchObject({ wearCount: 25, lastWornDate: '2026-11-05', wearsSinceWash: 1 });
+  });
+
+  it('duplica il capo con foto nuove e utilizzi azzerati', async () => {
+    await db.photos.add(photo('orig'));
+    const it0 = await oneItem({ photoIds: ['orig'], wearCount: 9, favorite: true });
+    const copy = await duplicateItem(db, it0.id);
+    expect(copy.name).toBe('Jeans (copia)');
+    expect(copy.wearCount).toBe(0);
+    expect(copy.photoIds[0]).not.toBe('orig');
+    expect(await db.photos.count()).toBe(2);
+  });
+
+  it('cambia stato in blocco e Annulla ripristina', async () => {
+    const a = await oneItem({ wearsSinceWash: 2 });
+    const b = await oneItem();
+    const snap = await bulkSetStatus(db, [a.id, b.id], 'toWash');
+    expect((await db.items.get(a.id))?.status).toBe('toWash');
+    await restoreBulk(db, snap);
+    expect((await db.items.get(a.id))?.status).toBe('clean');
+    expect((await db.items.get(a.id))?.wearsSinceWash).toBe(2);
+  });
+
+  it('sposta, mette in valigia e aggiunge a un outfit in blocco', async () => {
+    const a = await oneItem();
+    const loc = (await db.lists.where('kind').equals('location').toArray())[1]!;
+    await bulkSetLocation(db, [a.id], loc.id);
+    expect((await db.items.get(a.id))?.locationId).toBe(loc.id);
+
+    const trip = createTrip({ name: 'Mare', startDate: '2026-11-10', endDate: '2026-11-12' });
+    await db.trips.add(trip);
+    const snap = await bulkAddToTrip(db, [a.id], trip.id);
+    expect((await db.items.get(a.id))?.status).toBe('packed');
+    expect((await db.trips.get(trip.id))?.extraItemIds).toEqual([a.id]);
+    await restoreBulk(db, snap);
+    expect((await db.trips.get(trip.id))?.extraItemIds).toEqual([]);
+
+    const outfit = createOutfit({ name: 'Look', itemIds: [] });
+    await db.outfits.add(outfit);
+    await bulkAddToOutfit(db, [a.id, a.id], outfit.id);
+    expect((await db.outfits.get(outfit.id))?.itemIds).toEqual([a.id]);
   });
 });

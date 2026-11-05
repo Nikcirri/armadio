@@ -1,5 +1,17 @@
 # Novità
 
+## [0.3.0] - 2026-11-05
+
+- Armadio: ricerca per nome, brand, tessuto, taglia e note (anche senza accenti).
+- Filtri combinabili: categoria, stato, posizione, proprietario, colore, stagione, pesantezza, taglio, occasione e preferiti. La scatola del cambio stagione si può nascondere.
+- Ordinamento: più recenti, più e meno indossati, non indossati da più tempo, miglior costo per utilizzo, nome, prezzo.
+- "Doppioni": raggruppa i capi della stessa categoria e dello stesso colore (e di tessuto simile), confrontandoli anche con la wishlist.
+- Selezione multipla: cambia stato, sposta, metti in valigia, aggiungi a un outfit o elimina più capi insieme, sempre con "Annulla".
+- Scheda capo completa: 8 stati con i loro campi (macchia, prestito, manutenzione, vendita con "Copia annuncio" per Vinted, valigia), proprietario e posizione, colori, tessuti, stagione, pesantezza, taglio, nota intimo con suggerimenti, campi per scarpe e borse, occasioni, etichette di lavaggio, soglia lavaggi, brand, taglia, prezzo, data di acquisto, vestibilità, note.
+- Utilizzi con tasti + e −, data dell'ultima volta, costo per utilizzo ed elenco delle date; outfit che contengono il capo.
+- Duplica capo; avviso se esci dalla scheda senza salvare.
+- Nella griglia: stato, macchia, preferito e "da lavare presto" a colpo d'occhio.
+
 ## [0.2.3] - 2026-11-05
 
 - Corretto: "Lo scontorno automatico non è riuscito (… is already installed)". Il controllo del modulo di Google a volte dice che manca anche quando c'è: ora l'app prova subito lo scontorno e propone il download solo se Google segnala davvero che il modulo manca.

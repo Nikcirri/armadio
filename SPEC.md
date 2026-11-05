@@ -214,7 +214,7 @@ L'app non richiede mai internet. Unica eccezione: "Controlla aggiornamenti" inte
 2. Foto ed editor.
 3. Armadio e scheda capo.
 4. Lavanderia e cambio stagione.
-5. Outfit, Indossa oggi, diario, condivisione.
+5. Outfit, Indossa oggi, diario, condivisione; nella scheda capo il pulsante "Crea outfit con questo capo".
 6. Cosa metto?
 7. Agenda e valigia.
 8. Altro: wishlist, taglie, decluttering, statistiche.
