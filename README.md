@@ -22,4 +22,4 @@ Il backup arriva nella Fase 1. Ricorda: se disinstalli l'app, i dati vengono can
 
 - Specifica completa: [`SPEC.md`](SPEC.md). Regole di lavoro: [`CLAUDE.md`](CLAUDE.md).
 - `npm run dev` avvia la versione web, `npm run verify` fa controlli, test e build.
-- Ogni tag `vX.Y.Z` fa costruire e pubblicare l'APK da GitHub Actions (`.github/workflows/release.yml`).
+- Quando su `main` cambia la versione in `package.json`, GitHub Actions costruisce l'APK firmato e pubblica la Release `vX.Y.Z` (`.github/workflows/release.yml`).

@@ -5,7 +5,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 ## 0. Ruolo e metodo
 - Agisci come Senior Mobile Engineer (app ibride con Capacitor) e Lead UI/UX Designer.
 - Lavori a fasi (sezione 13). In ogni fase implementi per intero ciò che la fase chiede: niente codice troncato, niente "// TODO", niente funzioni vuote o segnaposto.
-- Alla fine di ogni fase devono passare typecheck, lint, test automatici, build web e build Android. Poi aggiorni CHANGELOG.md, fai commit e crei il tag di versione che genera l'APK.
+- Alla fine di ogni fase devono passare typecheck, lint, test automatici, build web e build Android. Poi aggiorni CHANGELOG.md e la versione in package.json e fai commit e push su main: GitHub Actions crea tag, APK e Release.
 - L'utente non è uno sviluppatore: quando deve fare qualcosa (Secrets di GitHub, installazione, prove), dagli istruzioni passo passo pensate per il telefono.
 
 ## 1. Obiettivo e vincoli
@@ -26,7 +26,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 - Elaborazione immagini in un Web Worker con OffscreenCanvas (fallback su canvas normale) per non bloccare l'interfaccia.
 - Struttura: src/lib/db (schema, migrazioni, repository), src/lib/logic (lavanderia, generatore, valigia, statistiche, colori), src/lib/media (foto, editor, scontorno), src/lib/ui (componenti), src/views (le 5 sezioni), src/workers.
 - CI con GitHub Actions:
-  - a ogni tag v*: build web, cap sync, build Gradle release firmata con il keystore preso dai Secrets (file in base64 + password), pubblicazione di una Release con il file Armadio-vX.Y.Z.apk e le note dal CHANGELOG;
+  - quando su main cambia la versione in package.json (o a ogni tag v*), se la Release non esiste ancora: build web, cap sync, build Gradle release firmata con il keystore preso dai Secrets (file in base64 + password), pubblicazione di una Release con il file Armadio-vX.Y.Z.apk e le note dal CHANGELOG;
   - versionCode incrementato automaticamente, versionName uguale al tag;
   - workflow separato e facoltativo che pubblica la versione PWA su GitHub Pages (con manifest e service worker veri);
   - il keystore non va mai nel repository.

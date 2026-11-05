@@ -8,7 +8,7 @@
   1. `npm run verify` (typecheck + test + build) deve passare senza errori;
   2. `npx cap sync android`;
   3. aggiorna `CHANGELOG.md` con una sezione `## [X.Y.Z] - AAAA-MM-GG` e la versione in `package.json`;
-  4. commit, push e tag `vX.Y.Z` (il tag fa partire la build dell'APK su GitHub Actions);
+  4. commit e push su `main`: quando cambia la versione in `package.json`, GitHub Actions crea da solo il tag `vX.Y.Z`, costruisce l'APK e pubblica la Release (non serve creare tag a mano; da questa sessione il push dei tag è bloccato). Controlla che il workflow "Pubblica APK" finisca con successo;
   5. dai all'utente il link https://github.com/Nikcirri/armadio/releases/latest e un elenco breve di cose da provare sul telefono.
 - L'utente è un principiante assoluto e usa solo il telefono: istruzioni passo passo, parole semplici, niente comandi da terminale per lui.
 - La chiave di firma non va mai nel repository. Vive solo nei Secrets di GitHub (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, alias `armadio`). Non cambiarla mai: con una chiave diversa gli aggiornamenti non si installano sopra la versione vecchia.
