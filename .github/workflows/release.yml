@@ -1,0 +1,113 @@
+# Costruisce l'APK firmato e lo pubblica nella pagina Releases.
+# Parte da solo quando viene creato un tag di versione, per esempio v0.0.1.
+name: Pubblica APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica il codice
+        uses: actions/checkout@v4
+
+      - name: Controlla che la chiave di firma sia nei Secrets
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PW: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KS" ] || [ -z "$PW" ]; then
+            echo "::error::Mancano i Secrets ANDROID_KEYSTORE_BASE64 e/o ANDROID_KEYSTORE_PASSWORD. Aggiungili in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Calcola la versione dal tag
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          case "$TAG" in v*) ;; *) TAG="v0.0.0" ;; esac
+          NAME="${TAG#v}"
+          BASE="${NAME%%-*}"
+          IFS='.' read -r MAJ MIN PAT <<< "$BASE"
+          CODE=$(( ${MAJ:-0} * 10000 + ${MIN:-0} * 100 + ${PAT:-0} ))
+          if [ "$CODE" -lt 1 ]; then CODE=1; fi
+          echo "APP_VERSION_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          echo "Versione $NAME (codice $CODE)"
+
+      - name: Prepara Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa le librerie
+        run: npm ci
+
+      - name: Controlli, test e build web
+        run: npm run verify
+
+      - name: Copia l'app web nel progetto Android
+        run: npx cap sync android
+
+      - name: Prepara Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Prepara Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Ricrea la chiave di firma
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$KS" | base64 -d > "$RUNNER_TEMP/armadio.keystore"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/armadio.keystore" >> "$GITHUB_ENV"
+
+      - name: Costruisci l'APK firmato
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+          mkdir -p ../out
+          cp app/build/outputs/apk/release/app-release.apk "../out/Armadio-v${APP_VERSION_NAME}.apk"
+
+      - name: Prepara le note della versione
+        run: |
+          awk -v ver="$APP_VERSION_NAME" '
+            $0 ~ "^## \\[?v?" ver "\\]?" { on=1; next }
+            on && /^## / { exit }
+            on { print }
+          ' CHANGELOG.md > out/notes.md
+          if [ ! -s out/notes.md ]; then echo "Versione $APP_VERSION_NAME" > out/notes.md; fi
+          {
+            echo ""
+            echo "### Come installare"
+            echo "Scarica il file **Armadio-v${APP_VERSION_NAME}.apk** qui sotto dal telefono Android e aprilo. Se Android lo chiede, consenti \"Installa app sconosciute\". Se hai già l'app, installa sopra: i dati restano."
+          } >> out/notes.md
+
+      - name: Pubblica la Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Armadio v${{ env.APP_VERSION_NAME }}
+          body_path: out/notes.md
+          files: out/Armadio-v${{ env.APP_VERSION_NAME }}.apk
+
+      - name: Conserva l'APK (avvio manuale)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Armadio-apk
+          path: out/*.apk

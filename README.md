@@ -1,1 +1,25 @@
-# armadio
+# Armadio
+
+L'app per gestire il tuo armadio: capi, outfit, lavanderia, valigia e ricordi. Funziona senza internet e tutti i dati restano sul tuo telefono.
+
+## Installare l'app (Android)
+
+1. Dal telefono apri https://github.com/Nikcirri/armadio/releases/latest
+2. In fondo alla pagina, sotto "Assets", tocca il file `Armadio-vX.Y.Z.apk` per scaricarlo.
+3. Apri il file scaricato (dalla notifica o dall'app File).
+4. Se Android dice che l'installazione è bloccata, tocca **Impostazioni**, attiva **Consenti da questa origine** e torna indietro.
+5. Tocca **Installa**. Se compare un avviso di Play Protect, tocca **Installa comunque**: succede con tutte le app che non arrivano dal Play Store.
+
+## Aggiornare
+
+Scarica e installa la nuova versione dallo stesso link: si installa sopra quella vecchia e i dati restano.
+
+## Backup
+
+Il backup arriva nella Fase 1. Ricorda: se disinstalli l'app, i dati vengono cancellati.
+
+## Per chi sviluppa
+
+- Specifica completa: [`SPEC.md`](SPEC.md). Regole di lavoro: [`CLAUDE.md`](CLAUDE.md).
+- `npm run dev` avvia la versione web, `npm run verify` fa controlli, test e build.
+- Ogni tag `vX.Y.Z` fa costruire e pubblicare l'APK da GitHub Actions (`.github/workflows/release.yml`).

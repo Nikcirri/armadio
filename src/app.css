@@ -1,0 +1,76 @@
+/* Palette "Sabbia" — le altre 3 palette arrivano nella Fase 1. */
+:root {
+  --bg: #f5efe6;
+  --surface: #fbf8f3;
+  --surface-2: #ebe2d4;
+  --text: #2b2520;
+  --text-muted: #6f6357;
+  --accent: #8a6a4a;
+  --accent-contrast: #ffffff;
+  --border: #ddd2c2;
+  --font-serif: 'Noto Serif', Georgia, 'Times New Roman', serif;
+  --font-sans: system-ui, -apple-system, 'Roboto', 'Segoe UI', sans-serif;
+  --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --topbar-h: 56px;
+  --navbar-h: 64px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --surface: #121110;
+    --surface-2: #211e1b;
+    --text: #f1ebe3;
+    --text-muted: #b3a797;
+    --accent: #d2b48c;
+    --accent-contrast: #1a1410;
+    --border: #2e2a26;
+    color-scheme: dark;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+#app {
+  height: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

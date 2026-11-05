@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Armadio</string>
+    <string name="title_activity_main">Armadio</string>
+    <string name="package_name">com.nikcirri.armadio</string>
+    <string name="custom_url_scheme">com.nikcirri.armadio</string>
+</resources>
