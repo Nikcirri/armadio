@@ -22,10 +22,10 @@ permissions:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Scarica il codice
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Leggi la versione e controlla se esiste già
         env:
@@ -63,7 +63,7 @@ jobs:
 
       - name: Prepara Node
         if: env.SKIP != 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -82,15 +82,18 @@ jobs:
 
       - name: Prepara Java
         if: env.SKIP != 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
           cache: gradle
 
-      - name: Prepara Android SDK
+      - name: Controlla Android SDK (già presente su ubuntu-24.04)
         if: env.SKIP != 'true'
-        uses: android-actions/setup-android@v3
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          test -d "$ANDROID_HOME"
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
       - name: Ricrea la chiave di firma
         if: env.SKIP != 'true'
