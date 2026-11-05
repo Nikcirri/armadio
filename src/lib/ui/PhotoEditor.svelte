@@ -13,7 +13,8 @@
     type Rect,
   } from '../logic/imageOps';
   import { backgroundMask } from '../media/pipeline';
-  import { aiCutout, aiCutoutSupported, installAiModule, isAiModuleReady } from '../media/segmentation';
+  import { aiCutout, aiCutoutSupported, installAiModule } from '../media/segmentation';
+  import { isAiModuleMissing } from '../logic/aiErrors';
   import { confirmDialog, registerOverlay, withBusy } from '../state/ui.svelte';
   import { errorText, reportError } from '../errors';
   import { tapFeedback } from '../platform';
@@ -245,9 +246,14 @@
   }
 
   // ---------- Scontorno ----------
+  // Si prova subito lo scontorno: il download del modulo di Google si propone solo se Google dice che manca.
   async function runAi() {
     try {
-      if (!(await isAiModuleReady())) {
+      let out: Img;
+      try {
+        out = await withBusy('Scontorno automatico…', () => aiCutout(base));
+      } catch (e) {
+        if (!isAiModuleMissing(errorText(e))) throw e;
         const ok = await confirmDialog({
           title: 'Scaricare lo scontorno automatico?',
           message:
@@ -256,8 +262,8 @@
         });
         if (!ok) return;
         await withBusy('Scarico il modulo di scontorno…', (progress) => installAiModule((p) => progress(p, 100)));
+        out = await withBusy('Scontorno automatico…', () => aiCutout(base));
       }
-      const out = await withBusy('Scontorno automatico…', () => aiCutout(base));
       commit({ current: out });
       lastCutout = 'ai';
     } catch (e) {

@@ -1,5 +1,9 @@
 # Novità
 
+## [0.2.3] - 2026-11-05
+
+- Corretto: "Lo scontorno automatico non è riuscito (… is already installed)". Il controllo del modulo di Google a volte dice che manca anche quando c'è: ora l'app prova subito lo scontorno e propone il download solo se Google segnala davvero che il modulo manca.
+
 ## [0.2.2] - 2026-11-05
 
 - Corretto: lo scontorno automatico poteva far chiudere l'app. Ora usa un componente nativo dell'app che lavora in secondo piano su una copia ridotta della foto, senza bloccare lo schermo.

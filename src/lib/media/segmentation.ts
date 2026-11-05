@@ -6,7 +6,8 @@ import {
 } from '@capacitor-mlkit/subject-segmentation';
 import { applyConfidence, resizeMask, subjectShare, type Img } from '../logic/imageOps';
 import { u8ToBase64 } from '../backup/device';
-import { UserError } from '../errors';
+import { UserError, errorText } from '../errors';
+import { isAiModuleAlreadyInstalled } from '../logic/aiErrors';
 import { Cutout, base64ToBytes } from './cutoutPlugin';
 import { fitSize } from './constants';
 import { imgToJpegBlob, resizeImg } from './pipeline';
@@ -45,7 +46,13 @@ export async function installAiModule(onProgress?: (percent: number) => void): P
     }, 2000);
   });
   try {
-    await SubjectSegmentation.installGoogleSubjectSegmentationModule();
+    try {
+      await SubjectSegmentation.installGoogleSubjectSegmentationModule();
+    } catch (e) {
+      // "Already installed": il modulo c'è già, si può procedere.
+      if (isAiModuleAlreadyInstalled(errorText(e))) return;
+      throw e;
+    }
     await Promise.race([
       done,
       new Promise<void>((_, reject) =>
