@@ -1,5 +1,18 @@
 # Novità
 
+## [0.5.0] - 2026-11-06
+
+- Nuova sezione Outfit: griglia dei tuoi look con collage, ricerca, filtri (occasione, stagione, meteo, preferiti, mai indossati, non indossati da 30 giorni, incompleti, "Mai indossato con…") e ordinamento.
+- Creatore di outfit: Spezzato (sopra, strato facoltativo, sotto) oppure Intero, più capospalla, scarpe e accessori. Per ogni parte un selettore con ricerca che mostra solo i capi disponibili, con l'interruttore per vederli tutti e "Includi wishlist".
+- Collage automatico (sopra in alto, sotto al centro, scarpe in basso, accessori di lato). Con "Sposta i pezzi" li trascini, li ingrandisci con due dita o con + e −, e la disposizione resta salvata.
+- Semaforo: verde se puoi indossare l'outfit, altrimenti l'elenco dei capi bloccati e il motivo. Ci sono anche la palette dei colori e gli avvisi dalle note di intimo e vestibilità.
+- "Indossa oggi" o "Altra data", con "Annulla": aggiorna i contatori e lo storico.
+- "Fine giornata": i capi arrivati al numero di utilizzi partono già su "Da lavare" (con l'opzione macchia), gli altri restano puliti. Nelle Impostazioni puoi attivare un promemoria serale con l'orario che vuoi.
+- Diario dei ricordi: data, luogo, persone (con i nomi già usati suggeriti), nota, fino a 6 foto in stile polaroid e l'outfit o i capi che avevi addosso. Si possono aggiungere anche a posteriori.
+- Condividi l'outfit come immagine elegante (WhatsApp, Instagram…) o salvala in galleria, nella cartella Immagini/Armadio.
+- Dalla scheda capo: "Crea outfit con questo capo", e tocchi un outfit per aprirlo. Dalla selezione multipla: "Nuovo outfit con questi capi".
+- Modifica, duplica ed elimina un outfit (con "Annulla"): viene tolto da viaggi e agenda, mentre diario e storico restano.
+
 ## [0.4.2] - 2026-11-06
 
 - Lavanderia: quando ci sono almeno 2 lavatrici, in cima ai carichi c'è il tasto "Lava tutto insieme". Unisce in un solo lavaggio tutti i capi da lavatrice (delicati, 30° e 40°) con il programma più delicato tra quelli presenti, che va bene per tutti.

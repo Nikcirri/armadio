@@ -250,5 +250,6 @@ export function defaultSettings(
     antiRepeatDays: 3,
     schemaVersion: 1,
     errorLog: [],
+    endOfDay: null,
   };
 }

@@ -42,13 +42,15 @@
   import QuickAddSheet from './armadio/QuickAddSheet.svelte';
   import LaundryPage from './armadio/LaundryPage.svelte';
   import SeasonChangeSheet from './armadio/SeasonChangeSheet.svelte';
-  import { closeLaundry, nav, openLaundry } from '../lib/state/nav.svelte';
+  import { closeLaundry, nav, openLaundry, requestNewOutfit } from '../lib/state/nav.svelte';
+  import { untrack } from 'svelte';
 
   type EditorState =
     | { kind: 'new'; img: Img }
     | { kind: 'existing'; img: Img; itemId: string; photoId: string }
     | { kind: 'addToItem'; img: Img; itemId: string };
   type BulkPicker = 'status' | 'location' | 'trip' | 'outfit' | null;
+  const NEW_OUTFIT = '__new__';
 
   const items = live(() => db.items.toArray(), [] as ItemRecord[]);
   const categories = live(() => getCategories(db), [] as CategoryRecord[]);
@@ -84,6 +86,17 @@
   const inLaundry = $derived(
     items.value.filter((i) => i.status === 'toWash' || i.status === 'drying' || i.status === 'toIron').length,
   );
+
+  // Capo da aprire chiesto da un'altra sezione (es. toccato dentro un outfit).
+  $effect(() => {
+    const id = nav.itemRequest;
+    if (!id) return;
+    untrack(() => {
+      nav.itemRequest = null;
+      exitSelection();
+      openItem = id;
+    });
+  });
 
   // Modalità selezione: il tasto Indietro la chiude.
   $effect(() => {
@@ -252,6 +265,13 @@
   }
 
   async function applyOutfit(id: string) {
+    if (id === NEW_OUTFIT) {
+      const ids = [...selected];
+      exitSelection();
+      bulkPicker = null;
+      requestNewOutfit(ids);
+      return;
+    }
     const name = outfits.value.find((o) => o.id === id)?.name ?? '';
     try {
       afterBulk(`{n} {s:aggiunto|aggiunti} a “${name}”`, await bulkAddToOutfit(db, [...selected], id));
@@ -445,8 +465,12 @@
 {:else if bulkPicker === 'outfit'}
   <PickerSheet
     title="Aggiungi all’outfit"
-    options={outfits.value.map((o) => ({ id: o.id, label: o.name, sub: `${o.itemIds.length} capi` }))}
-    empty="Non hai ancora outfit. Il creatore di outfit arriva con la Fase 5."
+    options={[
+      { id: NEW_OUTFIT, label: 'Nuovo outfit con questi capi', emoji: '➕' },
+      ...[...outfits.value]
+        .sort((a, b) => a.name.localeCompare(b.name, 'it'))
+        .map((o) => ({ id: o.id, label: o.name, sub: o.itemIds.length === 1 ? '1 capo' : `${o.itemIds.length} capi` })),
+    ]}
     onpick={applyOutfit}
     onclose={() => (bulkPicker = null)}
   />

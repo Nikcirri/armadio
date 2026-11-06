@@ -5,7 +5,8 @@
   import { isNative, tapFeedback } from './lib/platform';
   import { runAutoBackupIfDue } from './lib/backup/service';
   import { reportError } from './lib/errors';
-  import { currentTab, nav, previousTab, selectTab } from './lib/state/nav.svelte';
+  import { currentTab, nav, previousTab, requestEndOfDay, selectTab } from './lib/state/nav.svelte';
+  import { END_OF_DAY_ACTION, onNotificationTap, refreshEndOfDayReminder } from './lib/notify';
   import { settings } from './lib/state/settings.svelte';
   import { applyTheme, system } from './lib/state/theme.svelte';
   import { closeTopOverlay, showToast } from './lib/state/ui.svelte';
@@ -18,9 +19,11 @@
   import Armadio from './views/Armadio.svelte';
   import ComingSoon from './views/ComingSoon.svelte';
   import Onboarding from './views/Onboarding.svelte';
+  import Outfit from './views/Outfit.svelte';
 
   let lastBackPressAt: number | null = null;
   let autoBackupChecked = false;
+  let reminderChecked = false;
 
   const onboarded = $derived(settings.loaded && settings.value.app?.onboarded === true);
   const activeId = $derived(currentTab());
@@ -42,6 +45,13 @@
         if (done) showToast('Backup automatico salvato in Documenti/Armadio/auto');
       })
       .catch((e) => reportError(e, 'Il backup automatico non è riuscito.'));
+  });
+
+  // Promemoria "Fine giornata": rimesso in ordine a ogni avvio (es. se è cambiato l'orario).
+  $effect(() => {
+    if (!onboarded || reminderChecked) return;
+    reminderChecked = true;
+    refreshEndOfDayReminder().catch((e) => console.error(e));
   });
 
   function onTab(id: TabId) {
@@ -84,8 +94,12 @@
   onMount(() => {
     if (!isNative()) return;
     const listener = CapApp.addListener('backButton', handleBack);
+    const stopTaps = onNotificationTap((action) => {
+      if (action === END_OF_DAY_ACTION) requestEndOfDay();
+    });
     return () => {
       void listener.then((l) => l.remove());
+      stopTaps();
     };
   });
 </script>
@@ -103,6 +117,8 @@
         <Altro />
       {:else if activeId === 'armadio'}
         <Armadio />
+      {:else if activeId === 'outfit'}
+        <Outfit />
       {:else}
         {#key activeId}
           <ComingSoon tab={activeTab} />

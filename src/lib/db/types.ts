@@ -251,6 +251,13 @@ export interface ErrorLogEntry {
   message: string;
 }
 
+/** Capi indossati che aspettano "Fine giornata" (da lavare o restano puliti). */
+export interface EndOfDayPending {
+  /** Giorno più recente in cui sono stati indossati. */
+  date: string;
+  itemIds: string[];
+}
+
 export interface SettingsMap {
   app: { appName: string; onboarded: boolean; createdAt: string };
   profile: {
@@ -274,6 +281,7 @@ export interface SettingsMap {
   occasionMatrix: [string, string][];
   schemaVersion: number;
   errorLog: ErrorLogEntry[];
+  endOfDay: EndOfDayPending | null;
 }
 
 export type SettingKey = keyof SettingsMap;

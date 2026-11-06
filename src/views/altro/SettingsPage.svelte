@@ -6,6 +6,7 @@
   import { PRESETS } from '../../lib/logic/presets';
   import { formatDateIt } from '../../lib/logic/util';
   import { isNative } from '../../lib/platform';
+  import { askNotificationPermission, refreshEndOfDayReminder } from '../../lib/notify';
   import { settings } from '../../lib/state/settings.svelte';
   import { confirmDialog, showToast } from '../../lib/state/ui.svelte';
   import { reportError } from '../../lib/errors';
@@ -37,6 +38,26 @@
   }
   function savePreset(preset: Preset) {
     void save(() => setSetting(db, 'preset', preset));
+  }
+
+  async function setEveningReminder(on: boolean) {
+    if (on && !(await askNotificationPermission().catch(() => false))) {
+      showToast('Senza il permesso per le notifiche il promemoria non può arrivare. Puoi darlo dalle impostazioni di Android.');
+      return;
+    }
+    await save(async () => {
+      await updateSetting(db, 'notifications', { eveningReminder: on });
+      await refreshEndOfDayReminder();
+    });
+    if (on) showToast('Promemoria attivo');
+  }
+
+  function setReminderTime(value: string) {
+    if (!/^\d{2}:\d{2}$/.test(value)) return;
+    void save(async () => {
+      await updateSetting(db, 'notifications', { time: value });
+      await refreshEndOfDayReminder();
+    });
   }
 
   async function shareErrors() {
@@ -95,6 +116,25 @@
   </div>
   <p class="note">Cambia solo i suggerimenti (per esempio le note sull’intimo). Le tue categorie restano come sono.</p>
 
+  <h2 class="section-title">Promemoria</h2>
+  <div class="list">
+    <Switch
+      label="Promemoria serale “Fine giornata”"
+      description={isNative()
+        ? 'Solo nei giorni in cui hai indossato qualcosa: ti ricorda di scegliere i capi da lavare.'
+        : 'Disponibile solo nell’app Android.'}
+      checked={s.notifications?.eveningReminder ?? false}
+      disabled={!isNative()}
+      onchange={(v) => void setEveningReminder(v)}
+    />
+    {#if s.notifications?.eveningReminder}
+      <label class="time">
+        <span>Orario</span>
+        <input class="input" type="time" value={s.notifications?.time ?? '21:00'} onchange={(e) => setReminderTime(e.currentTarget.value)} />
+      </label>
+    {/if}
+  </div>
+
   <h2 class="section-title">Backup</h2>
   <div class="list">
     <Switch
@@ -146,5 +186,16 @@
     display: flex;
     gap: 8px;
     margin-top: 12px;
+  }
+  .time {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 16px 12px;
+  }
+  .time .input {
+    width: auto;
+    min-width: 120px;
   }
 </style>

@@ -4,7 +4,12 @@
   import { registerOverlay } from '../state/ui.svelte';
   import Icon from './Icon.svelte';
 
-  let { title, onclose, children }: { title: string; onclose: () => void; children: Snippet } = $props();
+  let {
+    title,
+    onclose,
+    children,
+    actions,
+  }: { title: string; onclose: () => void; children: Snippet; actions?: Snippet } = $props();
 
   onMount(() => registerOverlay(() => onclose()));
 </script>
@@ -13,6 +18,7 @@
   <header>
     <button class="icon-btn" aria-label="Indietro" onclick={onclose}><Icon name="back" /></button>
     <h1>{title}</h1>
+    {#if actions}<div class="actions">{@render actions()}</div>{/if}
   </header>
   <div class="content">{@render children()}</div>
 </section>
@@ -40,8 +46,17 @@
     border-bottom: 1px solid var(--border);
   }
   h1 {
+    flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: 1.25rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .actions {
+    flex: none;
+    display: flex;
   }
   .content {
     flex: 1;

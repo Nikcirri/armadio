@@ -34,6 +34,7 @@
   import { INTIMATE_SUGGESTIONS } from '../../lib/logic/presets';
   import { formatDateIt, todayKey } from '../../lib/logic/util';
   import { tapFeedback } from '../../lib/platform';
+  import { requestNewOutfit, requestOpenOutfit } from '../../lib/state/nav.svelte';
   import { live } from '../../lib/state/live.svelte';
   import { settings } from '../../lib/state/settings.svelte';
   import { confirmDialog, showToast, showUndoToast } from '../../lib/state/ui.svelte';
@@ -203,6 +204,21 @@
     } catch (e) {
       reportError(e);
     }
+  }
+
+  /** Lascia la scheda (chiedendo se ci sono modifiche) e va in un'altra sezione. */
+  async function leaveTo(go: () => void) {
+    if (dirty) {
+      const ok = await confirmDialog({
+        title: 'Uscire senza salvare?',
+        message: 'Le modifiche alla scheda andranno perse.',
+        confirmLabel: 'Esci',
+        danger: true,
+      });
+      if (!ok) return;
+    }
+    onclose();
+    go();
   }
 
   async function remove() {
@@ -477,19 +493,36 @@
         {#if outfits.value.length}
           <div class="list">
             {#each outfits.value as o (o.id)}
-              <div class="row static">
+              <button
+                class="row"
+                onclick={() => {
+                  const id = o.id;
+                  void leaveTo(() => requestOpenOutfit(id));
+                }}
+              >
                 <span class="minis">
                   {#each o.itemIds.slice(0, 4) as iid (iid)}
                     <span class="mini"><PieceThumb itemId={iid} /></span>
                   {/each}
                 </span>
-                <span class="grow">{o.name}<span class="sub">{o.itemIds.length} capi{o.incomplete ? ' · incompleto' : ''}</span></span>
-              </div>
+                <span class="grow">{o.name}<span class="sub">{o.itemIds.length === 1 ? '1 capo' : `${o.itemIds.length} capi`}{o.incomplete ? ' · incompleto' : ''}</span></span>
+                <Icon name="chevron" size={18} />
+              </button>
             {/each}
           </div>
         {:else}
-          <p class="note">Non è ancora in nessun outfit. Il creatore di outfit arriva con la Fase 5.</p>
+          <p class="note">Non è ancora in nessun outfit.</p>
         {/if}
+        <button
+          class="btn btn-block create-outfit"
+          onclick={() => {
+            // L'id va letto subito: dopo la chiusura della scheda la prop non vale più.
+            const id = itemId;
+            void leaveTo(() => requestNewOutfit([id]));
+          }}
+        >
+          <Icon name="plus" size={20} /> Crea outfit con questo capo
+        </button>
       </section>
 
       <section>
@@ -721,12 +754,12 @@
     columns: 2;
     font-size: 0.875rem;
   }
-  .static {
-    cursor: default;
-  }
   .minis {
     display: flex;
     gap: 4px;
+  }
+  .create-outfit {
+    margin-top: 10px;
   }
   .mini {
     width: 32px;

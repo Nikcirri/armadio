@@ -44,7 +44,7 @@ Id: UUID in formato stringa. Date: "YYYY-MM-DD"; timestamp: ISO. Ogni record ha 
 - trips: id, name, startDate, endDate, luggageType, templateId, weather, outfitIds[], extraItemIds[], wearInTransitIds[], checklist[{id, label, qty, checked}], packedItemIds[], status (planning, packed, travelling, done).
 - wishlist: id, name, categoryId, photoIds[], price, storeOrLink, colors[], season, occasions[], priority, notes.
 - lists: id, kind (owner, location, occasion, fabric, maintenance, person, packingTemplate), name, order, extra (es. contenuto di un template valigia).
-- settings (chiave → valore): profile (userName, measurements, brandSizes[]), theme (palette, mode: system/light/dark), preset, backup (lastBackupDate, changesSinceBackup), notifications, appLock, antiRepeatDays, occasionMatrix, schemaVersion.
+- settings (chiave → valore): profile (userName, measurements, brandSizes[]), theme (palette, mode: system/light/dark), preset, backup (lastBackupDate, changesSinceBackup), notifications, appLock, antiRepeatDays, occasionMatrix, schemaVersion, endOfDay (data e capi indossati in attesa di "Fine giornata", null se non c'è niente da chiudere).
 
 Regole di integrità:
 - Eliminare un capo: un dialogo elenca dove è usato (outfit, viaggi, agenda). Il capo viene tolto ovunque, gli outfit toccati diventano "incompleti", lo storico resta. Un toast con "Annulla" per 5 secondi ripristina tutto in una sola transazione.
@@ -138,15 +138,16 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
   - Duplica ed Elimina.
 
 ### 8.2 Outfit
-- Libreria: griglia di collage con filtri per occasione, stagione, meteo, preferiti, "mai indossati", "non indossati da 30+ giorni", "incompleti".
+- Libreria: griglia di collage con filtri per occasione, stagione, meteo (Caldo, Mite, Freddo, Pioggia), preferiti, "mai indossati", "non indossati da 30+ giorni", "incompleti". Un outfit risulta indossato quando nello storico c'è una voce con il suo id.
 - Builder: Spezzato (sopra base + strato facoltativo + sotto) oppure Intero; più capospalla, scarpe e più accessori insieme. Selettore a foglio filtrato per slot, con ricerca e solo capi disponibili (interruttore per vederli tutti). Interruttore "Includi wishlist".
 - Collage automatico (capospalla e sopra in alto, sotto al centro, scarpe in basso, accessori di lato) su sfondo neutro; i pezzi si possono spostare e ridimensionare e le posizioni vengono salvate.
 - Barra della palette combinata e avvisi dalle note di intimo e vestibilità (es. "Questo abito richiede un reggiseno senza spalline").
-- Semaforo: verde se tutti i capi sono disponibili; altrimenti elenca ogni capo bloccato e il motivo (da lavare, steso, da stirare, in valigia, in prestito, in manutenzione, in scatola cambio stagione).
-- "Indossa oggi" (o in un'altra data): crea la voce nel wearLog, aggiorna i contatori, toast con "Annulla" per 5 secondi. Poi propone "Fine giornata": i capi arrivati alla soglia vanno in Da lavare (con opzione macchia), gli altri restano puliti. Se attivata, una notifica locale serale ricorda di farlo.
+- Semaforo: verde se tutti i capi sono disponibili; altrimenti elenca ogni capo bloccato e il motivo (da lavare, steso, da stirare, in valigia, in prestito, in manutenzione, da vendere, in scatola cambio stagione; i pezzi della wishlist risultano "da comprare").
+- "Indossa oggi" (o in un'altra data): crea la voce nel wearLog, aggiorna i contatori, toast con "Annulla" per 5 secondi. Poi propone "Fine giornata": i capi arrivati alla soglia vanno in Da lavare (con opzione macchia), gli altri restano puliti. Se attivata (Impostazioni → promemoria serale, con orario), una notifica locale all'orario scelto ricorda di farlo, solo nei giorni in cui hai indossato qualcosa; toccandola si apre "Fine giornata".
 - Diario dei ricordi (sotto-tab): timeline globale con data, luogo, persone (chip con completamento dai nomi già usati), nota, foto polaroid e outfit. Le voci si possono aggiungere anche a posteriori.
 - Filtro "Mai indossato con…": scegli una persona e vedi gli outfit mai usati in sua compagnia.
-- Condividi: immagine collage elegante generata su canvas, inviata con il menu di condivisione di Android o salvata in galleria.
+- Condividi: immagine collage elegante generata su canvas, inviata con il menu di condivisione di Android o salvata in galleria (cartella Immagini/Armadio).
+- Eliminare un outfit: viene tolto da viaggi e agenda; le voci del diario tengono i suoi capi; lo storico resta. Toast con "Annulla".
 
 ### 8.3 Cosa metto?
 - Input: temperatura (Caldo, Mite, Freddo), interruttori Pioggia e A cipolla, occasione (facoltativa), armonia dei colori (Libera, Neutri/Monocromatico, Contrasto bilanciato), "Coordina scarpe e borsa/cintura", "Dai una possibilità ai dimenticati", "Solo capi disponibili" (attivo di default).

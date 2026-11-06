@@ -13,6 +13,11 @@ const config: CapacitorConfig = {
       insetsHandling: 'css',
       initialViewportFitValueHint: 'cover',
     },
+    LocalNotifications: {
+      // Icona bianca della barra di stato (gruccia) e colore dell'app.
+      smallIcon: 'ic_stat_armadio',
+      iconColor: '#7a5c3f',
+    },
     SplashScreen: {
       launchShowDuration: 600,
       launchAutoHide: true,

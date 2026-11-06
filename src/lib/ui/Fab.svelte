@@ -37,7 +37,13 @@
   </div>
 {/if}
 
-<button class="fab" class:open aria-label={open ? 'Chiudi menu' : label} aria-expanded={open} onclick={() => (open = !open)}>
+<button
+  class="fab"
+  class:open
+  aria-label={open ? 'Chiudi menu' : label}
+  aria-expanded={actions.length > 1 ? open : undefined}
+  onclick={() => (actions.length === 1 ? actions[0]!.run() : (open = !open))}
+>
   <Icon name="plus" size={28} />
 </button>
 
