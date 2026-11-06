@@ -12,7 +12,9 @@ L'app per gestire il tuo armadio: capi, outfit, lavanderia, valigia e ricordi. F
 
 ## Aggiornare
 
-Scarica e installa la nuova versione dallo stesso link: si installa sopra quella vecchia e i dati restano.
+L'app controlla da sola, al massimo una volta al giorno, se è uscita una versione nuova: in quel caso compare un messaggio con **Scarica**. Puoi controllare anche a mano da **Altro → Informazioni → Controlla aggiornamenti**.
+
+Tocca **Scarica l'aggiornamento**, apri il file e tocca **Aggiorna**: la nuova versione si installa sopra quella vecchia e i dati restano. In alternativa scaricala dallo stesso link dell'installazione.
 
 ## Backup
 
@@ -20,8 +22,20 @@ Apri **Altro → Backup e dati → Esporta backup** e scegli dove salvarlo (per 
 
 Ricorda: se disinstalli l'app, i dati vengono cancellati. Il backup è l'unica copia.
 
+## Versione web (facoltativa, per esempio per iPhone)
+
+L'app può essere pubblicata anche come sito, che funziona senza internet dopo la prima apertura.
+
+1. Su GitHub apri **Settings → Pages** e in **Source** scegli **GitHub Actions** (solo la prima volta).
+2. Apri **Actions → Pubblica versione web → Run workflow**.
+3. Il sito sarà su https://nikcirri.github.io/armadio/. Dal browser del telefono usa **Aggiungi a schermata Home**.
+
+I dati della versione web restano nel browser e sono separati da quelli dell'app Android: per spostarli usa il backup.
+
 ## Per chi sviluppa
 
 - Specifica completa: [`SPEC.md`](SPEC.md). Regole di lavoro: [`CLAUDE.md`](CLAUDE.md).
 - `npm run dev` avvia la versione web, `npm run verify` fa controlli, test e build.
 - Quando su `main` cambia la versione in `package.json`, GitHub Actions costruisce l'APK firmato e pubblica la Release `vX.Y.Z` (`.github/workflows/release.yml`).
+- La versione web si pubblica a mano con `.github/workflows/pages.yml`; il service worker è generato al build da `build/serviceWorker.ts`.
+- Icona e schermata di avvio: sorgenti in `resources/`.

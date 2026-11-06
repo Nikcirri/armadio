@@ -19,7 +19,7 @@ export const BACKUP_FORMAT = 'armadio-backup';
 export const DATA_FILE = 'data.json';
 
 /** Impostazioni legate al singolo telefono: non vengono copiate da un backup. */
-export const DEVICE_SETTINGS: readonly SettingKey[] = ['backup', 'errorLog'];
+export const DEVICE_SETTINGS: readonly SettingKey[] = ['backup', 'errorLog', 'updates'];
 
 export interface BackupPhotoEntry {
   id: string;

@@ -1,5 +1,14 @@
 # Novità
 
+## [1.0.0] - 2026-11-06
+
+- Controlla aggiornamenti: una volta al giorno, se c'è internet, l'app guarda se è uscita una versione nuova e mostra un messaggio con "Scarica". In Altro → Informazioni c'è il pulsante "Controlla aggiornamenti", con le novità e "Scarica l'aggiornamento". È l'unica cosa che usa internet.
+- Icona nuova: una gruccia color crema su marrone, che si adatta alla forma delle icone del telefono e alle icone a tema di Android 13 e successivi.
+- Schermata di avvio nuova, color sabbia con l'icona al centro (nera se il telefono usa il tema scuro).
+- Armadio più veloce con tanti capi: oltre 200 capi la griglia disegna solo quelli sullo schermo. Provato con 500 capi e 1.500 foto: si apre in meno di un secondo e scorre fluida.
+- Accessibilità: contrasto dei testi grigi migliorato nelle palette Cipria, Salvia e Lavanda, etichette più chiare per i lettori di schermo (priorità della wishlist, giorni del calendario, cuori e macchie sulle foto).
+- Versione web facoltativa (per esempio per iPhone): funziona senza internet e si installa con "Aggiungi a schermata Home". Si pubblica a mano, istruzioni nel README.
+
 ## [0.8.0] - 2026-11-06
 
 - Wishlist: desideri con foto, prezzo, link o negozio e priorità. Vedi con quanti capi si abbinano e se hai già qualcosa di simile. "Comprato!" lo sposta nell'armadio con foto e dati, chiedendo prezzo e data; negli outfit dove lo provavi diventa il capo vero. C'è "Annulla".

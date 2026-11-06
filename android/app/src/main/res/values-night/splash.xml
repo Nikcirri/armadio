@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Con il tema scuro del telefono l'avvio è nero come l'app. -->
+    <color name="splash_background">#000000</color>
+</resources>

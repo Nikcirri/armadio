@@ -187,7 +187,7 @@
             <button class="tile" onclick={() => (nav.outfitDetail = o.id)}>
               <span class="pic">
                 <OutfitCollage pieces={c.pieces} layout={c.layout} label="Collage di {o.name}" />
-                {#if o.favorite}<span class="fav" aria-label="Preferito">❤️</span>{/if}
+                {#if o.favorite}<span class="fav" role="img" aria-label="Preferito">❤️</span>{/if}
                 <span class="light" class:ok={c.light.ok} title={c.light.ok ? 'Tutto disponibile' : 'Qualche capo non è disponibile'}>
                   <span class="visually-hidden">{c.light.ok ? 'Tutto disponibile' : 'Qualche capo non è disponibile'}</span>
                 </span>

@@ -55,7 +55,7 @@
 </script>
 
 <header class="topbar">
-  <span class="title">{appName}</span>
+  <h1 class="title">{appName}</h1>
   <div class="right">
     {#if showBackupBadge}
       <button class="badge" onclick={() => openAltroPage('backup')}>
@@ -97,8 +97,10 @@
     border-bottom: 1px solid var(--border);
   }
   .title {
+    margin: 0;
     font-family: var(--font-serif);
     font-size: 1.375rem;
+    font-weight: 400;
     letter-spacing: 0.02em;
     white-space: nowrap;
     overflow: hidden;

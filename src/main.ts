@@ -3,10 +3,12 @@ import './app.css';
 import App from './App.svelte';
 import { installGlobalErrorHandlers, reportError } from './lib/errors';
 import { requestPersistentStorage } from './lib/platform';
+import { registerServiceWorker } from './lib/pwa';
 import { startSettings } from './lib/state/settings.svelte';
 
 installGlobalErrorHandlers();
 void requestPersistentStorage();
+registerServiceWorker();
 startSettings((e) => reportError(e, 'Non riesco a leggere i dati dell’app.'));
 
 const target = document.getElementById('app');

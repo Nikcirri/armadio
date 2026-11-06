@@ -10,7 +10,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 
 ## 1. Obiettivo e vincoli
 - App Android "Armadio": armadio virtuale, outfit, generatore "Cosa metto?", lavanderia, agenda, valigia, diario dei ricordi, wishlist e statistiche.
-- Si installa come APK e si comporta come un'app del Play Store: icona, splash screen, tasto Indietro, nessuna barra del browser.
+- Si installa come APK e si comporta come un'app del Play Store: icona, splash screen, tasto Indietro, nessuna barra del browser. Icona: gruccia color crema su marrone (#7a5c3f), adattiva e con il livello monocromatico per le icone a tema; schermata di avvio color sabbia (#f5efe6, nera con il tema scuro del telefono) con l'icona al centro. Sorgenti in resources/.
 - 100% offline: nessun account, nessun server, nessuna analitica. Dati e foto restano sul telefono. Nessuna risorsa da CDN: font, icone e librerie sono inclusi nell'app.
 - Distribuzione gratuita: APK firmato pubblicato su GitHub Releases da GitHub Actions. Lo stesso codice è pubblicabile come PWA su GitHub Pages per chi ha iPhone (obiettivo secondario).
 - Interfaccia in italiano. Utenti di qualsiasi genere: nessun presupposto nei testi, preset scelto al primo avvio.
@@ -28,7 +28,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 - CI con GitHub Actions:
   - quando su main cambia la versione in package.json (o a ogni tag v*), se la Release non esiste ancora: build web, cap sync, build Gradle release firmata con il keystore preso dai Secrets (file in base64 + password), pubblicazione di una Release con il file Armadio-vX.Y.Z.apk e le note dal CHANGELOG;
   - versionCode incrementato automaticamente, versionName uguale al tag;
-  - workflow separato e facoltativo che pubblica la versione PWA su GitHub Pages (con manifest e service worker veri);
+  - workflow separato e facoltativo, avviato solo a mano, che pubblica la versione PWA su GitHub Pages (con manifest e service worker veri: il service worker è generato al build con l'elenco di tutti i file, quindi la versione web funziona senza internet; quando è pronta una versione nuova compare un messaggio con "Ricarica"). Nell'app Android il service worker non viene registrato;
   - il keystore non va mai nel repository.
 
 ## 3. Modello dati (Dexie, database "ArmadioDB")
@@ -114,7 +114,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Vibrazione leggera sulle azioni principali. Animazioni ≤ 200 ms, disattivate se il sistema chiede movimento ridotto.
 - Ogni lista vuota ha uno stato vuoto con spiegazione e pulsante d'azione.
 - Prestazioni: griglia virtualizzata oltre 200 capi, URL delle immagini liberati quando non servono, avvio sotto i 2 secondi e scorrimento fluido con 500 capi e 1.500 foto.
-- Accessibilità: etichette per lettori di schermo, contrasto AA, significato mai affidato solo al colore o alle emoji.
+- Accessibilità: etichette per lettori di schermo, contrasto AA, significato mai affidato solo al colore o alle emoji. Un test controlla il contrasto AA di tutte le palette, chiare e scure, leggendo i colori da app.css.
 
 ## 8. Sezioni
 
@@ -210,7 +210,7 @@ Tre schermate: nome; preset Donna, Uomo o Neutro; palette e tema. Poi la scelta 
 - Nella versione web chiama navigator.storage.persist().
 
 ## 11. Internet (solo facoltativo)
-L'app non richiede mai internet. Unica eccezione: "Controlla aggiornamenti" interroga l'ultima Release del repository GitHub, confronta la versione e propone di scaricare il nuovo APK. Avviene quando l'utente tocca il pulsante e, se c'è connessione, al massimo una volta al giorno in silenzio. Nessun altro traffico di rete.
+L'app non richiede mai internet. Unica eccezione: "Controlla aggiornamenti" interroga l'ultima Release del repository GitHub, confronta la versione e propone di scaricare il nuovo APK. Avviene quando l'utente tocca il pulsante e, se c'è connessione, al massimo una volta al giorno in silenzio (solo nell'app Android). Se c'è una versione nuova compare un messaggio con "Scarica"; in Altro → Informazioni si vedono la versione nuova, le prime novità e il pulsante "Scarica l'aggiornamento", che apre l'APK nel browser del telefono. Nessun altro traffico di rete.
 
 ## 12. Qualità del codice
 - TypeScript strict con svelte-check. Codice e nomi in inglese; testi dell'interfaccia in italiano scritti direttamente nei componenti (l'app è solo in italiano), messaggi di errore per l'utente in `src/lib/errors.ts` e nei moduli di logica.

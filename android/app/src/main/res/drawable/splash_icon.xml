@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generato da resources/icon.svg: gruccia color crema su marrone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="288"
+    android:viewportHeight="288">
+    <path android:pathData="M144,52a92,92 0 1,0 0.01,0z" android:fillColor="#7A5C3F"/>
+    <group android:pivotX="50" android:pivotY="37" android:scaleX="1.32" android:scaleY="1.32" android:translateX="94" android:translateY="107">
+        <path android:pathData="M40 15 A10 10 0 1 1 50 25 L50 31" android:strokeColor="#F5EFE6" android:strokeWidth="8" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000"/>
+        <path android:pathData="M50 31 L9 61.5 Q2 67 11 67 L89 67 Q98 67 91 61.5 Z" android:strokeColor="#F5EFE6" android:strokeWidth="8" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000"/>
+    </group>
+</vector>

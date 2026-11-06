@@ -57,7 +57,7 @@
   {#if url}
     <img src={url} {alt} draggable="false" />
   {:else if !photoId}
-    <span class="none" aria-label={alt}>Nessuna foto</span>
+    <span class="none" role="img" aria-label="{alt}: nessuna foto">Nessuna foto</span>
   {/if}
 </div>
 

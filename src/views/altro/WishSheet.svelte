@@ -174,10 +174,10 @@
         <span>Priorità</span>
         <div class="segmented" role="group" aria-label="Priorità">
           {#each PRIORITIES as p (p.id)}
-            <button aria-pressed={priority === p.id} onclick={() => (priority = p.id)} title={p.label}>{p.emoji}</button>
+            <button aria-pressed={priority === p.id} onclick={() => (priority = p.id)} title={p.label} aria-label="Priorità {p.label.toLowerCase()}"><span aria-hidden="true">{p.emoji}</span></button>
           {/each}
         </div>
-        <span class="hint">{PRIORITIES.find((p) => p.id === priority)?.label}</span>
+        <span class="hint" aria-hidden="true">{PRIORITIES.find((p) => p.id === priority)?.label}</span>
       </div>
     </div>
     <label class="field">

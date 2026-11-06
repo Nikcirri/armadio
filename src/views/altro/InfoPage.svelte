@@ -1,8 +1,39 @@
 <script lang="ts">
-  import { APP_VERSION } from '../../lib/platform';
+  import { APP_VERSION, isNative } from '../../lib/platform';
   import Page from '../../lib/ui/Page.svelte';
+  import { settings } from '../../lib/state/settings.svelte';
+  import { RELEASES_PAGE, isNewer } from '../../lib/logic/updates';
+  import { formatDateIt } from '../../lib/logic/util';
+  import { checkForUpdates, type UpdateResult } from '../../lib/updates';
 
   let { onclose }: { onclose: () => void } = $props();
+
+  let checking = $state(false);
+  let result = $state<UpdateResult | null>(null);
+
+  const saved = $derived(settings.value.updates);
+  // La versione nuova trovata (adesso o nell'ultimo controllo automatico).
+  const available = $derived.by(() => {
+    if (result?.kind === 'available') return { version: result.release.version, url: result.release.apkUrl ?? result.release.pageUrl, notes: result.release.notes };
+    if (saved?.latestVersion && isNewer(saved.latestVersion, APP_VERSION))
+      return { version: saved.latestVersion, url: saved.apkUrl ?? saved.pageUrl ?? RELEASES_PAGE, notes: [] as string[] };
+    return null;
+  });
+  const lastCheckText = $derived.by(() => {
+    if (!saved?.lastCheck) return null;
+    const d = new Date(saved.lastCheck);
+    return `${formatDateIt(saved.lastCheck)} alle ${d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`;
+  });
+
+  async function check() {
+    if (checking) return;
+    checking = true;
+    try {
+      result = await checkForUpdates();
+    } finally {
+      checking = false;
+    }
+  }
 </script>
 
 <Page title="Informazioni" {onclose}>
@@ -24,13 +55,44 @@
   </div>
 
   <h2 class="section-title">Aggiornamenti</h2>
-  <div class="card text">
-    <p>Le nuove versioni sono qui (serve internet solo per scaricarle):</p>
-    <a class="btn btn-block" href="https://github.com/Nikcirri/armadio/releases/latest" target="_blank" rel="noopener">
-      Apri la pagina degli aggiornamenti
-    </a>
-    <p class="note">Installa la nuova versione sopra quella vecchia: i dati restano.</p>
-  </div>
+  {#if isNative()}
+    <div class="card text">
+      {#if available}
+        <p class="update-title"><strong>È disponibile la versione {available.version}</strong></p>
+        {#if available.notes.length > 0}
+          <ul class="news" aria-label="Novità">
+            {#each available.notes as line, i (i)}
+              <li>{line}</li>
+            {/each}
+          </ul>
+        {/if}
+        <a class="btn btn-primary btn-block" href={available.url} target="_blank" rel="noopener">Scarica l’aggiornamento</a>
+        <p class="note">
+          Al termine del download apri il file e tocca <strong>Aggiorna</strong>. I tuoi dati restano. Se il telefono lo chiede,
+          consenti al browser di installare app.
+        </p>
+      {:else if result?.kind === 'current'}
+        <p class="status ok" role="status">Hai già l’ultima versione.</p>
+      {:else if result?.kind === 'offline'}
+        <p class="status" role="alert">Non c’è connessione a internet. Riprova quando sei online.</p>
+      {:else if result?.kind === 'error'}
+        <p class="status" role="alert">Non riesco a raggiungere GitHub in questo momento. Riprova più tardi.</p>
+      {:else}
+        <p>Controlla se è uscita una versione nuova (serve internet solo per questo).</p>
+      {/if}
+      <button class="btn btn-block" class:spaced={available !== null} onclick={check} disabled={checking} aria-busy={checking}>
+        {checking ? 'Controllo in corso…' : 'Controlla aggiornamenti'}
+      </button>
+      {#if lastCheckText}
+        <p class="note">Ultimo controllo: {lastCheckText}</p>
+      {/if}
+    </div>
+  {:else}
+    <div class="card text">
+      <p>Questa è la versione web: si aggiorna da sola quando la riapri con internet.</p>
+      <a class="btn btn-block" href={RELEASES_PAGE} target="_blank" rel="noopener">Scarica l’app per Android</a>
+    </div>
+  {/if}
 </Page>
 
 <style>
@@ -52,5 +114,22 @@
   }
   .text a {
     text-decoration: none;
+  }
+  .update-title {
+    font-size: 1.0625rem;
+  }
+  .news {
+    margin: 0 0 12px;
+    padding-left: 20px;
+    line-height: 1.5;
+  }
+  .status {
+    font-weight: 600;
+  }
+  .status.ok {
+    color: var(--accent);
+  }
+  .spaced {
+    margin-top: 10px;
   }
 </style>

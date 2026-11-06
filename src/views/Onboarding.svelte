@@ -74,7 +74,7 @@
   }
 </script>
 
-<div class="onboarding">
+<main class="onboarding">
   <div class="dots" aria-hidden="true">
     {#each Array(STEPS) as _, i (i)}
       <span class:on={i <= step}></span>
@@ -147,7 +147,7 @@
       <button class="btn btn-primary" onclick={() => (step += 1)}>Avanti</button>
     {/if}
   </nav>
-</div>
+</main>
 
 {#if restoring}
   <RestoreSheet prepared={restoring} allowMerge={false} onclose={() => (restoring = null)} />

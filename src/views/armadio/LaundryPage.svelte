@@ -157,7 +157,7 @@
           {#each load.items as item (item.id)}
             <button class="thumb" onclick={() => onopenitem(item.id)} title={item.name}>
               <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
-              {#if item.hasStain}<span class="stain" aria-label="Macchia">🧪</span>{/if}
+              {#if item.hasStain}<span class="stain" role="img" aria-label="Macchia">🧪</span>{/if}
             </button>
           {/each}
         </div>

@@ -251,5 +251,6 @@ export function defaultSettings(
     schemaVersion: 1,
     errorLog: [],
     endOfDay: null,
+    updates: { lastCheck: null, latestVersion: null, apkUrl: null, pageUrl: null },
   };
 }

@@ -80,7 +80,8 @@
       aria-label="{dayTitle(date, today)}{m.worn ? ', indossato' : ''}{m.planned ? ', pianificato' : ''}{m.warning ? ', un capo non sarà pronto' : ''}{m.trip ? `, viaggio ${m.trip.name}` : ''}"
       onclick={() => onselect(date)}
     >
-      {#if initial}<span class="wd">{initial}</span>{/if}
+      <!-- L’iniziale del giorno è disegnata dal CSS: il nome completo è già nell’etichetta. -->
+      {#if initial}<span class="wd" data-initial={initial} aria-hidden="true"></span>{/if}
       <span class="num">{dayNumber(date)}</span>
       <span class="dots" aria-hidden="true">
         {#if m.worn}<span class="dot worn"></span>{/if}
@@ -173,6 +174,9 @@
   .wd {
     font-size: 0.75rem;
     color: var(--text-muted);
+  }
+  .wd::before {
+    content: attr(data-initial);
   }
   .num {
     width: 32px;

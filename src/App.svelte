@@ -18,6 +18,7 @@
   import { unlockInProgress } from './lib/appLock';
   import { lock, shouldRelock } from './lib/state/lock.svelte';
   import TopBar from './lib/ui/TopBar.svelte';
+  import { autoCheckForUpdates, openExternal } from './lib/updates';
   import Altro from './views/Altro.svelte';
   import Armadio from './views/Armadio.svelte';
   import Onboarding from './views/Onboarding.svelte';
@@ -28,6 +29,7 @@
   let lastBackPressAt: number | null = null;
   let autoBackupChecked = false;
   let reminderChecked = false;
+  let updateCheckRunning = false;
 
   const onboarded = $derived(settings.loaded && settings.value.app?.onboarded === true);
   // Blocco con impronta o PIN (solo nell'app Android): all'apertura e al ritorno dopo un minuto.
@@ -57,6 +59,31 @@
     if (!onboarded || reminderChecked) return;
     reminderChecked = true;
     refreshEndOfDayReminder().catch((e) => console.error(e));
+  });
+
+  // Controllo aggiornamenti silenzioso (solo app Android): al massimo una volta al giorno, con internet.
+  function silentUpdateCheck() {
+    if (updateCheckRunning || !isNative()) return;
+    updateCheckRunning = true;
+    autoCheckForUpdates()
+      .then((release) => {
+        if (!release) return;
+        const url = release.apkUrl ?? release.pageUrl;
+        showToast(`È uscita la versione ${release.version} di Armadio`, {
+          actionLabel: 'Scarica',
+          onAction: () => openExternal(url),
+          duration: 10000,
+        });
+      })
+      .catch((e) => console.error(e))
+      .finally(() => {
+        updateCheckRunning = false;
+      });
+  }
+
+  $effect(() => {
+    if (!onboarded || locked) return;
+    silentUpdateCheck();
   });
 
   function onTab(id: TabId) {
@@ -111,6 +138,8 @@
       } else {
         if (shouldRelock(lock.hiddenAt, Date.now())) lock.unlocked = false;
         lock.hiddenAt = null;
+        // Se l'app resta aperta per giorni, il controllo riparte quando torni.
+        if (!locked) silentUpdateCheck();
       }
     });
     const stopTaps = onNotificationTap((action) => {

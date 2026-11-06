@@ -282,6 +282,15 @@ export interface SettingsMap {
   schemaVersion: number;
   errorLog: ErrorLogEntry[];
   endOfDay: EndOfDayPending | null;
+  /** Ultimo controllo aggiornamenti (solo su questo telefono). */
+  updates: UpdateCheckState;
+}
+
+export interface UpdateCheckState {
+  lastCheck: string | null;
+  latestVersion: string | null;
+  apkUrl: string | null;
+  pageUrl: string | null;
 }
 
 export type SettingKey = keyof SettingsMap;

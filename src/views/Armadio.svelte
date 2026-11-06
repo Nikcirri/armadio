@@ -30,6 +30,7 @@
   import Icon from '../lib/ui/Icon.svelte';
   import Lightbox from '../lib/ui/Lightbox.svelte';
   import PhotoEditor from '../lib/ui/PhotoEditor.svelte';
+  import VirtualGrid from '../lib/ui/VirtualGrid.svelte';
   import PhotoThumb from '../lib/ui/PhotoThumb.svelte';
   import PickerSheet from '../lib/ui/PickerSheet.svelte';
   import TabIcon from '../lib/ui/TabIcon.svelte';
@@ -396,33 +397,31 @@
         <button class="btn" onclick={() => { resetWardrobeFilters(); wardrobeView.filters = { ...wardrobeView.filters, query: '' }; }}>Azzera filtri</button>
       </div>
     {:else}
-      <ul class="grid">
-        {#each visible as item (item.id)}
+      <VirtualGrid items={visible} label="Capi">
+        {#snippet tile(item: ItemRecord)}
           {@const b = badge(item)}
           {@const isSel = selected.includes(item.id)}
-          <li>
-            <button
-              class="tile"
-              class:sel={isSel}
-              aria-pressed={selecting ? isSel : undefined}
-              onclick={() => onTile(item)}
-              use:longpress={{ onlong: () => onLongPress(item) }}
-            >
-              <span class="pic">
-                <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
-                {#if item.favorite}<span class="fav" aria-label="Preferito">❤️</span>{/if}
-                {#if item.hasStain}<span class="stain" aria-label="Macchia">🧪</span>{/if}
-                {#if b}<span class="state">{b}</span>{/if}
-                {#if selecting}<span class="check" class:on={isSel} aria-hidden="true">{#if isSel}<Icon name="check" size={18} />{/if}</span>{/if}
-              </span>
-              <span class="name">{item.name}</span>
-              <span class="cat">
-                {catById.get(item.categoryId)?.name ?? ''}{item.lastWornDate ? ` · ${formatDateIt(item.lastWornDate).replace(/ \d{4}$/, '')}` : ''}
-              </span>
-            </button>
-          </li>
-        {/each}
-      </ul>
+          <button
+            class="tile"
+            class:sel={isSel}
+            aria-pressed={selecting ? isSel : undefined}
+            onclick={() => onTile(item)}
+            use:longpress={{ onlong: () => onLongPress(item) }}
+          >
+            <span class="pic">
+              <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
+              {#if item.favorite}<span class="fav" role="img" aria-label="Preferito">❤️</span>{/if}
+              {#if item.hasStain}<span class="stain" role="img" aria-label="Macchia">🧪</span>{/if}
+              {#if b}<span class="state">{b}</span>{/if}
+              {#if selecting}<span class="check" class:on={isSel} aria-hidden="true">{#if isSel}<Icon name="check" size={18} />{/if}</span>{/if}
+            </span>
+            <span class="name">{item.name}</span>
+            <span class="cat">
+              {catById.get(item.categoryId)?.name ?? ''}{item.lastWornDate ? ` · ${formatDateIt(item.lastWornDate).replace(/ \d{4}$/, '')}` : ''}
+            </span>
+          </button>
+        {/snippet}
+      </VirtualGrid>
     {/if}
   {/if}
 </div>
@@ -658,14 +657,6 @@
   }
   .hint {
     margin: 2px 4px 0;
-  }
-  .grid {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-    gap: 12px;
   }
   .tile {
     width: 100%;
