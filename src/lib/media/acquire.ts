@@ -15,13 +15,13 @@ async function webPathToBlob(webPath: string): Promise<Blob> {
 }
 
 /** Input file nascosto (versione web). */
-function pickFromInput(opts: { multiple: boolean; capture: boolean }): Promise<File[]> {
+function pickFromInput(opts: { multiple: boolean; capture: boolean | 'user' }): Promise<File[]> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
     input.multiple = opts.multiple;
-    if (opts.capture) input.setAttribute('capture', 'environment');
+    if (opts.capture) input.setAttribute('capture', opts.capture === 'user' ? 'user' : 'environment');
     input.style.display = 'none';
     let done = false;
     const finish = (files: File[]) => {
@@ -45,6 +45,25 @@ export async function takePhoto(): Promise<Blob | null> {
       quality: 90,
       correctOrientation: true,
       cameraDirection: CameraDirection.Rear,
+      editable: 'no',
+      saveToGallery: false,
+    });
+    if (!res.webPath) return null;
+    return await webPathToBlob(res.webPath);
+  } catch (e) {
+    if (isCancel(e)) return null;
+    throw e;
+  }
+}
+
+/** Selfie con la fotocamera frontale (armocromia). Null se l'utente annulla. */
+export async function takeSelfie(): Promise<Blob | null> {
+  if (!isNative()) return (await pickFromInput({ multiple: false, capture: 'user' }))[0] ?? null;
+  try {
+    const res = await Camera.takePhoto({
+      quality: 95,
+      correctOrientation: true,
+      cameraDirection: CameraDirection.Front,
       editable: 'no',
       saveToGallery: false,
     });

@@ -303,3 +303,63 @@ describe('spiegazioni', () => {
     expect(outfitTagsFor(opts())).toEqual({ season: null, weatherTags: ['mild'] });
   });
 });
+
+describe('palette e armocromia', () => {
+  const tops = {
+    navyTee: item('top_base', 'T-shirt blu', { colors: ['navy'] }),
+    redTee: item('top_base', 'T-shirt rossa', { colors: ['red'] }),
+    greenTee: item('top_base', 'T-shirt verde', { colors: ['green'] }),
+    whiteJeans: item('bottom', 'Jeans bianchi', { colors: ['white'] }),
+    oliveChino: item('bottom', 'Chino oliva', { colors: ['olive'] }),
+    brownBoots: item('shoes', 'Stivaletti', { colors: ['brown'] }),
+    whiteSneakers: item('shoes', 'Sneakers', { colors: ['white'] }),
+  };
+  const all = Object.values(tops);
+  const look = (top: ItemRecord, bottom: ItemRecord, shoes: ItemRecord): Look => ({
+    mode: 'separates',
+    picks: { top_base: top.id, bottom: bottom.id, shoes: shoes.id },
+  });
+  const byId = new Map(all.map((i) => [i.id, i]));
+
+  it('senza palette scelta, un abbinamento che ne rispetta una prende la chip', () => {
+    const r = scoreLook(look(tops.redTee, tops.whiteJeans, tops.whiteSneakers), byId, opts(), context(all));
+    expect(r.reasons).toContain('Palette Mediterraneo');
+  });
+
+  it('con una palette scelta gli abbinamenti dentro la palette vengono prima', () => {
+    const o = opts({ paletteId: 'bosco' });
+    const inside = scoreLook(look(tops.greenTee, tops.oliveChino, tops.brownBoots), byId, o, context(all));
+    const outside = scoreLook(look(tops.redTee, tops.whiteJeans, tops.whiteSneakers), byId, o, context(all));
+    expect(inside.reasons).toContain('Palette Bosco');
+    expect(inside.score - outside.score).toBeGreaterThanOrEqual(10);
+    // il generatore sceglie davvero dalla palette
+    for (let seed = 1; seed <= 5; seed++) {
+      const r = generateLook(o, context(all), {}, seededRandom(seed));
+      const colors = lookItemIds(r.candidate!.look).flatMap((id) => byId.get(id)!.colors);
+      expect(colors.every((c) => ['green', 'olive', 'brown', 'cream'].includes(c))).toBe(true);
+    }
+  });
+
+  it('con l’armocromia i capi vicini al viso nei colori giusti guadagnano punti', () => {
+    const ctx = context(all, { colorSeason: 'warmAutumn', seasonPreference: true });
+    const good = scoreLook(look(tops.greenTee, tops.whiteJeans, tops.whiteSneakers), byId, opts(), ctx);
+    const bad = scoreLook(look(tops.navyTee, tops.whiteJeans, tops.whiteSneakers), byId, opts(), ctx);
+    expect(good.reasons).toContain('Colori della tua stagione');
+    expect(bad.reasons).not.toContain('Colori della tua stagione');
+    expect(good.score).toBeGreaterThan(bad.score);
+    // spento l'interruttore non cambia niente
+    const off = context(all, { colorSeason: 'warmAutumn', seasonPreference: false });
+    expect(scoreLook(look(tops.greenTee, tops.whiteJeans, tops.whiteSneakers), byId, opts(), off).reasons).not.toContain(
+      'Colori della tua stagione',
+    );
+  });
+
+  it('“La mia stagione” come palette giudica tutti i capi', () => {
+    const ctx = context(all, { colorSeason: 'warmAutumn', seasonPreference: false });
+    const o = opts({ paletteId: 'season' });
+    const autumn = scoreLook(look(tops.greenTee, tops.oliveChino, tops.brownBoots), byId, o, ctx);
+    const winter = scoreLook(look(tops.navyTee, tops.whiteJeans, tops.whiteSneakers), byId, o, ctx);
+    expect(autumn.reasons).toContain('Colori della tua stagione');
+    expect(autumn.score - winter.score).toBeGreaterThan(8);
+  });
+});

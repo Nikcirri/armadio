@@ -1,5 +1,15 @@
 # Novità
 
+## [1.3.0] - 2026-11-06
+
+- Armocromia (in Altro): fai un selfie con la luce del giorno e l'app trova il viso sul telefono, senza internet. Misura pelle, capelli, occhi, labbra e sopracciglia, scartando ombre, riflessi, bianco degli occhi e pupilla, e corregge la luce con il bianco degli occhi o con un foglio bianco che tocchi nella foto.
+- Ti dice la tua stagione tra le 12 dell'armocromia, con le percentuali delle stagioni più vicine e le tue caratteristiche (sottotono, intensità, brillantezza, contrasto).
+- Il risultato mostra circa 15 colori che ti valorizzano, i neutri, il metallo per i gioielli e i colori da evitare vicino al viso.
+- "Prova i colori" mette intorno al viso il colore che scegli, come il telo delle consulenti, per confrontare la tua stagione con quella vicina.
+- "Nel tuo armadio" mostra quali capi ti valorizzano. Ogni colore misurato si può correggere toccando la foto, e la stagione si può anche scegliere a mano. La foto non viene salvata.
+- Cosa metto?: nelle Opzioni c'è la nuova sezione Palette, con 32 palette di colori che stanno bene insieme (Mediterraneo, Bosco, Notte elegante, Denim e cuoio, Pastello e altre) più "La mia stagione". Gli abbinamenti nei colori della palette scelta vengono prima. Senza palette, quando un abbinamento ne rispetta una compare la chip "Palette …".
+- Con l'armocromia attiva, "Cosa metto?" preferisce i capi vicini al viso nei colori della tua stagione (chip "Colori della tua stagione"). Si può spegnere dalla pagina Armocromia.
+
 ## [1.2.1] - 2026-11-06
 
 - Reggiseni è una categoria predefinita in tutti i profili, anche Uomo. Chi ha già l'app la trova in fondo alle categorie dopo l'aggiornamento, senza doverla aggiungere.

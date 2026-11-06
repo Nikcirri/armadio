@@ -1,6 +1,7 @@
 <script lang="ts">
   import { closeAltroPage, nav, type AltroPageId } from '../lib/state/nav.svelte';
   import Icon, { type IconName } from '../lib/ui/Icon.svelte';
+  import ArmocromiaPage from './altro/ArmocromiaPage.svelte';
   import BackupPage from './altro/BackupPage.svelte';
   import CategoriesPage from './altro/CategoriesPage.svelte';
   import DeclutterPage from './altro/DeclutterPage.svelte';
@@ -15,6 +16,7 @@
     {
       title: 'Il tuo armadio',
       entries: [
+        { page: 'armocromia', label: 'Armocromia', sub: 'La tua stagione e i colori che ti stanno meglio', icon: 'palette' },
         { page: 'wishlist', label: 'Wishlist', sub: 'Cosa vorresti comprare', icon: 'sparkles' },
         { page: 'sizes', label: 'Taglie e misure', sub: 'Da consultare in negozio', icon: 'tag' },
         { page: 'declutter', label: 'Decluttering', sub: 'Cosa vendere e annunci pronti', icon: 'copy' },
@@ -67,6 +69,8 @@
   <DeclutterPage onclose={closeAltroPage} />
 {:else if nav.altroPage === 'stats'}
   <StatsPage onclose={closeAltroPage} />
+{:else if nav.altroPage === 'armocromia'}
+  <ArmocromiaPage onclose={closeAltroPage} />
 {/if}
 
 <style>

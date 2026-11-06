@@ -21,17 +21,20 @@
     type GeneratorOptions,
   } from '../lib/logic/generator';
   import { normalize } from '../lib/logic/items';
+  import { parseColorProfile, seasonInfo } from '../lib/logic/armocromia';
+  import { SEASON_PALETTE_ID, orderedPalettes, paletteById, paletteFit } from '../lib/logic/colorPalettes';
   import { autoLayout, pieceFromItem, semaphore } from '../lib/logic/outfits';
   import { joinNames, suggestUnderwear } from '../lib/logic/underwear';
   import { addDays, todayKey } from '../lib/logic/util';
   import { tapFeedback } from '../lib/platform';
   import { generatorView as view } from '../lib/state/generatorView.svelte';
   import { live } from '../lib/state/live.svelte';
-  import { requestOpenOutfit, selectTab } from '../lib/state/nav.svelte';
+  import { openAltroPage, requestOpenOutfit, selectTab } from '../lib/state/nav.svelte';
   import { settings } from '../lib/state/settings.svelte';
   import { confirmDialog, showToast } from '../lib/state/ui.svelte';
   import { reportError } from '../lib/errors';
   import ChipGroup from '../lib/ui/ChipGroup.svelte';
+  import PaletteDots from '../lib/ui/PaletteDots.svelte';
   import Icon from '../lib/ui/Icon.svelte';
   import PhotoThumb from '../lib/ui/PhotoThumb.svelte';
   import Sheet from '../lib/ui/Sheet.svelte';
@@ -59,6 +62,11 @@
       .map((l) => ({ id: l.id, label: l.name })),
   );
   const byId = $derived(new Map(items.value.map((i) => [i.id, i])));
+  // Armocromia (SPEC 8.6) e palette (SPEC 8.3).
+  const colorProfile = $derived(parseColorProfile(settings.value.colorProfile ?? null));
+  const palettes = $derived(orderedPalettes(colorProfile?.season ?? null));
+  const chosenPalette = $derived(paletteById(o.paletteId));
+  const seasonPaletteOn = $derived(o.paletteId === SEASON_PALETTE_ID && !!colorProfile);
   const seasonBoxId = $derived(lists.value.find((l) => l.kind === 'location' && l.extra.key === 'seasonBox')?.id ?? null);
 
   function buildContext(): GeneratorContext {
@@ -81,6 +89,8 @@
       today: todayKey(),
       antiRepeatDays: settings.value.antiRepeatDays ?? 3,
       recentLooks: recent.value.map((e) => e.itemIds),
+      colorSeason: colorProfile?.season ?? null,
+      seasonPreference: colorProfile?.useInGenerator ?? false,
     };
   }
 
@@ -192,6 +202,7 @@
     [
       o.occasionId ? (occasions.find((x) => x.id === o.occasionId)?.label ?? '') : '',
       o.harmony !== 'free' ? (HARMONIES.find((h) => h.id === o.harmony)?.label ?? '') : '',
+      chosenPalette ? `Palette ${chosenPalette.name}` : seasonPaletteOn ? 'La mia stagione' : '',
       o.forgotten ? 'Dimenticati' : '',
       !o.onlyAvailable ? 'Anche non disponibili' : '',
       !o.coordinate ? 'Senza coordinare' : '',
@@ -345,6 +356,9 @@
           </ul>
           <p class="note">Tocca per toglierlo o rimetterlo: “Indossa subito” e “Salva outfit” lo includono.</p>
         {/if}
+        {#if chosenPalette && paletteFit(pieces.flatMap((p) => byId.get(p.id)?.colors ?? []), chosenPalette).outside > 0}
+          <p class="warning">Nessun abbinamento tutto nei colori di “{chosenPalette.name}”: questo è il più vicino.</p>
+        {/if}
         {#if view.relaxed}
           <p class="warning">Per trovare un abbinamento ho usato anche capi che hai indossato negli ultimi giorni.</p>
         {/if}
@@ -402,6 +416,40 @@
         <button class="row" aria-pressed={o.harmony === h.id} onclick={() => setOption('harmony', h.id)}>
           <span class="radio" class:on={o.harmony === h.id} aria-hidden="true"></span>
           <span class="grow">{h.label}<span class="sub">{h.hint}</span></span>
+        </button>
+      {/each}
+    </div>
+
+    <h3 class="section-title">Palette</h3>
+    <p class="note">Una preferenza, non un divieto: gli abbinamenti con i colori della palette vengono prima.</p>
+    <div class="palettes" role="radiogroup" aria-label="Palette">
+      <button class="pal" role="radio" aria-checked={!chosenPalette && !seasonPaletteOn} onclick={() => setOption('paletteId', null)}>
+        <span class="pname">Nessuna</span>
+        <span class="psub">Scelgo io; se riconosco una palette te lo dico</span>
+      </button>
+      {#if colorProfile}
+        <button class="pal" role="radio" aria-checked={seasonPaletteOn} onclick={() => setOption('paletteId', SEASON_PALETTE_ID)}>
+          <PaletteDots swatches={seasonInfo(colorProfile.season).best.slice(0, 6).map((x) => x.hex)} size={14} />
+          <span class="pname">La mia stagione</span>
+          <span class="psub">{seasonInfo(colorProfile.season).name}</span>
+        </button>
+      {:else}
+        <button
+          class="pal discover"
+          onclick={() => {
+            showOptions = false;
+            openAltroPage('armocromia');
+          }}
+        >
+          <span class="pname">🎨 Scopri la tua armocromia</span>
+          <span class="psub">Un selfie e ti dico i colori che ti stanno meglio</span>
+        </button>
+      {/if}
+      {#each palettes as { palette, suits } (palette.id)}
+        <button class="pal" role="radio" aria-checked={o.paletteId === palette.id} onclick={() => setOption('paletteId', palette.id)}>
+          <PaletteDots swatches={palette.swatches} patterns={palette.colors.flatMap((c, i) => (c === 'pattern' ? [i] : []))} size={14} />
+          <span class="pname">{palette.name}</span>
+          <span class="psub">{suits ? 'Adatta a te · ' : ''}{palette.hint}</span>
         </button>
       {/each}
     </div>
@@ -706,6 +754,42 @@
   }
   .first {
     margin-top: 0;
+  }
+  .palettes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .pal {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: 72px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .pal[aria-checked='true'] {
+    border: 2px solid var(--accent);
+    padding: 9px 11px;
+    background: var(--surface-2);
+  }
+  .pal.discover {
+    border-style: dashed;
+  }
+  .pname {
+    font-weight: 600;
+  }
+  .psub {
+    font-size: 0.75rem;
+    line-height: 1.3;
+    color: var(--text-muted);
   }
   .radio {
     flex: none;

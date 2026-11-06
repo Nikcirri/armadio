@@ -39,3 +39,4 @@ I dati della versione web restano nel browser e sono separati da quelli dell'app
 - Quando su `main` cambia la versione in `package.json`, GitHub Actions costruisce l'APK firmato e pubblica la Release `vX.Y.Z` (`.github/workflows/release.yml`).
 - La versione web si pubblica a mano con `.github/workflows/pages.yml`; il service worker è generato al build da `build/serviceWorker.ts`.
 - Icona e schermata di avvio: sorgenti in `resources/`.
+- Armocromia: il viso si trova sul telefono con ML Kit Face Detection (`FacePlugin.java`, modello incluso nell'app); i colori si misurano in `src/lib/logic/faceColors.ts` e la stagione in `src/lib/logic/armocromia.ts`.

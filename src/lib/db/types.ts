@@ -287,6 +287,38 @@ export interface SettingsMap {
   endOfDay: EndOfDayPending | null;
   /** Ultimo controllo aggiornamenti (solo su questo telefono). */
   updates: UpdateCheckState;
+  /** Armocromia (SPEC 8.6); null se non è stata fatta. */
+  colorProfile: ColorProfile | null;
+}
+
+export type SeasonId =
+  | 'lightSpring'
+  | 'warmSpring'
+  | 'brightSpring'
+  | 'lightSummer'
+  | 'coolSummer'
+  | 'softSummer'
+  | 'softAutumn'
+  | 'warmAutumn'
+  | 'deepAutumn'
+  | 'deepWinter'
+  | 'coolWinter'
+  | 'brightWinter';
+
+export interface ColorProfile {
+  season: SeasonId;
+  /** Dalla foto o scelta a mano. */
+  source: 'photo' | 'manual';
+  /** Data e ora (ISO). */
+  date: string;
+  /** Colori misurati sul viso (esadecimali), solo dalla foto. */
+  colors: { skin: string; hair: string | null; eyes: string | null; lips: string | null; brows: string | null } | null;
+  /** Le quattro misure tra -1 e 1, solo dalla foto. */
+  metrics: { temperature: number; value: number; chroma: number; contrast: number } | null;
+  /** Le stagioni più vicine con la percentuale. */
+  ranking: { season: SeasonId; percent: number }[];
+  /** "Usa in Cosa metto?". */
+  useInGenerator: boolean;
 }
 
 export interface UpdateCheckState {

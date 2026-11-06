@@ -56,6 +56,38 @@ export function rgbToLab(r: number, g: number, b: number): Lab {
   return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
 }
 
+function linearToSrgb(v: number): number {
+  const c = v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+  return Math.round(Math.min(1, Math.max(0, c)) * 255);
+}
+
+/** Da Lab (D65) a RGB 0-255 (i colori fuori gamma vengono riportati dentro). */
+export function labToRgb(lab: Lab): [number, number, number] {
+  const fy = (lab[0] + 16) / 116;
+  const fx = fy + lab[1] / 500;
+  const fz = fy - lab[2] / 200;
+  const inv = (t: number) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
+  const x = inv(fx) * 0.95047;
+  const y = inv(fy);
+  const z = inv(fz) * 1.08883;
+  const r = x * 3.2406 + y * -1.5372 + z * -0.4986;
+  const g = x * -0.9689 + y * 1.8758 + z * 0.0415;
+  const b = x * 0.0557 + y * -0.204 + z * 1.057;
+  return [linearToSrgb(r), linearToSrgb(g), linearToSrgb(b)];
+}
+
+export function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+}
+
+export function labToHex(lab: Lab): string {
+  return rgbToHex(...labToRgb(lab));
+}
+
+export function hexToLab(hex: string): Lab {
+  return rgbToLab(...hexToRgb(hex));
+}
+
 export function hexToRgb(hex: string): [number, number, number] {
   const n = parseInt(hex.slice(1), 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];

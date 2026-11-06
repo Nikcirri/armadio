@@ -1,4 +1,6 @@
 import type { ColorId, ItemRecord, Season, SlotType, Warmth } from '../db/types';
+import { itemFit, type SeasonId } from './armocromia';
+import { SEASON_PALETTE_ID, matchingPalette, paletteById, paletteFit } from './colorPalettes';
 import { colorInfo } from './colors';
 import { isAvailable, normalize } from './items';
 import type { OutfitMode } from './outfits';
@@ -30,6 +32,8 @@ export interface GeneratorOptions {
   layers: boolean;
   occasionId: string | null;
   harmony: Harmony;
+  /** Palette preferita (SPEC 8.3): id di COLOR_PALETTES, "season" per la propria stagione, null per nessuna. */
+  paletteId: string | null;
   /** Coordina scarpe e borsa/cintura. */
   coordinate: boolean;
   /** Dai una possibilità ai dimenticati. */
@@ -44,6 +48,7 @@ export function defaultGeneratorOptions(): GeneratorOptions {
     layers: false,
     occasionId: null,
     harmony: 'free',
+    paletteId: null,
     coordinate: true,
     forgotten: false,
     onlyAvailable: true,
@@ -66,7 +71,14 @@ export interface GeneratorContext {
   antiRepeatDays: number;
   /** Capi degli outfit indossati negli ultimi 14 giorni (una lista per voce dello storico). */
   recentLooks: readonly (readonly string[])[];
+  /** Stagione dell'armocromia, se c'è (SPEC 8.6). */
+  colorSeason?: SeasonId | null;
+  /** "Usa in Cosa metto?": i capi vicini al viso nei colori della stagione guadagnano punti. */
+  seasonPreference?: boolean;
 }
+
+/** Capi vicini al viso per l'armocromia. */
+const NEAR_FACE: readonly SlotType[] = ['top_base', 'top_layer', 'full_body', 'outerwear'];
 
 // ---------- Slot ----------
 
@@ -326,6 +338,50 @@ export function scoreLook(look: Look, byId: ReadonlyMap<string, ItemRecord>, opt
   } else if (colors.length && accents.length === 1) {
     score += 1;
     reasons.push(`Un solo colore d’accento: ${colorInfo(accents[0]!).label.toLowerCase()}`);
+  }
+
+  // Palette (preferenze, SPEC 8.3)
+  const season = ctx.colorSeason ?? null;
+  const chosen = opts.paletteId && opts.paletteId !== SEASON_PALETTE_ID ? paletteById(opts.paletteId) : null;
+  if (opts.paletteId === SEASON_PALETTE_ID && season) {
+    let avoid = 0;
+    for (const i of all) {
+      const fit = itemFit(season, i.colors);
+      if (fit === 'good') score += 2;
+      else if (fit === 'avoid') {
+        score -= 3;
+        avoid += 1;
+      }
+    }
+    if (!avoid) reasons.push('Colori della tua stagione');
+  } else if (chosen) {
+    const fit = paletteFit(colors, chosen);
+    if (fit.outside === 0) {
+      score += 5 + Math.min(fit.used, 3) * 0.7;
+      reasons.push(`Palette ${chosen.name}`);
+    } else {
+      score -= 3 * fit.outside;
+    }
+  } else if (colors.length) {
+    const match = matchingPalette(colors);
+    if (match) {
+      score += 1.5;
+      reasons.push(`Palette ${match.name}`);
+    }
+  }
+
+  // Armocromia: i capi vicini al viso
+  if (season && ctx.seasonPreference && opts.paletteId !== SEASON_PALETTE_ID) {
+    let good = 0;
+    let avoid = 0;
+    for (const i of all) {
+      if (!NEAR_FACE.includes(i.slotType)) continue;
+      const fit = itemFit(season, i.colors);
+      if (fit === 'good') good += 1;
+      else if (fit === 'avoid') avoid += 1;
+    }
+    score += good * 0.8 - avoid * 1.2;
+    if (good && !avoid) reasons.push('Colori della tua stagione');
   }
 
   // Scarpe e borsa/cintura
