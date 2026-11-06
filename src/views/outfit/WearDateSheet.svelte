@@ -17,7 +17,7 @@
   </div>
   <label class="field">
     <span>Oppure scegli il giorno</span>
-    <input class="input" type="date" max={today} bind:value={date} />
+    <input class="input" type="date" max={today} bind:value={date} onchange={(e) => e.currentTarget.blur()} />
   </label>
   {#if valid}<p class="note">{formatDateIt(date)}</p>{/if}
 

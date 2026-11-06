@@ -26,6 +26,10 @@
     | 'move'
     | 'camera'
     | 'pin'
+    | 'lock'
+    | 'unlock'
+    | 'refresh'
+    | 'shuffle'
     | 'alert';
 </script>
 
@@ -103,6 +107,13 @@
   {:else if name === 'camera'}
     <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z" />
     <circle cx="12" cy="13" r="3" />
+  {:else if name === 'lock' || name === 'unlock'}
+    <rect x="4" y="11" width="16" height="10" rx="2" />
+    <path d={name === 'lock' ? 'M8 11V7a4 4 0 0 1 8 0v4' : 'M8 11V7a4 4 0 0 1 7.7-1.5'} />
+  {:else if name === 'refresh'}
+    <path d="M21 12a9 9 0 1 1-2.6-6.4L21 8M21 3v5h-5" />
+  {:else if name === 'shuffle'}
+    <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22M18 2l4 4-4 4M2 6h1.9c1.5 0 2.9.9 3.6 2.2M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8M18 14l4 4-4 4" />
   {:else if name === 'pin'}
     <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z" /><circle cx="12" cy="10" r="3" />
   {:else}

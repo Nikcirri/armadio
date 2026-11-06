@@ -20,6 +20,7 @@
   import ComingSoon from './views/ComingSoon.svelte';
   import Onboarding from './views/Onboarding.svelte';
   import Outfit from './views/Outfit.svelte';
+  import CosaMetto from './views/CosaMetto.svelte';
 
   let lastBackPressAt: number | null = null;
   let autoBackupChecked = false;
@@ -119,6 +120,8 @@
         <Armadio />
       {:else if activeId === 'outfit'}
         <Outfit />
+      {:else if activeId === 'cosa-metto'}
+        <CosaMetto />
       {:else}
         {#key activeId}
           <ComingSoon tab={activeTab} />
@@ -173,6 +176,8 @@
   }
   .navitem {
     min-height: 48px;
+    min-width: 0;
+    padding: 0 2px;
     border: 0;
     background: none;
     display: flex;
@@ -188,5 +193,8 @@
   .navitem.active {
     color: var(--accent);
     font-weight: 600;
+  }
+  .navitem span {
+    white-space: nowrap;
   }
 </style>

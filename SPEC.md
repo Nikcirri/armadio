@@ -153,12 +153,14 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Input: temperatura (Caldo, Mite, Freddo), interruttori Pioggia e A cipolla, occasione (facoltativa), armonia dei colori (Libera, Neutri/Monocromatico, Contrasto bilanciato), "Coordina scarpe e borsa/cintura", "Dai una possibilità ai dimenticati", "Solo capi disponibili" (attivo di default).
 - Regole:
   - Caldo: leggero o medio, stagione Primavera/Estate o 4 stagioni, niente capospalla salvo sera. Mite: medio, capospalla leggero facoltativo. Freddo: medio o pesante, capospalla obbligatorio.
+    Dettaglio: con il caldo niente capi pesanti (scarpe comprese) e, la sera, solo capospalla leggero; con il mite niente capi pesanti e capospalla facoltativo (leggero o medio); con il freddo stagione Autunno/Inverno o 4 stagioni, niente scarpe leggere, strato, sotto, abito e capospalla medi o pesanti, e la base leggera solo sotto uno strato.
   - Pioggia: solo scarpe impermeabili; esclusi camoscio, seta e lino.
   - A cipolla: obbligatori sopra base leggero + strato + capospalla.
   - Con un'occasione scelta, ogni capo deve avere quell'occasione (i capi senza occasioni valgono per tutte). Senza occasione sono vietate le coppie incompatibili della matrice (default: Sport/Relax con Elegante/Cerimonia o Serata; Mare/Vacanza con Studio/Lavoro), modificabile nelle impostazioni.
   - Tagli: privilegia Corto/Crop con Vita alta e Oversize con Aderente/Slim; evita Oversize sopra e sotto insieme.
   - Colori: Neutri/Monocromatico = solo neutri o una sola famiglia di colore; Contrasto bilanciato = neutri + al massimo un colore d'accento (la fantasia conta come accento).
-  - Evita i capi indossati negli ultimi 3 giorni (impostabile) e gli outfit identici a quelli degli ultimi 14 giorni.
+  - Evita i capi indossati negli ultimi 3 giorni (impostabile; non vale per scarpe e accessori) e gli outfit identici a quelli degli ultimi 14 giorni. Se così non resta nessuna combinazione, la regola si allenta e lo dice. I capi bloccati con il lucchetto restano sempre.
+  - Struttura: Spezzato (sopra + sotto, strato e capospalla secondo il clima) o Intero (abito o tuta); scarpe sempre; un accessorio facoltativo (con "Coordina" si preferiscono borsa o cintura nella stessa famiglia di colore delle scarpe).
 - Motore a punteggio: genera i candidati validi, assegna un punteggio con le regole morbide e sceglie a caso tra i migliori, così ogni giro è diverso ma sensato.
 - Rulli per slot con frecce, rigenera singolo, lucchetto e "Gira tutto". Sotto, chip "Perché funziona" (es. "Crop + vita alta", "Scarpe impermeabili").
 - Se non esiste nessuna combinazione valida, spiega quale slot manca (es. "Nessuna scarpa impermeabile pulita").

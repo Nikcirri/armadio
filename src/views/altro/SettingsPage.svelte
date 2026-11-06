@@ -130,7 +130,10 @@
     {#if s.notifications?.eveningReminder}
       <label class="time">
         <span>Orario</span>
-        <input class="input" type="time" value={s.notifications?.time ?? '21:00'} onchange={(e) => setReminderTime(e.currentTarget.value)} />
+        <input class="input" type="time" value={s.notifications?.time ?? '21:00'} onchange={(e) => {
+            setReminderTime(e.currentTarget.value);
+            e.currentTarget.blur();
+          }} />
       </label>
     {/if}
   </div>

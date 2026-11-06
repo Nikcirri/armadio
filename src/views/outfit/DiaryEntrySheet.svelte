@@ -190,7 +190,7 @@
     <div class="stack">
       <label class="field">
         <span>Data</span>
-        <input class="input" type="date" bind:value={date} />
+        <input class="input" type="date" bind:value={date} onchange={(e) => e.currentTarget.blur()} />
       </label>
 
       <div class="field">

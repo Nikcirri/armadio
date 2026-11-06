@@ -1,5 +1,17 @@
 # Novità
 
+## [0.6.0] - 2026-11-06
+
+- Nuova sezione "Cosa metto?": scegli Caldo, Mite o Freddo, attiva Pioggia o A cipolla e l'app ti propone un abbinamento completo, con collage.
+- Altre opzioni: occasione, armonia dei colori (Libera, Neutri/Monocromatico, Contrasto bilanciato), "Coordina scarpe e borsa/cintura", "Dai una possibilità ai dimenticati" e "Solo capi disponibili".
+- Regole: con il caldo niente capi pesanti né capospalla (tranne la sera), con il freddo capospalla obbligatorio, con la pioggia solo scarpe impermeabili e niente camoscio, seta o lino. Evita le occasioni che non stanno insieme, i capi messi negli ultimi 3 giorni e gli outfit appena indossati.
+- Rulli per ogni parte: con le frecce scorri le alternative, 🔄 rigenera solo quella parte, il lucchetto la tiene ferma quando tocchi "Gira tutto".
+- Chip "Perché funziona" (es. "Crop + vita alta", "Scarpe impermeabili", "Un solo colore d'accento").
+- Se non c'è nessun abbinamento ti dice cosa manca (es. "Nessuna scarpa impermeabile pulita") e propone solo le correzioni che funzionano davvero.
+- "Salva outfit" (con stagione, meteo e occasione) e "Indossa subito", con "Annulla" e poi "Fine giornata".
+- Corretto: il riquadro dell'orario del promemoria (e quelli delle date) restava evidenziato dopo la scelta.
+- La scritta "Cosa metto?" nella barra in basso non va più a capo.
+
 ## [0.5.0] - 2026-11-06
 
 - Nuova sezione Outfit: griglia dei tuoi look con collage, ricerca, filtri (occasione, stagione, meteo, preferiti, mai indossati, non indossati da 30 giorni, incompleti, "Mai indossato con…") e ordinamento.
