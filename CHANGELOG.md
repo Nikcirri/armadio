@@ -1,5 +1,9 @@
 # Novità
 
+## [1.2.1] - 2026-11-06
+
+- Reggiseni è una categoria predefinita in tutti i profili, anche Uomo. Chi ha già l'app la trova in fondo alle categorie dopo l'aggiornamento, senza doverla aggiungere.
+
 ## [1.2.0] - 2026-11-06
 
 - Categoria Reggiseni anche nel profilo Neutro (nel profilo Donna c'era già). Chi usa il profilo Neutro la trova in fondo alle categorie dopo l'aggiornamento.

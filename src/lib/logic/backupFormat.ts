@@ -11,7 +11,7 @@ import type {
   WearLogRecord,
   WishlistRecord,
 } from '../db/types';
-import { categoriesToAddV2, categoriesToAddV3, itemToV2 } from './migrations';
+import { categoriesToAddV2, categoriesToAddV3, categoriesToAddV4, itemToV2 } from './migrations';
 import { daysBetween, fileStamp, nowIso } from './util';
 
 // SPEC.md, sezione 10: file ZIP con data.json + cartella photos/.
@@ -100,6 +100,11 @@ export const BACKUP_MIGRATIONS: Record<number, (data: BackupData) => BackupData>
     const preset = data.tables.settings.find((s) => s.key === 'preset')?.value;
     const add = categoriesToAddV3(preset, data.tables.categories, data.exportedAt || nowIso());
     return { ...data, schemaVersion: 3, tables: { ...data.tables, categories: [...data.tables.categories, ...add] } };
+  },
+  // Schema 4: Reggiseni in tutti i preset.
+  3: (data) => {
+    const add = categoriesToAddV4(data.tables.categories, data.exportedAt || nowIso());
+    return { ...data, schemaVersion: 4, tables: { ...data.tables, categories: [...data.tables.categories, ...add] } };
   },
 };
 

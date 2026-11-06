@@ -47,13 +47,13 @@ describe('lettura del backup', () => {
 
   it('applica le migrazioni in ordine', () => {
     const data = parseBackup(base, 1);
-    BACKUP_MIGRATIONS[3] = (d: BackupData) => ({ ...d, schemaVersion: 4, appVersion: 'migrato' });
+    BACKUP_MIGRATIONS[4] = (d: BackupData) => ({ ...d, schemaVersion: 5, appVersion: 'migrato' });
     try {
-      expect(migrateBackup(data, 4)).toMatchObject({ schemaVersion: 4, appVersion: 'migrato' });
+      expect(migrateBackup(data, 5)).toMatchObject({ schemaVersion: 5, appVersion: 'migrato' });
     } finally {
-      delete BACKUP_MIGRATIONS[3];
+      delete BACKUP_MIGRATIONS[4];
     }
-    expect(() => migrateBackup(data, 4)).toThrow(/Manca la migrazione dalla versione 3/);
+    expect(() => migrateBackup(data, 5)).toThrow(/Manca la migrazione dalla versione 4/);
   });
 
   it('schema 2: intimo collegato ai capi e categorie di intimo del preset', () => {
@@ -96,8 +96,20 @@ describe('lettura del backup', () => {
     // un backup vecchio dello schema 1 arriva con le tre categorie del Neutro, senza doppioni
     const v1 = { ...base, tables: { categories: [{ id: 'c1', slotType: 'top_base', order: 0 }], settings: [{ key: 'preset', value: 'neutro' }] } };
     expect(parseBackup(v1, 3).tables.categories.map((c) => c.name)).toEqual([undefined, 'Intimo', 'Reggiseni', 'Calze e calzini']);
-    // con un altro preset non cambia niente
+    // con un altro preset lo schema 3 non cambia niente
     expect(parseBackup({ ...v2, tables: { ...v2.tables, settings: [{ key: 'preset', value: 'uomo' }] } }, 3).tables.categories).toHaveLength(2);
+  });
+
+  it('schema 4: Reggiseni con qualsiasi preset', () => {
+    const v3 = {
+      ...base,
+      schemaVersion: 3,
+      tables: { categories: [{ id: 'c1', slotType: 'top_base', order: 0 }], settings: [{ key: 'preset', value: 'uomo' }] },
+    };
+    expect(parseBackup(v3, 4).tables.categories.map((c) => c.name)).toEqual([undefined, 'Reggiseni']);
+    // da un backup Uomo dello schema 2: arriva una volta sola
+    const v2 = { ...v3, schemaVersion: 2 };
+    expect(parseBackup(v2, 4).tables.categories.filter((c) => c.name === 'Reggiseni')).toHaveLength(1);
   });
 });
 

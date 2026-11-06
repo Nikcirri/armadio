@@ -38,7 +38,7 @@ describe('migrazione allo schema 2', () => {
     });
     const db = new ArmadioDB(name);
     await db.open();
-    expect(SCHEMA_VERSION).toBe(3);
+    expect(SCHEMA_VERSION).toBe(4);
     const item = await db.items.get('i1');
     expect(item).toMatchObject({ name: 'Maglietta bianca', intimateNote: 'nude', underwearIds: [] });
     const cats = await db.categories.orderBy('order').toArray();
@@ -84,6 +84,41 @@ describe('migrazione allo schema 2', () => {
     const db = new ArmadioDB(name);
     const cats = await db.categories.orderBy('order').toArray();
     expect(cats.map((c) => c.name)).toEqual(['T-shirt', 'Intimo', 'Reggiseni']);
+    db.close();
+  });
+
+  it('schema 4: un armadio Uomo della versione 1.2 riceve Reggiseni', async () => {
+    const name = `migr-${Math.random()}`;
+    const v3 = new Dexie(name);
+    v3.version(3).stores({
+      photos: 'id',
+      categories: 'id, slotType, order',
+      items: 'id, categoryId, slotType, status, locationId, ownerId, lastWornDate, createdAt',
+      wearLog: 'id, date, *itemIds, outfitId',
+      outfits: 'id, createdAt',
+      diary: 'id, date, outfitId',
+      planner: 'date',
+      trips: 'id, startDate, status',
+      wishlist: 'id, createdAt',
+      lists: 'id, kind, [kind+order]',
+      settings: 'key',
+    });
+    await v3.open();
+    await v3.table('categories').bulkAdd([
+      { id: 'tee', name: 'T-shirt', slotType: 'top_base', order: 0 },
+      { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Boxer e slip', slotType: 'underwear', order: 1 },
+      { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calzini', slotType: 'underwear', order: 2 },
+    ]);
+    await v3.table('settings').add({ key: 'preset', value: 'uomo' });
+    v3.close();
+    const db = new ArmadioDB(name);
+    const cats = await db.categories.orderBy('order').toArray();
+    expect(cats.map((c) => [c.name, c.slotType, c.defaultMaxWears ?? null])).toEqual([
+      ['T-shirt', 'top_base', null],
+      ['Boxer e slip', 'underwear', null],
+      ['Calzini', 'underwear', null],
+      ['Reggiseni', 'underwear', 3],
+    ]);
     db.close();
   });
 

@@ -24,7 +24,12 @@ export function categoriesToAddV3(
   categories: readonly Pick<CategoryRecord, 'id' | 'order'>[],
   now: string,
 ): CategoryRecord[] {
-  return braCategoryToAdd(presetOf(presetValue), categories, now);
+  return presetOf(presetValue) === 'neutro' ? braCategoryToAdd(categories, now) : [];
+}
+
+/** Schema 4: la categoria Reggiseni in tutti i preset. */
+export function categoriesToAddV4(categories: readonly Pick<CategoryRecord, 'id' | 'order'>[], now: string): CategoryRecord[] {
+  return braCategoryToAdd(categories, now);
 }
 
 function presetOf(value: unknown): Preset {

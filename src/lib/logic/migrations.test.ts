@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { categoriesToAddV2, categoriesToAddV3, itemToV2 } from './migrations';
+import { categoriesToAddV2, categoriesToAddV3, categoriesToAddV4, itemToV2 } from './migrations';
 import { UNDERWEAR_CATEGORY_IDS } from './presets';
 
 describe('migrazione allo schema 2', () => {
@@ -15,6 +15,7 @@ describe('migrazione allo schema 2', () => {
       UNDERWEAR_CATEGORY_IDS.briefs,
       UNDERWEAR_CATEGORY_IDS.undershirt,
       UNDERWEAR_CATEGORY_IDS.socks,
+      UNDERWEAR_CATEGORY_IDS.bra,
     ]);
     expect(categoriesToAddV2(undefined, cats, 'x').map((c) => c.name)).toEqual(['Intimo', 'Reggiseni', 'Calze e calzini']);
     expect(categoriesToAddV2('donna', [], 'x')).toEqual([]);
@@ -29,5 +30,14 @@ describe('migrazione allo schema 2', () => {
     expect(categoriesToAddV3('neutro', [...cats, { id: UNDERWEAR_CATEGORY_IDS.bra, order: 2 }], 'x')).toEqual([]);
     expect(categoriesToAddV3('uomo', cats, 'x')).toEqual([]);
     expect(categoriesToAddV3('neutro', [], 'x')).toEqual([]);
+  });
+
+  it('schema 4: Reggiseni con qualsiasi preset, solo se manca', () => {
+    const cats = [{ id: 'c1', order: 7 }];
+    expect(categoriesToAddV4(cats, 'x').map((c) => [c.id, c.name, c.order, c.defaultMaxWears])).toEqual([
+      [UNDERWEAR_CATEGORY_IDS.bra, 'Reggiseni', 8, 3],
+    ]);
+    expect(categoriesToAddV4([...cats, { id: UNDERWEAR_CATEGORY_IDS.bra, order: 1 }], 'x')).toEqual([]);
+    expect(categoriesToAddV4([], 'x')).toEqual([]);
   });
 });

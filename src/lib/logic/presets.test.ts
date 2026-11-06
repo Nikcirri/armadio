@@ -30,7 +30,7 @@ describe('preset', () => {
       [UNDERWEAR_CATEGORY_IDS.socks, 'Calze e collant', 1],
     ]);
     expect(donna.slice(-3)).toEqual(under);
-    expect(buildPresetCategories('uomo').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Boxer e slip', 'Canottiere', 'Calzini']);
+    expect(buildPresetCategories('uomo').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Boxer e slip', 'Canottiere', 'Calzini', 'Reggiseni']);
     expect(buildPresetCategories('neutro').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Intimo', 'Reggiseni', 'Calze e calzini']);
 
     const old = donna.filter((c) => c.slotType !== 'underwear');
@@ -39,7 +39,10 @@ describe('preset', () => {
       ['Boxer e slip', old.length],
       ['Canottiere', old.length + 1],
       ['Calzini', old.length + 2],
+      ['Reggiseni', old.length + 3],
     ]);
+    // Reggiseni c'è in tutti i profili
+    for (const p of PRESETS) expect(buildPresetCategories(p.id).some((c) => c.id === UNDERWEAR_CATEGORY_IDS.bra), p.id).toBe(true);
     expect(underwearCategoriesToAdd('uomo', donna)).toEqual([]);
     expect(underwearCategoriesToAdd('donna', [])).toEqual([]);
     expect(isPreset('donna')).toBe(true);

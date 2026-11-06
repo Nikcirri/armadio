@@ -81,9 +81,12 @@ interface UnderwearSeed {
   maxWears: number;
 }
 
+// Reggiseni c'è in tutti i preset (SPEC 4).
+const BRA: UnderwearSeed = { id: UNDERWEAR_CATEGORY_IDS.bra, name: 'Reggiseni', icon: '👙', maxWears: 3 };
+
 const UNDERWEAR: Record<Preset, UnderwearSeed[]> = {
   donna: [
-    { id: UNDERWEAR_CATEGORY_IDS.bra, name: 'Reggiseni', icon: '👙', maxWears: 3 },
+    BRA,
     { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Slip e culotte', icon: '🩲', maxWears: 1 },
     { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calze e collant', icon: '🧦', maxWears: 1 },
   ],
@@ -91,10 +94,11 @@ const UNDERWEAR: Record<Preset, UnderwearSeed[]> = {
     { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Boxer e slip', icon: '🩲', maxWears: 1 },
     { id: UNDERWEAR_CATEGORY_IDS.undershirt, name: 'Canottiere', icon: '🎽', maxWears: 1 },
     { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calzini', icon: '🧦', maxWears: 1 },
+    BRA,
   ],
   neutro: [
     { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Intimo', icon: '🩲', maxWears: 1 },
-    { id: UNDERWEAR_CATEGORY_IDS.bra, name: 'Reggiseni', icon: '👙', maxWears: 3 },
+    BRA,
     { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calze e calzini', icon: '🧦', maxWears: 1 },
   ],
 };
@@ -160,18 +164,16 @@ export function underwearCategoriesToAdd(
 }
 
 /**
- * Schema 3: con il preset Neutro arriva Reggiseni. Si aggiunge in fondo, solo ad armadi già
- * configurati che non ce l'hanno (id fisso: niente doppioni).
+ * La categoria Reggiseni da aggiungere a un armadio già configurato che non ce l'ha (id fisso:
+ * niente doppioni). Va in fondo all'elenco. Usata dalle migrazioni degli schemi 3 e 4.
  */
 export function braCategoryToAdd(
-  preset: Preset,
   existing: readonly Pick<CategoryRecord, 'id' | 'order'>[],
   now: string = nowIso(),
 ): CategoryRecord[] {
-  if (preset !== 'neutro' || !existing.length || existing.some((c) => c.id === UNDERWEAR_CATEGORY_IDS.bra)) return [];
-  const seed = UNDERWEAR.neutro.find((s) => s.id === UNDERWEAR_CATEGORY_IDS.bra)!;
+  if (!existing.length || existing.some((c) => c.id === UNDERWEAR_CATEGORY_IDS.bra)) return [];
   const order = existing.reduce((m, c) => Math.max(m, c.order), -1) + 1;
-  return [underwearCategory(seed, order, now)];
+  return [underwearCategory(BRA, order, now)];
 }
 
 export function isPreset(value: unknown): value is Preset {
