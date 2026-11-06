@@ -47,13 +47,13 @@ describe('lettura del backup', () => {
 
   it('applica le migrazioni in ordine', () => {
     const data = parseBackup(base, 1);
-    BACKUP_MIGRATIONS[2] = (d: BackupData) => ({ ...d, schemaVersion: 3, appVersion: 'migrato' });
+    BACKUP_MIGRATIONS[3] = (d: BackupData) => ({ ...d, schemaVersion: 4, appVersion: 'migrato' });
     try {
-      expect(migrateBackup(data, 3)).toMatchObject({ schemaVersion: 3, appVersion: 'migrato' });
+      expect(migrateBackup(data, 4)).toMatchObject({ schemaVersion: 4, appVersion: 'migrato' });
     } finally {
-      delete BACKUP_MIGRATIONS[2];
+      delete BACKUP_MIGRATIONS[3];
     }
-    expect(() => migrateBackup(data, 3)).toThrow(/Manca la migrazione dalla versione 2/);
+    expect(() => migrateBackup(data, 4)).toThrow(/Manca la migrazione dalla versione 3/);
   });
 
   it('schema 2: intimo collegato ai capi e categorie di intimo del preset', () => {
@@ -76,6 +76,28 @@ describe('lettura del backup', () => {
     ]);
     // senza categorie (app mai configurata) non aggiunge niente
     expect(parseBackup(base, 2).tables.categories).toEqual([]);
+  });
+
+  it('schema 3: Reggiseni anche nel preset Neutro, una volta sola', () => {
+    const v2 = {
+      ...base,
+      schemaVersion: 2,
+      tables: {
+        categories: [{ id: 'c1', slotType: 'top_base', order: 0 }, { id: 'u1', slotType: 'underwear', order: 1 }],
+        settings: [{ key: 'preset', value: 'neutro' }],
+      },
+    };
+    const data = parseBackup(v2, 3);
+    expect(data.tables.categories.map((c) => [c.name, c.order])).toEqual([
+      [undefined, 0],
+      [undefined, 1],
+      ['Reggiseni', 2],
+    ]);
+    // un backup vecchio dello schema 1 arriva con le tre categorie del Neutro, senza doppioni
+    const v1 = { ...base, tables: { categories: [{ id: 'c1', slotType: 'top_base', order: 0 }], settings: [{ key: 'preset', value: 'neutro' }] } };
+    expect(parseBackup(v1, 3).tables.categories.map((c) => c.name)).toEqual([undefined, 'Intimo', 'Reggiseni', 'Calze e calzini']);
+    // con un altro preset non cambia niente
+    expect(parseBackup({ ...v2, tables: { ...v2.tables, settings: [{ key: 'preset', value: 'uomo' }] } }, 3).tables.categories).toHaveLength(2);
   });
 });
 

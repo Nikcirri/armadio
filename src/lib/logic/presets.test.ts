@@ -31,6 +31,7 @@ describe('preset', () => {
     ]);
     expect(donna.slice(-3)).toEqual(under);
     expect(buildPresetCategories('uomo').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Boxer e slip', 'Canottiere', 'Calzini']);
+    expect(buildPresetCategories('neutro').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Intimo', 'Reggiseni', 'Calze e calzini']);
 
     const old = donna.filter((c) => c.slotType !== 'underwear');
     const add = underwearCategoriesToAdd('uomo', old, '2026-11-06T10:00:00.000Z');

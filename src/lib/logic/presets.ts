@@ -94,6 +94,7 @@ const UNDERWEAR: Record<Preset, UnderwearSeed[]> = {
   ],
   neutro: [
     { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Intimo', icon: '🩲', maxWears: 1 },
+    { id: UNDERWEAR_CATEGORY_IDS.bra, name: 'Reggiseni', icon: '👙', maxWears: 3 },
     { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calze e calzini', icon: '🧦', maxWears: 1 },
   ],
 };
@@ -156,6 +157,21 @@ export function underwearCategoriesToAdd(
   const taken = new Set(existing.map((c) => c.id));
   const start = existing.reduce((m, c) => Math.max(m, c.order), -1) + 1;
   return UNDERWEAR[preset].filter((seed) => !taken.has(seed.id)).map((seed, i) => underwearCategory(seed, start + i, now));
+}
+
+/**
+ * Schema 3: con il preset Neutro arriva Reggiseni. Si aggiunge in fondo, solo ad armadi già
+ * configurati che non ce l'hanno (id fisso: niente doppioni).
+ */
+export function braCategoryToAdd(
+  preset: Preset,
+  existing: readonly Pick<CategoryRecord, 'id' | 'order'>[],
+  now: string = nowIso(),
+): CategoryRecord[] {
+  if (preset !== 'neutro' || !existing.length || existing.some((c) => c.id === UNDERWEAR_CATEGORY_IDS.bra)) return [];
+  const seed = UNDERWEAR.neutro.find((s) => s.id === UNDERWEAR_CATEGORY_IDS.bra)!;
+  const order = existing.reduce((m, c) => Math.max(m, c.order), -1) + 1;
+  return [underwearCategory(seed, order, now)];
 }
 
 export function isPreset(value: unknown): value is Preset {

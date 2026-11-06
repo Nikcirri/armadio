@@ -2,6 +2,7 @@
   import { db } from '../../lib/db';
   import { addCategory, deleteCategory, updateCategory } from '../../lib/db/repo';
   import type { CategoryRecord, SlotType } from '../../lib/db/types';
+  import { defaultIconFor, iconGroupsFor } from '../../lib/logic/categoryIcons';
   import { SLOTS, slotInfo } from '../../lib/logic/slots';
   import { confirmDialog, showToast } from '../../lib/state/ui.svelte';
   import { reportError } from '../../lib/errors';
@@ -21,8 +22,6 @@
     onclose: () => void;
   } = $props();
 
-  const ICONS = ['👕', '👚', '👔', '🧶', '🧥', '🥼', '👖', '🩳', '👗', '🩱', '👘', '🥻', '👟', '👞', '👠', '🥿', '🥾', '👡', '🩴', '👜', '🎒', '👛', '🧣', '🧤', '🧢', '👒', '🎩', '🕶️', '💍', '⌚', '➰', '🩲', '🧦', '🩰'];
-
   // svelte-ignore state_referenced_locally
   const initial = category;
   let name = $state(initial?.name ?? '');
@@ -32,6 +31,14 @@
   let maxWears = $state(initial?.defaultMaxWears ?? slotInfo('top_base').defaultMaxWears ?? 1);
   let bulkWeight = $state(initial?.bulkWeight ?? slotInfo('top_base').bulkWeight);
   let moveTo = $state('');
+  // In una categoria nuova, finché non scegli un'icona, cambiare tipo propone quella tipica.
+  let iconTouched = $state(!!initial);
+  const groups = $derived(iconGroupsFor(slotType));
+
+  function pickIcon(i: string) {
+    icon = i;
+    iconTouched = true;
+  }
 
   const others = $derived(categories.filter((c) => c.id !== initial?.id));
   const valid = $derived(name.trim().length > 0);
@@ -43,6 +50,7 @@
       washByUses = info.defaultMaxWears !== null;
       maxWears = info.defaultMaxWears ?? 1;
       bulkWeight = info.bulkWeight;
+      if (!iconTouched) icon = defaultIconFor(next);
     }
   }
 
@@ -97,15 +105,6 @@
       <input class="input" bind:value={name} maxlength="32" placeholder="Es. Camicie di lino" />
     </label>
 
-    <div class="field">
-      <span>Icona</span>
-      <div class="icons" role="radiogroup" aria-label="Icona">
-        {#each ICONS as i (i)}
-          <button class="ic" role="radio" aria-checked={icon === i} onclick={() => (icon = i)}>{i}</button>
-        {/each}
-      </div>
-    </div>
-
     <label class="field">
       <span>Tipo di capo</span>
       <select class="input" value={slotType} onchange={(e) => changeSlot(e.currentTarget.value as SlotType)}>
@@ -114,6 +113,22 @@
         {/each}
       </select>
     </label>
+
+    <div class="field">
+      <span>Icona <span class="chosen" aria-hidden="true">{icon}</span></span>
+      <div class="groups" role="radiogroup" aria-label="Icona">
+        {#each groups as g (g.id)}
+          <p class="group-name" aria-hidden="true">{g.label}</p>
+          <div class="icons">
+            {#each g.icons as ic (ic.emoji)}
+              <button class="ic" role="radio" aria-checked={icon === ic.emoji} aria-label={ic.label} title={ic.label} onclick={() => pickIcon(ic.emoji)}>
+                <span aria-hidden="true">{ic.emoji}</span>
+              </button>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    </div>
 
     <div class="list">
       <Switch
@@ -162,6 +177,21 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+  .chosen {
+    margin-left: 6px;
+    font-size: 1.25rem;
+  }
+  .groups {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .group-name {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
   }
   .icons {
     display: grid;

@@ -1,5 +1,11 @@
 # Novità
 
+## [1.2.0] - 2026-11-06
+
+- Categoria Reggiseni anche nel profilo Neutro (nel profilo Donna c'era già). Chi usa il profilo Neutro la trova in fondo alle categorie dopo l'aggiornamento.
+- Icone delle categorie: da 34 a 68, divise in gruppi (Sopra, Sotto e abiti, Scarpe, Accessori, Intimo e notte, Mare e sport, Altro). Ci sono anche reggiseno, stivali, occhiali, collane, valigette, pigiami, palestra e altre.
+- Nella nuova categoria si sceglie prima il tipo di capo: il suo gruppo di icone va in cima e, finché non ne scegli una, l'app propone l'icona tipica (per esempio 🩲 per l'Intimo).
+
 ## [1.1.0] - 2026-11-06
 
 - Intimo: nuovo tipo di capo per reggiseni, slip, boxer, calze e collant. Le categorie sono già pronte secondo il profilo scelto (per esempio Reggiseni, Slip e culotte, Calze e collant) e se ne possono creare altre di tipo "Intimo".

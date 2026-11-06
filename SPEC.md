@@ -52,6 +52,7 @@ Regole di integrità:
 - Ogni operazione che tocca più tabelle avviene in una transazione.
 - Migrazioni: ogni cambio di schema è una nuova versione Dexie con una funzione di migrazione non distruttiva e un test dedicato.
   - Schema 2 (versione 1.1): aggiunge underwearIds = [] a tutti i capi e, se l'app è già configurata e non ha categorie di intimo, quelle del preset. La stessa migrazione vale per i backup dello schema 1.
+  - Schema 3 (versione 1.2): con il preset Neutro aggiunge la categoria Reggiseni, se l'app è già configurata e non c'è. Vale anche per i backup dello schema 2.
 
 ## 4. Categorie e macro-slot
 Otto macro-slot con soglia di lavaggio e ingombro predefiniti (modificabili per categoria e per singolo capo):
@@ -68,7 +69,7 @@ Otto macro-slot con soglia di lavaggio e ingombro predefiniti (modificabili per 
 
 L'intimo (slot underwear) non ha un rullo in "Cosa metto?" e non compare nel collage (neanche nell'immagine condivisa): si collega ai capi con cui va (scheda capo) e l'app lo propone quando servono quei capi.
 
-Preset al primo avvio: Donna, Uomo, Neutro. Il preset cambia solo le categorie iniziali e i suggerimenti (es. note intimo); tutto resta modificabile. Categorie di intimo: Donna → Reggiseni (soglia 3 utilizzi), Slip e culotte, Calze e collant; Uomo → Boxer e slip, Canottiere, Calzini; Neutro → Intimo, Calze e calzini. Hanno id fissi, così l'aggiornamento dello schema e i backup vecchi le aggiungono una volta sola, senza doppioni. Categorie: aggiungi, rinomina, riordina, elimina con riassegnazione dei capi.
+Preset al primo avvio: Donna, Uomo, Neutro. Il preset cambia solo le categorie iniziali e i suggerimenti (es. note intimo); tutto resta modificabile. Categorie di intimo: Donna → Reggiseni (soglia 3 utilizzi), Slip e culotte, Calze e collant; Uomo → Boxer e slip, Canottiere, Calzini; Neutro → Intimo, Reggiseni (soglia 3 utilizzi), Calze e calzini. Hanno id fissi, così l'aggiornamento dello schema e i backup vecchi le aggiungono una volta sola, senza doppioni. Categorie: aggiungi, rinomina, riordina, elimina con riassegnazione dei capi. Nel foglio della categoria si sceglie prima il tipo di capo, poi l'icona: circa 70 emoji divise in gruppi (Sopra, Sotto e abiti, Scarpe, Accessori, Intimo e notte, Mare e sport, Altro), con il gruppo del tipo scelto in cima e un'etichetta per i lettori di schermo. In una categoria nuova, finché non si tocca un'icona, cambiare tipo propone l'icona tipica di quel tipo.
 
 ## 5. Stati del capo e lavanderia
 Stati (pillole con icona e testo):

@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie';
-import { categoriesToAddV2, itemToV2 } from '../logic/migrations';
+import { categoriesToAddV2, categoriesToAddV3, itemToV2 } from '../logic/migrations';
 import { nowIso } from '../logic/util';
 import type {
   CategoryRecord,
@@ -22,7 +22,7 @@ import type {
  * 2. aggiunge in `src/lib/logic/backupFormat.ts` la migrazione equivalente per i backup;
  * 3. aggiunge un test per entrambe.
  */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 export const DB_NAME = 'ArmadioDB';
 
@@ -66,6 +66,15 @@ export class ArmadioDB extends Dexie {
         const preset = (await tx.table('settings').get('preset')) as SettingRecord | undefined;
         const categories = (await tx.table('categories').toArray()) as CategoryRecord[];
         const add = categoriesToAddV2(preset?.value, categories, nowIso());
+        if (add.length) await tx.table('categories').bulkAdd(add);
+      });
+    // Schema 3 (versione 1.2): Reggiseni anche nel preset Neutro.
+    this.version(3)
+      .stores({})
+      .upgrade(async (tx) => {
+        const preset = (await tx.table('settings').get('preset')) as SettingRecord | undefined;
+        const categories = (await tx.table('categories').toArray()) as CategoryRecord[];
+        const add = categoriesToAddV3(preset?.value, categories, nowIso());
         if (add.length) await tx.table('categories').bulkAdd(add);
       });
   }

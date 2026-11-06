@@ -38,7 +38,7 @@ describe('migrazione allo schema 2', () => {
     });
     const db = new ArmadioDB(name);
     await db.open();
-    expect(SCHEMA_VERSION).toBe(2);
+    expect(SCHEMA_VERSION).toBe(3);
     const item = await db.items.get('i1');
     expect(item).toMatchObject({ name: 'Maglietta bianca', intimateNote: 'nude', underwearIds: [] });
     const cats = await db.categories.orderBy('order').toArray();
@@ -55,6 +55,36 @@ describe('migrazione allo schema 2', () => {
     const again = new ArmadioDB(name);
     expect(await again.categories.count()).toBe(5);
     again.close();
+  });
+
+  it('schema 3: un armadio Neutro della versione 1.1 riceve Reggiseni', async () => {
+    const name = `migr-${Math.random()}`;
+    const v2 = new Dexie(name);
+    // stesso schema della versione 1.1 (lo schema 2 non cambia gli indici)
+    v2.version(2).stores({
+      photos: 'id',
+      categories: 'id, slotType, order',
+      items: 'id, categoryId, slotType, status, locationId, ownerId, lastWornDate, createdAt',
+      wearLog: 'id, date, *itemIds, outfitId',
+      outfits: 'id, createdAt',
+      diary: 'id, date, outfitId',
+      planner: 'date',
+      trips: 'id, startDate, status',
+      wishlist: 'id, createdAt',
+      lists: 'id, kind, [kind+order]',
+      settings: 'key',
+    });
+    await v2.open();
+    await v2.table('categories').bulkAdd([
+      { id: 'tee', name: 'T-shirt', slotType: 'top_base', order: 0 },
+      { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Intimo', slotType: 'underwear', order: 1 },
+    ]);
+    await v2.table('settings').add({ key: 'preset', value: 'neutro' });
+    v2.close();
+    const db = new ArmadioDB(name);
+    const cats = await db.categories.orderBy('order').toArray();
+    expect(cats.map((c) => c.name)).toEqual(['T-shirt', 'Intimo', 'Reggiseni']);
+    db.close();
   });
 
   it('non aggiunge categorie se l’app non era ancora configurata', async () => {

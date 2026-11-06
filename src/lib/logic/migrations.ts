@@ -1,5 +1,5 @@
 import type { CategoryRecord, Preset } from '../db/types';
-import { isPreset, underwearCategoriesToAdd } from './presets';
+import { braCategoryToAdd, isPreset, underwearCategoriesToAdd } from './presets';
 
 // Migrazioni dei dati (SPEC 3), condivise tra il database (Dexie) e i backup vecchi.
 
@@ -15,6 +15,18 @@ export function categoriesToAddV2(
   categories: readonly Pick<CategoryRecord, 'id' | 'slotType' | 'order'>[],
   now: string,
 ): CategoryRecord[] {
-  const preset: Preset = isPreset(presetValue) ? presetValue : 'neutro';
-  return underwearCategoriesToAdd(preset, categories, now);
+  return underwearCategoriesToAdd(presetOf(presetValue), categories, now);
+}
+
+/** Schema 3: la categoria Reggiseni nel preset Neutro. */
+export function categoriesToAddV3(
+  presetValue: unknown,
+  categories: readonly Pick<CategoryRecord, 'id' | 'order'>[],
+  now: string,
+): CategoryRecord[] {
+  return braCategoryToAdd(presetOf(presetValue), categories, now);
+}
+
+function presetOf(value: unknown): Preset {
+  return isPreset(value) ? value : 'neutro';
 }
