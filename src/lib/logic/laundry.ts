@@ -61,35 +61,82 @@ export interface Load {
   warning: boolean;
   /** Il programma è stato diviso per colore per evitare che i colori stingano. */
   split: boolean;
+  /** Programmi dei capi nel carico: più di uno quando si lava tutto insieme. */
+  programs: Program[];
 }
 
-/**
- * Carichi suggeriti: uno per programma; se nello stesso programma ci sono bianchi e capi
- * scuri o rossi, si divide per colore (Chiari / Colorati / Scuri). Con `merged` si tiene
- * comunque tutto insieme (e il carico mostra l'avviso).
- */
-export function buildLoads(items: readonly ItemRecord[], merged: ReadonlySet<Program> = new Set()): Load[] {
+export interface LoadOptions {
+  /** "Lava tutto insieme": tutti i capi da lavatrice in un solo lavaggio, con il programma più delicato. */
+  together?: boolean;
+  /** Con `together`: dividi comunque chiari e scuri (stesso programma, due lavatrici). */
+  splitColors?: boolean;
+}
+
+const isMachine = (p: Program) => PROGRAMS.find((x) => x.id === p)?.machine ?? false;
+const programRank = (p: Program) => PROGRAMS.findIndex((x) => x.id === p);
+
+/** Il programma più delicato tra quelli indicati (PROGRAMS è ordinato dal più delicato). */
+export function gentlestProgram(programs: readonly Program[]): Program | null {
+  return [...programs].sort((a, b) => programRank(a) - programRank(b))[0] ?? null;
+}
+
+function byColor(key: string, program: Program, items: ItemRecord[], programs: Program[]): Load[] {
   const loads: Load[] = [];
-  for (const p of PROGRAMS) {
-    const inProgram = items.filter((i) => programOf(i) === p.id);
-    if (!inProgram.length) continue;
-    const risk = hasBleedRisk(inProgram);
-    if (!risk || merged.has(p.id) || !p.machine) {
-      loads.push({ key: p.id, program: p.id, colorGroup: null, items: inProgram, warning: risk, split: false });
-      continue;
-    }
-    for (const g of COLOR_GROUPS) {
-      const part = inProgram.filter((i) => colorGroupOf(i) === g.id);
-      if (part.length) loads.push({ key: `${p.id}-${g.id}`, program: p.id, colorGroup: g.id, items: part, warning: false, split: true });
-    }
+  for (const g of COLOR_GROUPS) {
+    const part = items.filter((i) => colorGroupOf(i) === g.id);
+    if (part.length) loads.push({ key: `${key}-${g.id}`, program, colorGroup: g.id, items: part, warning: false, split: true, programs });
   }
   return loads;
 }
 
-export function loadTitle(load: Pick<Load, 'program' | 'colorGroup'>): string {
-  const p = PROGRAMS.find((x) => x.id === load.program)?.label ?? '';
+/**
+ * Carichi suggeriti: uno per programma; se nello stesso programma da lavatrice ci sono bianchi
+ * e capi scuri o rossi, si divide per colore (Chiari / Colorati / Scuri).
+ * Con `together` tutti i capi da lavatrice vanno in un solo carico con il programma più
+ * delicato tra quelli presenti (con l'avviso se mescola bianchi e scuri, oppure diviso per
+ * colore con `splitColors`). A mano e a secco restano sempre a parte.
+ */
+export function buildLoads(items: readonly ItemRecord[], options: LoadOptions = {}): Load[] {
+  const groups = PROGRAMS.map((p) => ({ program: p, items: items.filter((i) => programOf(i) === p.id) })).filter(
+    (g) => g.items.length,
+  );
+  const machineGroups = groups.filter((g) => g.program.machine);
+  const loads: Load[] = [];
+  let machineDone = false;
+  for (const g of groups) {
+    const p = g.program;
+    if (p.machine && options.together) {
+      if (machineDone) continue;
+      machineDone = true;
+      const all = machineGroups.flatMap((m) => m.items);
+      const programs = machineGroups.map((m) => m.program.id);
+      const program = gentlestProgram(programs) ?? p.id;
+      const risk = hasBleedRisk(all);
+      if (risk && options.splitColors) loads.push(...byColor('machine', program, all, programs));
+      else loads.push({ key: 'machine', program, colorGroup: null, items: all, warning: risk, split: false, programs });
+      continue;
+    }
+    const risk = hasBleedRisk(g.items);
+    if (risk && p.machine) loads.push(...byColor(p.id, p.id, g.items, [p.id]));
+    else loads.push({ key: p.id, program: p.id, colorGroup: null, items: g.items, warning: risk, split: false, programs: [p.id] });
+  }
+  return loads;
+}
+
+/** Quante lavatrici (carichi da lavatrice) ci sono: con 2 o più si può lavare tutto insieme. */
+export function machineLoadCount(loads: readonly Pick<Load, 'program'>[]): number {
+  return loads.filter((l) => isMachine(l.program)).length;
+}
+
+export function programLabel(p: Program): string {
+  return PROGRAMS.find((x) => x.id === p)?.label ?? '';
+}
+
+export function loadTitle(load: Pick<Load, 'program' | 'colorGroup' | 'programs'>): string {
+  const p = programLabel(load.program);
   const g = load.colorGroup ? COLOR_GROUPS.find((x) => x.id === load.colorGroup)?.label : null;
-  return g ? `${p} · ${g}` : p;
+  if (g) return `${p} · ${g}`;
+  return load.programs.length > 1 ? `${p} · Tutto insieme` : p;
 }
 
 export interface LaundryOverview {

@@ -3,7 +3,16 @@
   import { bulkSetStatus, clearStain, restoreBulk } from '../../lib/db/items';
   import type { ItemRecord, ItemStatus } from '../../lib/db/types';
   import { statusInfo } from '../../lib/logic/labels';
-  import { PROGRAMS, buildLoads, laundryOverview, loadTitle, programOf, type Load, type Program } from '../../lib/logic/laundry';
+  import {
+    PROGRAMS,
+    buildLoads,
+    laundryOverview,
+    loadTitle,
+    machineLoadCount,
+    programLabel,
+    programOf,
+    type Load,
+  } from '../../lib/logic/laundry';
   import { tapFeedback } from '../../lib/platform';
   import { live } from '../../lib/state/live.svelte';
   import { showToast, showUndoToast } from '../../lib/state/ui.svelte';
@@ -15,15 +24,25 @@
   let { onclose, onopenitem }: { onclose: () => void; onopenitem: (id: string) => void } = $props();
 
   const items = live(() => db.items.toArray(), [] as ItemRecord[]);
-  let merged = $state<Program[]>([]);
+  let together = $state(false);
+  let splitColors = $state(false);
 
   const o = $derived(laundryOverview(items.value));
-  const loads = $derived(buildLoads(o.toWash, new Set(merged)));
+  const loads = $derived(buildLoads(o.toWash, { together, splitColors }));
+  const machineLoads = $derived(machineLoadCount(loads));
+  const canMerge = $derived(machineLoads >= 2);
+  const hasOthers = $derived(loads.some((l) => !PROGRAMS.find((p) => p.id === l.program)?.machine));
+  const barText = $derived(
+    !together
+      ? `${machineLoads} lavatrici suggerite: puoi farne una sola.`
+      : canMerge
+        ? 'Tutto con lo stesso programma, ma chiari e scuri in due lavatrici.'
+        : 'Un solo lavaggio in lavatrice, con il programma più delicato.',
+  );
   const nothing = $derived(
     !o.toWash.length && !o.drying.length && !o.toIron.length && !o.maintenance.length && !o.dueSoon.length,
   );
 
-  const programLabel = (p: Program) => PROGRAMS.find((x) => x.id === p)?.label ?? '';
   const count = (n: number) => (n === 1 ? '1 capo' : `${n} capi`);
 
   async function move(list: ItemRecord[], status: ItemStatus) {
@@ -50,12 +69,23 @@
     }
   }
 
-  function merge(p: Program) {
-    merged = [...merged, p];
+  function washTogether() {
+    together = true;
+    splitColors = false;
+    void tapFeedback();
   }
-  function unmerge(p: Program) {
-    merged = merged.filter((x) => x !== p);
+  function backToSuggested() {
+    together = false;
+    splitColors = false;
   }
+  function divideColors() {
+    splitColors = true;
+  }
+  const otherPrograms = (l: Load) =>
+    l.programs
+      .filter((p) => p !== l.program)
+      .map(programLabel)
+      .join(' e ');
 
   const isDryClean = (l: Load) => l.program === 'dryClean';
 </script>
@@ -88,6 +118,20 @@
 
   {#if loads.length}
     <h2 class="section-title">🧺 Carichi da lavare</h2>
+    {#if canMerge || (together && machineLoads > 0)}
+      <div class="merge-bar">
+        <p>{barText}</p>
+        {#if hasOthers}<p class="small">I capi da lavare a mano o in tintoria restano a parte.</p>{/if}
+        <div class="bar-actions">
+          {#if canMerge}
+            <button class="btn btn-primary" onclick={washTogether}>Lava tutto insieme</button>
+          {/if}
+          {#if together}
+            <button class="btn" onclick={backToSuggested}>Torna ai carichi suggeriti</button>
+          {/if}
+        </div>
+      </div>
+    {/if}
     {#each loads as load (load.key)}
       <section class="load card" class:warn={load.warning}>
         <header>
@@ -98,14 +142,16 @@
           <p class="alert">
             ⚠️ Ci sono capi bianchi insieme a capi scuri o rossi: rischiano di macchiarsi.
             {#if PROGRAMS.find((p) => p.id === load.program)?.machine}
-              <button class="link" onclick={() => unmerge(load.program)}>Dividi per colore</button>
+              <button class="link" onclick={divideColors}>Dividi per colore</button>
             {/if}
           </p>
         {:else if load.split}
-          <div class="split-row">
-            <p class="info">Separati per colore così i bianchi non si macchiano.</p>
-            <button class="merge-btn" onclick={() => merge(load.program)}>Lava tutto insieme</button>
-          </div>
+          <p class="info">Separati per colore così i bianchi non si macchiano.</p>
+        {/if}
+        {#if load.programs.length > 1}
+          <p class="info">
+            Programma {programLabel(load.program)}: è il più delicato, va bene anche per i capi da {otherPrograms(load)}.
+          </p>
         {/if}
         <div class="thumbs">
           {#each load.items as item (item.id)}
@@ -238,33 +284,39 @@
     font-size: 0.875rem;
     line-height: 1.45;
   }
-  .split-row {
+  .merge-bar {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-2);
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .merge-bar p {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  .merge-bar .small {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+  .bar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .bar-actions .btn {
+    flex: 1 1 auto;
+    min-height: 48px;
   }
   .info {
-    flex: 1;
     margin: 0;
     font-size: 0.8125rem;
     color: var(--text-muted);
     line-height: 1.4;
-  }
-  .merge-btn {
-    flex: none;
-    min-height: 40px;
-    padding: 0 14px;
-    border: 1px solid var(--accent);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--accent);
-    font: inherit;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-  .merge-btn:active {
-    background: var(--surface-2, transparent);
   }
   .thumbs {
     display: flex;

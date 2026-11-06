@@ -4,9 +4,11 @@ import { createItem } from './factories';
 import {
   buildLoads,
   colorGroupOf,
+  gentlestProgram,
   hasBleedRisk,
   laundryOverview,
   loadTitle,
+  machineLoadCount,
   programOf,
   returnCandidates,
   storeCandidates,
@@ -56,9 +58,46 @@ describe('carichi suggeriti', () => {
   });
 
   it('con "lava tutto insieme" tiene un carico e mostra l’avviso', () => {
-    const loads = buildLoads([tee, jeans], new Set(['wash40']));
+    const loads = buildLoads([tee, jeans], { together: true });
     expect(loads).toHaveLength(1);
-    expect(loads[0]?.warning).toBe(true);
+    expect(loads[0]).toMatchObject({ program: 'wash40', warning: true, programs: ['wash40'] });
+    expect(loadTitle(loads[0]!)).toBe('40°');
+  });
+
+  it('"lava tutto insieme" unisce le temperature con il programma più delicato', () => {
+    const shirt = item({ name: 'Camicia', colors: ['denim'], washTags: ['max30'] });
+    const trousers = item({ name: 'Pantaloni', colors: ['black'], washTags: ['delicate'] });
+    const darkTee = item({ name: 'T-shirt nera', colors: ['black'], washTags: ['max40'] });
+    const loads = buildLoads([shirt, trousers, darkTee, sock], { together: true });
+    expect(loads.map((l) => l.program)).toEqual(['hand', 'delicate']);
+    const machine = loads[1]!;
+    expect(machine.items).toHaveLength(3);
+    expect(machine.programs).toEqual(['delicate', 'wash30', 'wash40']);
+    expect(machine.warning).toBe(false);
+    expect(loadTitle(machine)).toBe('Delicati · Tutto insieme');
+  });
+
+  it('a mano e a secco restano a parte anche lavando tutto insieme', () => {
+    const coat = item({ name: 'Trench', colors: ['cream'], washTags: ['dryClean'] });
+    const loads = buildLoads([tee, silk, coat], { together: true });
+    expect(loads.map((l) => l.program)).toEqual(['hand', 'wash40', 'dryClean']);
+  });
+
+  it('lavando tutto insieme avvisa per i bianchi e li può dividere per colore', () => {
+    const trousers = item({ name: 'Pantaloni', colors: ['black'], washTags: ['max30'] });
+    const together = buildLoads([tee, trousers], { together: true });
+    expect(together).toHaveLength(1);
+    expect(together[0]).toMatchObject({ program: 'wash30', warning: true });
+    const split = buildLoads([tee, trousers], { together: true, splitColors: true });
+    expect(split.map((l) => loadTitle(l))).toEqual(['30° · Chiari', '30° · Scuri']);
+    expect(split.every((l) => l.split && !l.warning && l.programs.length === 2)).toBe(true);
+  });
+
+  it('conta le lavatrici e trova il programma più delicato', () => {
+    expect(machineLoadCount(buildLoads([tee, silk]))).toBe(1);
+    expect(machineLoadCount(buildLoads([tee, jeans]))).toBe(2);
+    expect(gentlestProgram(['wash40', 'delicate', 'wash30'])).toBe('delicate');
+    expect(gentlestProgram([])).toBeNull();
   });
 
   it('il lavaggio a mano non si divide ma avvisa', () => {

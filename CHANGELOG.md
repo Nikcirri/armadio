@@ -1,5 +1,11 @@
 # Novità
 
+## [0.4.2] - 2026-11-06
+
+- Lavanderia: quando ci sono almeno 2 lavatrici, in cima ai carichi c'è il tasto "Lava tutto insieme". Unisce in un solo lavaggio tutti i capi da lavatrice (delicati, 30° e 40°) con il programma più delicato tra quelli presenti, che va bene per tutti.
+- Se nel lavaggio unico ci sono bianchi insieme a capi scuri o rossi compare l'avviso, con "Dividi per colore" per fare due lavatrici con lo stesso programma.
+- "Torna ai carichi suggeriti" rimette la divisione di prima. I capi da lavare a mano o in tintoria restano sempre a parte.
+
 ## [0.4.1] - 2026-11-06
 
 - Lavanderia: il tasto "Lava tutto insieme" ora è dentro ogni carico diviso per colore, accanto alla scritta "Separati per colore", invece che in fondo ai carichi dove si vedeva poco.

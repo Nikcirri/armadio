@@ -84,6 +84,7 @@ Ciclo: Da lavare → Steso → Da stirare (facoltativo) → Pulito. Il passaggio
 Vista Lavanderia:
 - in cima i capi con macchia da pre-trattare;
 - i capi da lavare divisi in carichi suggeriti per programma (a mano, delicati, 30°, 40°, a secco) e per colore (chiari, scuri, colorati), con avviso se un carico mescola bianchi con rossi o scuri;
+- "Lava tutto insieme" (visibile quando ci sono almeno 2 lavatrici): unisce in un solo lavaggio tutti i capi da lavatrice (delicati, 30°, 40°, di qualsiasi colore) con il programma più delicato tra quelli presenti. Se mescola bianchi con rossi o scuri mostra l'avviso con "Dividi per colore" (resta il programma unico, ma chiari e scuri in due lavatrici). "Torna ai carichi suggeriti" ripristina la divisione. I capi a mano e a secco restano sempre a parte;
 - pulsanti rapidi per ogni carico: "Steso ad asciugare", "Da stirare", "Tutto pulito";
 - righe dedicate a Stesi, Da stirare e In manutenzione, con tasto "Pulito".
 
