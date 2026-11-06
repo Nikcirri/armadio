@@ -1,6 +1,6 @@
 import { pushTab, popTab, type TabId } from '../logic/navigation';
 
-export type AltroPageId = 'settings' | 'categories' | 'backup' | 'info';
+export type AltroPageId = 'settings' | 'categories' | 'lists' | 'backup' | 'info' | 'wishlist' | 'sizes' | 'declutter' | 'stats';
 
 export type OutfitSection = 'outfits' | 'diary';
 

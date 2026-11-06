@@ -7,9 +7,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Plugin dell'app (non da npm): scontorno AI in un thread separato e salvataggio in galleria.
+        // Plugin dell'app (non da npm): scontorno AI, salvataggio in galleria, blocco con impronta o PIN.
         registerPlugin(CutoutPlugin.class);
         registerPlugin(GalleryPlugin.class);
+        registerPlugin(AppLockPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

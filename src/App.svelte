@@ -14,6 +14,9 @@
   import DialogHost from './lib/ui/DialogHost.svelte';
   import TabIcon from './lib/ui/TabIcon.svelte';
   import Toast from './lib/ui/Toast.svelte';
+  import LockScreen from './lib/ui/LockScreen.svelte';
+  import { unlockInProgress } from './lib/appLock';
+  import { lock, shouldRelock } from './lib/state/lock.svelte';
   import TopBar from './lib/ui/TopBar.svelte';
   import Altro from './views/Altro.svelte';
   import Armadio from './views/Armadio.svelte';
@@ -27,6 +30,8 @@
   let reminderChecked = false;
 
   const onboarded = $derived(settings.loaded && settings.value.app?.onboarded === true);
+  // Blocco con impronta o PIN (solo nell'app Android): all'apertura e al ritorno dopo un minuto.
+  const locked = $derived(onboarded && isNative() && settings.value.appLock?.enabled === true && !lock.unlocked);
   const activeId = $derived(currentTab());
 
   // Tema: segue le impostazioni (durante il primo avvio lo gestisce Onboarding).
@@ -64,6 +69,11 @@
   }
 
   function handleBack() {
+    // Con l'app bloccata il tasto Indietro la mette solo in secondo piano.
+    if (locked) {
+      void CapApp.minimizeApp();
+      return;
+    }
     if (closeTopOverlay()) {
       lastBackPressAt = null;
       return;
@@ -94,11 +104,21 @@
   onMount(() => {
     if (!isNative()) return;
     const listener = CapApp.addListener('backButton', handleBack);
+    const stateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (unlockInProgress()) return;
+      if (!isActive) {
+        lock.hiddenAt = Date.now();
+      } else {
+        if (shouldRelock(lock.hiddenAt, Date.now())) lock.unlocked = false;
+        lock.hiddenAt = null;
+      }
+    });
     const stopTaps = onNotificationTap((action) => {
       if (action === END_OF_DAY_ACTION) requestEndOfDay();
     });
     return () => {
       void listener.then((l) => l.remove());
+      void stateListener.then((l) => l.remove());
       stopTaps();
     };
   });
@@ -142,6 +162,7 @@
   </div>
 {/if}
 
+{#if locked}<LockScreen />{/if}
 <Toast />
 <DialogHost />
 <BusyOverlay />

@@ -16,7 +16,11 @@
     <p><strong>I tuoi dati restano sul telefono.</strong> L’app funziona senza internet e non ha account.</p>
     <p><strong>Fai spesso un backup</strong> da Altro → Backup e dati e salvalo su Drive: è l’unica copia se cambi o perdi il telefono.</p>
     <p><strong>Il tasto Indietro</strong> chiude prima i fogli aperti, poi torna alla sezione precedente.</p>
-    <p><strong>Le sezioni</strong> Armadio, Outfit, Cosa metto? e Agenda arrivano con i prossimi aggiornamenti.</p>
+    <p><strong>Armadio</strong>: i tuoi capi con foto, filtri, lavanderia e cambio stagione. Tieni premuto un capo per selezionarne più di uno.</p>
+    <p><strong>Outfit</strong>: crea i look, segnali come indossati e la sera usa “Fine giornata” per decidere cosa lavare. Nel diario salvi i ricordi.</p>
+    <p><strong>Cosa metto?</strong>: scegli il clima e l’app ti propone un abbinamento. Con il lucchetto tieni fermo un capo.</p>
+    <p><strong>Agenda</strong>: pianifica i giorni e prepara la valigia dei viaggi.</p>
+    <p><strong>Altro</strong>: wishlist, taglie, decluttering, statistiche, liste e impostazioni.</p>
   </div>
 
   <h2 class="section-title">Aggiornamenti</h2>

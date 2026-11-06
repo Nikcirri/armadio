@@ -190,6 +190,12 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Categorie e liste: categorie, proprietari, posizioni, occasioni, tessuti, tag di manutenzione, persone, template valigia.
 - Impostazioni: nome dell'app, tema, preset, giorni anti-ripetizione, matrice delle occasioni, notifiche (promemoria serale, promemoria backup), blocco dell'app facoltativo con impronta o PIN di sistema.
 - Backup e dati (sezione 10). Info: versione, "Controlla aggiornamenti", guida rapida.
+- Dettagli della sezione Altro:
+  - Wishlist: "Si abbina con N capi" conta i capi dell'armadio (non da vendere) negli slot compatibili, con occasioni compatibili secondo la matrice e stagione non opposta. "Simili" = stessa categoria e stesso colore principale. "Comprato!" crea il capo (stesse foto e dati, prezzo e data chiesti) e negli outfit il desiderio diventa il capo vero; c'è "Annulla".
+  - Decluttering: "non indossati da 12 mesi" usa l'ultima volta indossato (o, se mai indossato, la data di acquisto o di inserimento); "costo per utilizzo alto" = almeno 15 € e almeno il triplo della mediana dei capi indossati. Il ricavo stimato usa il prezzo di vendita, oppure il 30% del prezzo pagato (indicato come stima). "Metti in vendita" porta il capo su Da vendere.
+  - Statistiche: i capi senza proprietario contano come "Mio"; "dimenticati" = non indossati da almeno 30 giorni (stessa soglia del generatore). Il capsule score conta tutti i capi tranne quelli da vendere: Spezzato (sopra + sotto, strato e capospalla facoltativi) o Intero, con scarpe; accessori esclusi; vale solo la regola delle occasioni.
+  - Liste: si aggiungono, rinominano, riordinano ed eliminano (con "Annulla"). "Mio", "Armadio principale" e "Scatola cambio stagione" si possono rinominare ma non eliminare. Eliminando un proprietario i suoi capi passano a "Mio", una posizione all'Armadio principale; un'occasione sparisce da capi, outfit, wishlist e matrice. Rinominando tessuti, tag di manutenzione e persone il nome cambia anche nei capi e nel diario.
+  - Blocco dell'app: con impronta, volto o PIN del telefono, all'apertura e quando torni dopo almeno un minuto.
 
 ## 9. Primo avvio
 Tre schermate: nome; preset Donna, Uomo o Neutro; palette e tema. Poi la scelta tra "Inizia vuoto", "Carica esempio" (8 capi disegnati su canvas, 2 outfit e 1 viaggio, marcati come demo ed eliminabili con un tocco) e "Ripristina un backup".

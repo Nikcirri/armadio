@@ -1,5 +1,18 @@
 # Novità
 
+## [0.8.0] - 2026-11-06
+
+- Wishlist: desideri con foto, prezzo, link o negozio e priorità. Vedi con quanti capi si abbinano e se hai già qualcosa di simile. "Comprato!" lo sposta nell'armadio con foto e dati, chiedendo prezzo e data; negli outfit dove lo provavi diventa il capo vero. C'è "Annulla".
+- Taglie e misure: le tue taglie per brand (es. Levi's 27, Zara M) e le misure del corpo in cm, da consultare in negozio anche senza internet. Ti propone le taglie scritte nelle schede dei capi.
+- Decluttering: capi da vendere con il ricavo stimato e "Annuncio" per Vinted o Wallapop. Suggerisce i capi non indossati da 12 mesi e quelli con un costo per utilizzo alto, con il tasto "Vendi".
+- Statistiche: valore dell'armadio, capsule score (quanti outfit puoi fare), percentuale di capi indossati negli ultimi 90 giorni, costo medio per utilizzo, spesa per anno, i più indossati, i migliori investimenti e i dimenticati, con "Abbinalo ora" che apre "Cosa metto?" con quel capo bloccato. Ci sono anche le distribuzioni per colore, categoria, stato e posizione.
+- Categorie e liste: proprietari, posizioni, occasioni, tessuti, tag di manutenzione e persone si aggiungono, rinominano, riordinano ed eliminano, con "Annulla". Da qui si aprono anche le categorie e i template della valigia.
+- Impostazioni:
+  - giorni anti-ripetizione per "Cosa metto?";
+  - le occasioni che non stanno insieme;
+  - blocco dell'app con impronta, volto o PIN del telefono, all'apertura e quando torni dopo un minuto.
+- Menu Altro riorganizzato e guida rapida aggiornata.
+
 ## [0.7.0] - 2026-11-06
 
 - Nuova sezione Agenda con calendario in vista settimana (si scorre con il dito o con le frecce) o mese. Nei giorni passati c'è cosa hai indossato, in quelli futuri cosa hai pianificato. I viaggi compaiono come una fascia sotto i giorni.
