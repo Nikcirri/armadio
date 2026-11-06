@@ -3,6 +3,7 @@ import type { ColorId, ItemRecord, ItemStatus, OutfitRecord, PhotoRecord, TripRe
 import { createItem } from '../logic/factories';
 import { addPhotoId, removePhotoId, setCover } from '../logic/itemPhotos';
 import { withStatus } from '../logic/items';
+import { relinkUnderwear } from '../logic/underwear';
 import { newId, nowIso } from '../logic/util';
 import { countersFromLog, latestEntryFor, withoutItem } from '../logic/wears';
 
@@ -100,6 +101,7 @@ export type EditableItemFields = Pick<
   | 'warmth'
   | 'cutStyle'
   | 'intimateNote'
+  | 'underwearIds'
   | 'waterproof'
   | 'walkability'
   | 'bagSize'
@@ -133,6 +135,7 @@ export const EDITABLE_KEYS: readonly (keyof EditableItemFields)[] = [
   'warmth',
   'cutStyle',
   'intimateNote',
+  'underwearIds',
   'waterproof',
   'walkability',
   'bagSize',
@@ -159,9 +162,16 @@ export function pickEditable(item: ItemRecord): EditableItemFields {
 
 /**
  * Salva la scheda: applica le regole dello stato (sezione 5), aggiorna lo slot se cambia categoria
- * e, per "In valigia", collega il capo al viaggio scelto.
+ * e, per "In valigia", collega il capo al viaggio scelto. Per un capo Intimo, `underFor` sono i capi
+ * sotto cui va ("Va sotto a"; null = non cambiano).
  */
-export async function saveItem(db: ArmadioDB, id: string, fields: EditableItemFields, tripId: string | null = null): Promise<void> {
+export async function saveItem(
+  db: ArmadioDB,
+  id: string,
+  fields: EditableItemFields,
+  tripId: string | null = null,
+  underFor: readonly string[] | null = null,
+): Promise<void> {
   const now = nowIso();
   await db.transaction('rw', db.items, db.categories, db.trips, async () => {
     const current = await db.items.get(id);
@@ -179,7 +189,16 @@ export async function saveItem(db: ArmadioDB, id: string, fields: EditableItemFi
       if (fields.status === 'toWash') next.hasStain = fields.hasStain;
     }
     next.name = next.name.trim() || category.name;
+    next.underwearIds = category.slotType === 'underwear' ? [] : next.underwearIds.filter((x) => x !== id);
     await db.items.put(next);
+    // Intimo: "Va sotto a" si salva sugli altri capi; se smette di essere intimo, il collegamento sparisce.
+    const wasUnderwear = current.slotType === 'underwear';
+    if (category.slotType === 'underwear' ? underFor !== null : wasUnderwear) {
+      const all = await db.items.toArray();
+      const changes = relinkUnderwear(id, category.slotType === 'underwear' ? (underFor ?? []) : [], all);
+      const byId = new Map(all.map((i) => [i.id, i]));
+      await db.items.bulkPut(changes.map((c) => ({ ...byId.get(c.id)!, underwearIds: c.underwearIds, updatedAt: now })));
+    }
     if (next.status === 'packed' && tripId) {
       const trip = await db.trips.get(tripId);
       if (trip && !trip.extraItemIds.includes(id)) {

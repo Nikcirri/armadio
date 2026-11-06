@@ -22,6 +22,7 @@
   } from '../lib/logic/generator';
   import { normalize } from '../lib/logic/items';
   import { autoLayout, pieceFromItem, semaphore } from '../lib/logic/outfits';
+  import { joinNames, suggestUnderwear } from '../lib/logic/underwear';
   import { addDays, todayKey } from '../lib/logic/util';
   import { tapFeedback } from '../lib/platform';
   import { generatorView as view } from '../lib/state/generatorView.svelte';
@@ -165,7 +166,28 @@
   const rows = $derived(look && needs ? GEN_SLOTS.filter((s) => needs[s.slot] !== 'never') : []);
   const pieces = $derived(look ? lookItemIds(look).map((id) => byId.get(id)).filter((i): i is ItemRecord => !!i).map(pieceFromItem) : []);
   const layout = $derived(autoLayout(pieces));
-  const light = $derived(semaphore(pieces, byId, seasonBoxId));
+
+  // "Intimo" (SPEC 8.3): l'intimo collegato ai capi proposti. Quelli non disponibili partono tolti.
+  const lookKey = $derived(pieces.map((p) => p.id).join(','));
+  let underChoice = $state<{ key: string; off: string[] }>({ key: '', off: [] });
+  const underSuggest = $derived(
+    suggestUnderwear(
+      pieces.map((p) => byId.get(p.id)).filter((i): i is ItemRecord => !!i),
+      byId,
+      seasonBoxId,
+    ),
+  );
+  const underOff = $derived(underChoice.key === lookKey ? underChoice.off : underSuggest.filter((u) => u.reason).map((u) => u.item.id));
+  const underPieces = $derived(underSuggest.filter((u) => !underOff.includes(u.item.id)).map((u) => pieceFromItem(u.item)));
+  const allPieces = $derived([...pieces, ...underPieces]);
+  const light = $derived(semaphore(allPieces, byId, seasonBoxId));
+
+  function toggleUnder(id: string) {
+    const off = underOff.includes(id) ? underOff.filter((x) => x !== id) : [...underOff, id];
+    underChoice = { key: lookKey, off };
+    view.savedOutfitId = null;
+    void tapFeedback();
+  }
   const summary = $derived(
     [
       o.occasionId ? (occasions.find((x) => x.id === o.occasionId)?.label ?? '') : '',
@@ -188,7 +210,7 @@
       const tags = outfitTagsFor(o);
       const saved = await saveOutfit(db, {
         name: outfitName,
-        itemIds: pieces.map((p) => p.id),
+        itemIds: allPieces.map((p) => p.id),
         wishlistIds: [],
         season: tags.season,
         occasions: o.occasionId ? [o.occasionId] : [],
@@ -219,7 +241,7 @@
       if (!ok) return;
     }
     await wearWithUndo(
-      pieces.map((p) => p.id),
+      allPieces.map((p) => p.id),
       todayKey(),
       view.savedOutfitId,
     );
@@ -303,6 +325,25 @@
           <ul class="chips">
             {#each view.reasons as reason (reason)}<li>{reason}</li>{/each}
           </ul>
+        {/if}
+        {#if underSuggest.length}
+          <h2 class="section-title">Intimo</h2>
+          <ul class="under-list" aria-label="Intimo da mettere sotto">
+            {#each underSuggest as sug (sug.item.id)}
+              {@const on = !underOff.includes(sug.item.id)}
+              <li>
+                <button class="under-item" class:off={!on} aria-pressed={on} onclick={() => toggleUnder(sug.item.id)}>
+                  <span class="umini"><PhotoThumb photoId={sug.item.photoIds[0]} alt="" /></span>
+                  <span class="utext">
+                    <strong>{sug.item.name}</strong>
+                    <span class="usub" class:bad={!!sug.reason}>sotto {joinNames(sug.forNames)}{sug.reason ? ` · ${sug.reason}` : ''}</span>
+                  </span>
+                  <span class="ucheck" class:on aria-hidden="true">{#if on}<Icon name="check" size={18} />{/if}</span>
+                </button>
+              </li>
+            {/each}
+          </ul>
+          <p class="note">Tocca per toglierlo o rimetterlo: “Indossa subito” e “Salva outfit” lo includono.</p>
         {/if}
         {#if view.relaxed}
           <p class="warning">Per trovare un abbinamento ho usato anche capi che hai indossato negli ultimi giorni.</p>
@@ -528,6 +569,70 @@
   }
   .lockbtn[aria-pressed='true'] {
     color: var(--accent);
+  }
+  .under-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .under-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 60px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .under-item.off {
+    background: transparent;
+    border-style: dashed;
+  }
+  .under-item.off strong {
+    text-decoration: line-through;
+  }
+  .umini {
+    width: 36px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .utext {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .usub {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+  .usub.bad {
+    color: var(--danger);
+  }
+  .ucheck {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid var(--text-muted);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .ucheck.on {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
   }
   .chips {
     list-style: none;

@@ -19,6 +19,18 @@ export function registerServiceWorker(): void {
     });
   });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch((e) => console.error(e));
+    navigator.serviceWorker
+      .register('./sw.js')
+      .then((reg) => {
+        // Controlla subito se c'è una versione nuova e di nuovo quando l'app torna in primo piano.
+        const check = () => {
+          if (navigator.onLine !== false) reg.update().catch(() => {});
+        };
+        check();
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') check();
+        });
+      })
+      .catch((e) => console.error(e));
   });
 }

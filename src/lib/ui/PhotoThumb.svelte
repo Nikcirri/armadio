@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { db } from '../db';
   import { photoVersions } from '../media/photoCache.svelte';
+  import Icon from './Icon.svelte';
 
   let {
     photoId,
@@ -57,12 +58,17 @@
   {#if url}
     <img src={url} {alt} draggable="false" />
   {:else if !photoId}
-    <span class="none" role="img" aria-label="{alt}: nessuna foto">Nessuna foto</span>
+    <!-- alt vuoto: la miniatura è decorativa (il nome è già scritto accanto). -->
+    <span class="none" role={alt ? 'img' : undefined} aria-label={alt ? `${alt}: nessuna foto` : undefined} aria-hidden={alt ? undefined : 'true'}>
+      <span class="ico" aria-hidden="true"><Icon name="image" size={18} /></span>
+      <span class="label" aria-hidden="true">Nessuna foto</span>
+    </span>
   {/if}
 </div>
 
 <style>
   .thumb {
+    container-type: inline-size;
     width: 100%;
     height: 100%;
     display: grid;
@@ -79,5 +85,18 @@
   .none {
     font-size: 0.75rem;
     color: var(--text-muted);
+    text-align: center;
+  }
+  .ico {
+    display: none;
+  }
+  /* Nelle miniature piccole basta un'icona. */
+  @container (max-width: 79px) {
+    .ico {
+      display: grid;
+    }
+    .label {
+      display: none;
+    }
   }
 </style>

@@ -32,6 +32,7 @@ export function createItem(
     warmth: 'medium',
     cutStyle: 'regular',
     intimateNote: '',
+    underwearIds: [],
     waterproof: false,
     walkability: category.slotType === 'shoes' ? 'medium' : null,
     bagSize: null,

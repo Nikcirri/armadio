@@ -192,6 +192,23 @@ describe('valigia', () => {
     expect(dirty).toEqual({ [coat.id]: 'toWash' });
   });
 
+  it('l’intimo collegato ai capi entra da solo nella lista, una volta sola', () => {
+    const bra = item('underwear', 'Reggiseno nude', { categoryId: 'c-under' });
+    const braWhite = item('underwear', 'Reggiseno bianco', { categoryId: 'c-under' });
+    const teeLinked = { ...tee, underwearIds: [bra.id, braWhite.id] };
+    const coatLinked = { ...coat, underwearIds: [braWhite.id] };
+    const map = new Map([...byId, [tee.id, teeLinked], [coat.id, coatLinked], [bra.id, bra], [braWhite.id, braWhite]]);
+    const withUnder = packingList(trip, looks, map);
+    // il reggiseno bianco va bene per tutti e due i capi: uno solo, in fondo alla lista
+    expect(withUnder.map((e) => [map.get(e.itemId)!.name, looksLabel(e)]).at(-1)).toEqual(['Reggiseno bianco', 'sotto T-shirt e Cappotto']);
+    expect(withUnder.some((e) => e.itemId === bra.id)).toBe(false);
+    // spuntato resta con la sua etichetta e non ne arriva un altro
+    const packed = packingList({ ...trip, packedItemIds: [...trip.packedItemIds, braWhite.id] }, looks, map);
+    expect(packed.filter((e) => map.get(e.itemId)!.slotType === 'underwear').map((e) => [e.itemId, e.packed, looksLabel(e)])).toEqual([
+      [braWhite.id, true, 'sotto T-shirt e Cappotto'],
+    ]);
+  });
+
   it('in Disfa valigia non compaiono i capi in prestito o in manutenzione', () => {
     const loan = { ...shoes, status: 'onLoan' as const };
     const map = new Map([...byId, [shoes.id, loan]]);

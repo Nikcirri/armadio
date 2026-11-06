@@ -48,6 +48,7 @@
     <p><strong>Fai spesso un backup</strong> da Altro → Backup e dati e salvalo su Drive: è l’unica copia se cambi o perdi il telefono.</p>
     <p><strong>Il tasto Indietro</strong> chiude prima i fogli aperti, poi torna alla sezione precedente.</p>
     <p><strong>Armadio</strong>: i tuoi capi con foto, filtri, lavanderia e cambio stagione. Tieni premuto un capo per selezionarne più di uno.</p>
+    <p><strong>Intimo</strong>: nella scheda di un capo, “Intimo da mettere sotto” collega per esempio il reggiseno bianco alla maglietta bianca. L’app te lo ricorda negli outfit, in “Cosa metto?” e nella valigia.</p>
     <p><strong>Outfit</strong>: crea i look, segnali come indossati e la sera usa “Fine giornata” per decidere cosa lavare. Nel diario salvi i ricordi.</p>
     <p><strong>Cosa metto?</strong>: scegli il clima e l’app ti propone un abbinamento. Con il lucchetto tieni fermo un capo.</p>
     <p><strong>Agenda</strong>: pianifica i giorni e prepara la valigia dei viaggi.</p>

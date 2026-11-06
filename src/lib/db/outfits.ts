@@ -64,6 +64,16 @@ export async function saveOutfitLayout(db: ArmadioDB, id: string, layout: Outfit
   if (!n) throw new Error('Outfit non trovato');
 }
 
+/** Aggiunge dei capi a un outfit (es. l'intimo consigliato). Il collage non cambia: l'intimo non c'è. */
+export async function addItemsToOutfit(db: ArmadioDB, id: string, itemIds: readonly string[]): Promise<void> {
+  await db.transaction('rw', db.outfits, async () => {
+    const outfit = await db.outfits.get(id);
+    if (!outfit) throw new Error('Outfit non trovato');
+    const next = [...outfit.itemIds, ...itemIds.filter((x) => !outfit.itemIds.includes(x))];
+    await db.outfits.update(id, { itemIds: next, updatedAt: nowIso() });
+  });
+}
+
 export async function toggleOutfitFavorite(db: ArmadioDB, id: string): Promise<boolean> {
   return db.transaction('rw', db.outfits, async () => {
     const outfit = await db.outfits.get(id);

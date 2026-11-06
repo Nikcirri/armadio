@@ -181,6 +181,38 @@ describe('scheda capo e azioni di massa', () => {
   });
 });
 
+describe('intimo nella scheda capo', () => {
+  it('"Va sotto a" si salva sui capi collegati e sparisce se il capo non è più intimo', async () => {
+    const cats = await getCategories(db);
+    const under = cats.find((c) => c.slotType === 'underwear')!;
+    const top = cats.find((c) => c.slotType === 'top_base')!;
+    const bra = await addItem(db, { name: 'Reggiseno nude', categoryId: under.id, colors: [], photoIds: [] });
+    const tee = await addItem(db, { name: 'Maglietta', categoryId: top.id, colors: [], photoIds: [] });
+    const shirt = await addItem(db, { name: 'Camicia', categoryId: top.id, colors: [], photoIds: [] });
+
+    await saveItem(db, bra.id, pickEditable(bra), null, [tee.id, shirt.id]);
+    expect((await db.items.get(tee.id))?.underwearIds).toEqual([bra.id]);
+    expect((await db.items.get(shirt.id))?.underwearIds).toEqual([bra.id]);
+
+    await saveItem(db, bra.id, pickEditable((await db.items.get(bra.id))!), null, [shirt.id]);
+    expect((await db.items.get(tee.id))?.underwearIds).toEqual([]);
+    expect((await db.items.get(shirt.id))?.underwearIds).toEqual([bra.id]);
+
+    // diventa una T-shirt: il collegamento sparisce e un capo non può avere sé stesso sotto
+    await saveItem(db, bra.id, { ...pickEditable((await db.items.get(bra.id))!), categoryId: top.id, underwearIds: [bra.id] });
+    expect((await db.items.get(shirt.id))?.underwearIds).toEqual([]);
+    expect((await db.items.get(bra.id))?.underwearIds).toEqual([]);
+  });
+
+  it('un capo intimo non ha intimo sotto', async () => {
+    const cats = await getCategories(db);
+    const under = cats.find((c) => c.slotType === 'underwear')!;
+    const bra = await addItem(db, { name: 'Reggiseno', categoryId: under.id, colors: [], photoIds: [] });
+    await saveItem(db, bra.id, { ...pickEditable(bra), underwearIds: ['x'] });
+    expect((await db.items.get(bra.id))?.underwearIds).toEqual([]);
+  });
+});
+
 describe('lavanderia e cambio stagione', () => {
   it('toglie la macchia lasciando il capo da lavare', async () => {
     const [cat] = await getCategories(db);

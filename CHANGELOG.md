@@ -1,5 +1,15 @@
 # Novità
 
+## [1.1.0] - 2026-11-06
+
+- Intimo: nuovo tipo di capo per reggiseni, slip, boxer, calze e collant. Le categorie sono già pronte secondo il profilo scelto (per esempio Reggiseni, Slip e culotte, Calze e collant) e se ne possono creare altre di tipo "Intimo".
+- Nella scheda di un capo, "Intimo da mettere sotto" collega uno o più capi intimi, per esempio il reggiseno bianco alla maglietta bianca. Il primo è quello preferito: se non è pulito l'app propone il successivo. Nella scheda dell'intimo, "Va sotto a" mostra e modifica i capi collegati.
+- Negli outfit c'è la voce Intimo, con i consigliati da aggiungere con un tocco. Nel dettaglio, "Da ricordare" avvisa se manca l'intimo giusto e lo aggiunge con "Aggiungi". L'intimo non compare nel collage né nelle immagini condivise.
+- In "Cosa metto?" la sezione Intimo propone cosa mettere sotto l'abbinamento. "Indossa subito" e "Salva outfit" lo includono, così passa in lavanderia quando serve.
+- In valigia l'intimo collegato ai capi entra da solo nella lista ("Reggiseno bianco — sotto Maglietta bianca").
+- L'intimo non compare tra i capi più indossati, i dimenticati e i suggerimenti per vendere.
+- Le miniature senza foto mostrano un'icona al posto della scritta.
+
 ## [1.0.0] - 2026-11-06
 
 - Controlla aggiornamenti: una volta al giorno, se c'è internet, l'app guarda se è uscita una versione nuova e mostra un messaggio con "Scarica". In Altro → Informazioni c'è il pulsante "Controlla aggiornamenti", con le novità e "Scarica l'aggiornamento". È l'unica cosa che usa internet.

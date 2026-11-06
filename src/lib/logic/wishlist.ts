@@ -27,6 +27,8 @@ const COMPLEMENT: Record<SlotType, readonly SlotType[]> = {
   outerwear: ['top_base', 'top_layer', 'bottom', 'full_body', 'shoes', 'accessory'],
   shoes: ['top_base', 'top_layer', 'bottom', 'full_body', 'outerwear', 'accessory'],
   accessory: ['top_base', 'top_layer', 'bottom', 'full_body', 'outerwear', 'shoes'],
+  // L'intimo va sotto i capi di sopra e gli abiti.
+  underwear: ['top_base', 'top_layer', 'full_body'],
 };
 
 export function seasonsCompatible(a: Season | null, b: Season | null): boolean {

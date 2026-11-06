@@ -97,6 +97,8 @@ export function slotNeeds(mode: OutfitMode, opts: GeneratorOptions, ctx: Pick<Ge
     outerwear,
     shoes: 'required',
     accessory: 'optional',
+    // L'intimo non ha un rullo: si propone a parte, dai capi scelti (SPEC 8.3).
+    underwear: 'never',
   };
 }
 
@@ -544,6 +546,7 @@ const NOUNS: Record<GenSlot, { none: string; female: boolean }> = {
   outerwear: { none: 'Nessun capospalla', female: false },
   shoes: { none: 'Nessuna scarpa', female: true },
   accessory: { none: 'Nessun accessorio', female: false },
+  underwear: { none: 'Nessun capo intimo', female: false },
 };
 
 function qualifier(reason: ExclusionReason, slot: GenSlot, opts: GeneratorOptions, ctx: GeneratorContext): string {

@@ -47,13 +47,35 @@ describe('lettura del backup', () => {
 
   it('applica le migrazioni in ordine', () => {
     const data = parseBackup(base, 1);
-    BACKUP_MIGRATIONS[1] = (d: BackupData) => ({ ...d, schemaVersion: 2, appVersion: 'migrato' });
+    BACKUP_MIGRATIONS[2] = (d: BackupData) => ({ ...d, schemaVersion: 3, appVersion: 'migrato' });
     try {
-      expect(migrateBackup(data, 2).appVersion).toBe('migrato');
+      expect(migrateBackup(data, 3)).toMatchObject({ schemaVersion: 3, appVersion: 'migrato' });
     } finally {
-      delete BACKUP_MIGRATIONS[1];
+      delete BACKUP_MIGRATIONS[2];
     }
-    expect(() => migrateBackup(data, 2)).toThrow(/Manca la migrazione/);
+    expect(() => migrateBackup(data, 3)).toThrow(/Manca la migrazione dalla versione 2/);
+  });
+
+  it('schema 2: intimo collegato ai capi e categorie di intimo del preset', () => {
+    const v1 = {
+      ...base,
+      tables: {
+        items: [{ id: 'a' }, { id: 'b', underwearIds: ['x', 3] }],
+        categories: [{ id: 'c1', slotType: 'top_base', order: 0 }, { id: 'c2', slotType: 'shoes', order: 4 }],
+        settings: [{ key: 'preset', value: 'donna' }],
+      },
+    };
+    const data = parseBackup(v1, 2);
+    expect(data.schemaVersion).toBe(2);
+    expect(data.tables.items.map((i) => i.underwearIds)).toEqual([[], ['x']]);
+    const added = data.tables.categories.slice(2);
+    expect(added.map((c) => [c.name, c.slotType, c.order])).toEqual([
+      ['Reggiseni', 'underwear', 5],
+      ['Slip e culotte', 'underwear', 6],
+      ['Calze e collant', 'underwear', 7],
+    ]);
+    // senza categorie (app mai configurata) non aggiunge niente
+    expect(parseBackup(base, 2).tables.categories).toEqual([]);
   });
 });
 

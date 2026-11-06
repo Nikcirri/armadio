@@ -36,7 +36,7 @@ Id: UUID in formato stringa. Date: "YYYY-MM-DD"; timestamp: ISO. Ogni record ha 
 
 - photos: id, blob (immagine principale, lato lungo 1200 px, WebP qualità 0.8), thumb (320 px), width, height.
 - categories: id, name, slotType, icon, defaultMaxWears (null = non si lava a utilizzi), bulkWeight, order.
-- items: id, name, categoryId, slotType (copiato dalla categoria per gli indici), photoIds[] (la prima è la copertina; massimo 4: fronte, retro, etichetta, indossato), status, statusNote, hasStain, maintenanceTags[], loanTo, loanDate, ownerId, locationId, favorite, colors[] (il primo è il principale), fabrics[], season, warmth, cutStyle, intimateNote, waterproof, walkability, bagSize, occasions[], washTags[], fitNote, brand, size, price, purchaseDate, resalePrice, wearCount, lastWornDate, wearsSinceWash, maxWearsBeforeWash, notes.
+- items: id, name, categoryId, slotType (copiato dalla categoria per gli indici), photoIds[] (la prima è la copertina; massimo 4: fronte, retro, etichetta, indossato), status, statusNote, hasStain, maintenanceTags[], loanTo, loanDate, ownerId, locationId, favorite, colors[] (il primo è il principale), fabrics[], season, warmth, cutStyle, intimateNote, underwearIds[] (capi Intimo da mettere sotto, es. il reggiseno bianco sotto la maglietta bianca), waterproof, walkability, bagSize, occasions[], washTags[], fitNote, brand, size, price, purchaseDate, resalePrice, wearCount, lastWornDate, wearsSinceWash, maxWearsBeforeWash, notes.
 - wearLog (fonte di verità degli utilizzi): id, date, itemIds[] (indice multiEntry), itemNames[] (copia dei nomi, così lo storico resta leggibile se un capo viene eliminato), outfitId?, diaryId?. wearCount e lastWornDate dei capi sono valori derivati, aggiornati nella stessa transazione.
 - outfits: id, name, itemIds[], wishlistIds[], season, occasions[], weatherTags[], layout (posizioni dei pezzi nel collage), favorite, notes, incomplete (true se un capo è stato eliminato).
 - diary: id, date, outfitId?, itemIds[], location, people[], note, photoIds[] (polaroid).
@@ -51,9 +51,10 @@ Regole di integrità:
 - Eliminare una categoria: obbligatorio scegliere dove spostare i suoi capi.
 - Ogni operazione che tocca più tabelle avviene in una transazione.
 - Migrazioni: ogni cambio di schema è una nuova versione Dexie con una funzione di migrazione non distruttiva e un test dedicato.
+  - Schema 2 (versione 1.1): aggiunge underwearIds = [] a tutti i capi e, se l'app è già configurata e non ha categorie di intimo, quelle del preset. La stessa migrazione vale per i backup dello schema 1.
 
 ## 4. Categorie e macro-slot
-Sette macro-slot con soglia di lavaggio e ingombro predefiniti (modificabili per categoria e per singolo capo):
+Otto macro-slot con soglia di lavaggio e ingombro predefiniti (modificabili per categoria e per singolo capo):
 
 | slot | esempi | soglia lavaggio (usi) | ingombro (punti) |
 | top_base | T-shirt, camicie, top, body, polo | 1 | 1 |
@@ -63,8 +64,11 @@ Sette macro-slot con soglia di lavaggio e ingombro predefiniti (modificabili per
 | outerwear | giacche, cappotti, trench, piumini, blazer | 10 | 4 |
 | shoes | sneakers, stivali, scarpe eleganti, sandali, mocassini | nessuna | 3 |
 | accessory | borse, cinture, sciarpe, cappelli, gioielli, occhiali, cravatte | nessuna | 1 |
+| underwear | reggiseni, slip, boxer, calze, collant, canottiere intime | 1 | 1 |
 
-Preset al primo avvio: Donna, Uomo, Neutro. Il preset cambia solo le categorie iniziali e i suggerimenti (es. note intimo); tutto resta modificabile. Categorie: aggiungi, rinomina, riordina, elimina con riassegnazione dei capi.
+L'intimo (slot underwear) non ha un rullo in "Cosa metto?" e non compare nel collage (neanche nell'immagine condivisa): si collega ai capi con cui va (scheda capo) e l'app lo propone quando servono quei capi.
+
+Preset al primo avvio: Donna, Uomo, Neutro. Il preset cambia solo le categorie iniziali e i suggerimenti (es. note intimo); tutto resta modificabile. Categorie di intimo: Donna → Reggiseni (soglia 3 utilizzi), Slip e culotte, Calze e collant; Uomo → Boxer e slip, Canottiere, Calzini; Neutro → Intimo, Calze e calzini. Hanno id fissi, così l'aggiornamento dello schema e i backup vecchi le aggiungono una volta sola, senza doppioni. Categorie: aggiungi, rinomina, riordina, elimina con riassegnazione dei capi.
 
 ## 5. Stati del capo e lavanderia
 Stati (pillole con icona e testo):
@@ -128,7 +132,8 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
   - foto (fino a 4) con lightbox ed editor, preferito;
   - stato con i campi contestuali della sezione 5;
   - proprietario e posizione (liste personalizzabili; i capi non "Mio" si usano negli outfit ma non contano nella spesa e nel valore dell'armadio);
-  - nome, categoria, colori, tessuti (chip + testo libero), stagione (Primavera/Estate, Autunno/Inverno, 4 stagioni), pesantezza (Leggero, Medio, Pesante), taglio (Regolare, Vita alta, Vita bassa, Corto/Crop, Oversize, Aderente, Slim), nota intimo/sotto (testo con suggerimenti dal preset);
+  - nome, categoria, colori, tessuti (chip + testo libero), stagione (Primavera/Estate, Autunno/Inverno, 4 stagioni), pesantezza (Leggero, Medio, Pesante), taglio (Regolare, Vita alta, Vita bassa, Corto/Crop, Oversize, Aderente, Slim);
+  - intimo: "Cosa metti sotto" collega uno o più capi Intimo (con il selettore a foglio) più una nota libera con suggerimenti dal preset (es. "reggiseno senza spalline"). Nella scheda di un capo Intimo c'è invece "Va sotto a", con i capi collegati, modificabile da lì; eliminando un capo Intimo il collegamento sparisce ovunque (e torna con "Annulla");
   - campi per slot: scarpe → impermeabile, comodità (tutto il giorno, media, solo serata); borse → capienza (mini, media, grande);
   - occasioni multiple (Casual, Studio/Lavoro, Serata, Elegante/Cerimonia, Sport/Relax, Mare/Vacanza; lista personalizzabile);
   - etichette di lavaggio cliccabili (a mano, max 30°, max 40°, delicati, no centrifuga, no asciugatrice, stiro delicato, lavaggio a secco);
@@ -139,9 +144,9 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 
 ### 8.2 Outfit
 - Libreria: griglia di collage con filtri per occasione, stagione, meteo (Caldo, Mite, Freddo, Pioggia), preferiti, "mai indossati", "non indossati da 30+ giorni", "incompleti". Un outfit risulta indossato quando nello storico c'è una voce con il suo id.
-- Builder: Spezzato (sopra base + strato facoltativo + sotto) oppure Intero; più capospalla, scarpe e più accessori insieme. Selettore a foglio filtrato per slot, con ricerca e solo capi disponibili (interruttore per vederli tutti). Interruttore "Includi wishlist".
+- Builder: Spezzato (sopra base + strato facoltativo + sotto) oppure Intero; più capospalla, scarpe e più accessori insieme; Intimo facoltativo (anche più capi), con i "Consigliati" collegati ai capi scelti da aggiungere con un tocco. Selettore a foglio filtrato per slot, con ricerca e solo capi disponibili (interruttore per vederli tutti). Interruttore "Includi wishlist".
 - Collage automatico (capospalla e sopra in alto, sotto al centro, scarpe in basso, accessori di lato) su sfondo neutro; i pezzi si possono spostare e ridimensionare e le posizioni vengono salvate.
-- Barra della palette combinata e avvisi dalle note di intimo e vestibilità (es. "Questo abito richiede un reggiseno senza spalline").
+- Barra della palette combinata e avvisi dalle note di intimo e vestibilità (es. "Questo abito richiede un reggiseno senza spalline"). Nel dettaglio, "Da ricordare" mostra anche l'intimo collegato ai capi che non è nell'outfit (es. "Sotto Maglietta bianca: Reggiseno bianco", con il motivo se non è disponibile) e "Aggiungi" lo mette nell'outfit.
 - Semaforo: verde se tutti i capi sono disponibili; altrimenti elenca ogni capo bloccato e il motivo (da lavare, steso, da stirare, in valigia, in prestito, in manutenzione, da vendere, in scatola cambio stagione; i pezzi della wishlist risultano "da comprare").
 - "Indossa oggi" (o in un'altra data): crea la voce nel wearLog, aggiorna i contatori, toast con "Annulla" per 5 secondi. Poi propone "Fine giornata": i capi arrivati alla soglia vanno in Da lavare (con opzione macchia), gli altri restano puliti. Se attivata (Impostazioni → promemoria serale, con orario), una notifica locale all'orario scelto ricorda di farlo, solo nei giorni in cui hai indossato qualcosa; toccandola si apre "Fine giornata".
 - Diario dei ricordi (sotto-tab): timeline globale con data, luogo, persone (chip con completamento dai nomi già usati), nota, foto polaroid e outfit. Le voci si possono aggiungere anche a posteriori.
@@ -164,7 +169,8 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Motore a punteggio: genera i candidati validi, assegna un punteggio con le regole morbide e sceglie a caso tra i migliori, così ogni giro è diverso ma sensato.
 - Rulli per slot con frecce, rigenera singolo, lucchetto e "Gira tutto". Sotto, chip "Perché funziona" (es. "Crop + vita alta", "Scarpe impermeabili").
 - Se non esiste nessuna combinazione valida, spiega quale slot manca (es. "Nessuna scarpa impermeabile pulita").
-- Pulsanti "Salva outfit" e "Indossa subito".
+- "Intimo": per ogni capo proposto con dell'intimo collegato, il primo disponibile (oppure il primo, con il motivo). Ogni voce si toglie o rimette con un tocco; quelle non disponibili partono tolte.
+- Pulsanti "Salva outfit" e "Indossa subito" (includono l'intimo rimasto selezionato).
 
 ### 8.4 Agenda (planner + valigia)
 - Calendario su date reali: vista settimana scorrevole e vista mese. Nel passato mostra cosa hai indossato (dallo storico), nel futuro cosa hai pianificato. I giorni di viaggio compaiono come una fascia.
@@ -174,7 +180,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
   - outfit per ogni giorno di viaggio (collegati all'agenda) + capi extra;
   - barra di riempimento calcolata sui capi unici; "Indosso in viaggio" toglie dal conteggio i capi indossati durante il trasferimento;
   - template modificabili e salvabili (Weekend in città, Mare, Montagna/Freddo, Lavoro) che precompilano il necessaire;
-  - lista unica dei capi senza doppioni, con il numero di look in cui servono ("Jeans blu — 3 look");
+  - lista unica dei capi senza doppioni, con il numero di look in cui servono ("Jeans blu — 3 look"); l'intimo collegato ai capi del viaggio entra da solo nella lista ("Reggiseno bianco — sotto Maglietta bianca"), il primo collegato di ogni capo se nella lista non ce n'è già uno;
   - note intimo dei capi scelti aggiunte in evidenza alla checklist;
   - allarme pre-partenza per i capi non disponibili ("Da lavare prima di partire");
   - necessaire con quantità calcolate sui giorni (intimo e calzini = giorni + 1, pigiama, beauty, caricabatterie, documenti, sacchetto per i panni sporchi), personalizzabile;
@@ -193,6 +199,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Dettagli della sezione Altro:
   - Wishlist: "Si abbina con N capi" conta i capi dell'armadio (non da vendere) negli slot compatibili, con occasioni compatibili secondo la matrice e stagione non opposta. "Simili" = stessa categoria e stesso colore principale. "Comprato!" crea il capo (stesse foto e dati, prezzo e data chiesti) e negli outfit il desiderio diventa il capo vero; c'è "Annulla".
   - Decluttering: "non indossati da 12 mesi" usa l'ultima volta indossato (o, se mai indossato, la data di acquisto o di inserimento); "costo per utilizzo alto" = almeno 15 € e almeno il triplo della mediana dei capi indossati. Il ricavo stimato usa il prezzo di vendita, oppure il 30% del prezzo pagato (indicato come stima). "Metti in vendita" porta il capo su Da vendere.
+  - Intimo: escluso da "più indossati", "migliori investimenti", "dimenticati" e dai suggerimenti del decluttering (conta invece in valore, spesa e distribuzioni).
   - Statistiche: i capi senza proprietario contano come "Mio"; "dimenticati" = non indossati da almeno 30 giorni (stessa soglia del generatore). Il capsule score conta tutti i capi tranne quelli da vendere: Spezzato (sopra + sotto, strato e capospalla facoltativi) o Intero, con scarpe; accessori esclusi; vale solo la regola delle occasioni.
   - Liste: si aggiungono, rinominano, riordinano ed eliminano (con "Annulla"). "Mio", "Armadio principale" e "Scatola cambio stagione" si possono rinominare ma non eliminare. Eliminando un proprietario i suoi capi passano a "Mio", una posizione all'Armadio principale; un'occasione sparisce da capi, outfit, wishlist e matrice. Rinominando tessuti, tag di manutenzione e persone il nome cambia anche nei capi e nel diario.
   - Blocco dell'app: con impronta, volto o PIN del telefono, all'apertura e quando torni dopo almeno un minuto.

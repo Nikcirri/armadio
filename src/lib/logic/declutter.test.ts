@@ -26,6 +26,13 @@ describe('decluttering', () => {
     expect(result.map((x) => [x.item.name, x.cpw])).toEqual([['Cappotto', 150]]);
   });
 
+  it('non propone di vendere l’intimo', () => {
+    const bra = createItem({ name: 'Reggiseno', lastWornDate: '2024-01-01', price: 300, wearCount: 1 }, { id: 'u', slotType: 'underwear', defaultMaxWears: 3 }, '2026-01-01T10:00:00.000Z');
+    const cheap = [1, 2, 3].map((n) => item({ name: `c${n}`, price: 10, wearCount: 5 }));
+    expect(unwornForAYear([bra], '2026-11-06')).toEqual([]);
+    expect(highCostPerWear([...cheap, bra])).toEqual([]);
+  });
+
   it('ricavo: prezzo di vendita oppure stima del 30%', () => {
     expect(resaleOf({ resalePrice: 25, price: 100 })).toEqual({ value: 25, estimated: false });
     expect(resaleOf({ resalePrice: null, price: 59 })).toEqual({ value: 18, estimated: true });

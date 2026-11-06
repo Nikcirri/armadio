@@ -38,6 +38,7 @@ const max: Record<SlotType, number | null> = {
   outerwear: 10,
   shoes: null,
   accessory: null,
+  underwear: 1,
 };
 const item = (slot: SlotType, name: string, over: Partial<ItemRecord> = {}) =>
   createItem({ name, ...over }, { id: `c-${slot}`, slotType: slot, defaultMaxWears: max[slot] }, NOW);

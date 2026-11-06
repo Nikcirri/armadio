@@ -5,6 +5,7 @@ import {
   addPerson,
   addToEndOfDay,
   autoLayout,
+  collagePieces,
   blockReason,
   bringToFront,
   clampEntry,
@@ -166,6 +167,14 @@ describe('collage', () => {
     expect(merged[1]!.z).toBeGreaterThan(7);
     expect(mergeLayout(saved, [p('tee', 'top_base')])).toEqual(saved);
     expect(mergeLayout([...saved, { itemId: 'old', x: 0, y: 0, scale: 0.2, z: 1 }], [p('tee', 'top_base')])).toEqual(saved);
+  });
+
+  it('lascia l’intimo fuori dal collage', () => {
+    const pieces = [p('tee', 'top_base'), p('bra', 'underwear'), p('jeans', 'bottom')];
+    expect(autoLayout(pieces).map((e) => e.itemId)).toEqual(['tee', 'jeans']);
+    expect(mergeLayout([], pieces).map((e) => e.itemId)).toEqual(['tee', 'jeans']);
+    expect(collagePieces(pieces).map((x) => x.id)).toEqual(['tee', 'jeans']);
+    expect(MODE_SLOTS.separates.some((r) => r.slot === 'underwear' && r.optional && r.multiple)).toBe(true);
   });
 
   it('sposta, ridimensiona e porta davanti restando nei limiti', () => {

@@ -205,13 +205,15 @@ export async function getItemUsage(db: ArmadioDB, itemId: string): Promise<ItemU
 
 export interface ItemDeletionSnapshot {
   item: ItemRecord;
+  /** Capi che avevano questo capo come intimo da mettere sotto, com'erano. */
+  linked: ItemRecord[];
   photos: PhotoRecord[];
   outfits: OutfitRecord[];
   trips: TripRecord[];
   planner: PlannerRecord[];
 }
 
-/** Elimina un capo e lo toglie da outfit, viaggi e agenda. Lo storico resta. */
+/** Elimina un capo e lo toglie da outfit, viaggi, agenda e dall'intimo degli altri capi. Lo storico resta. */
 export async function deleteItemCascade(db: ArmadioDB, itemId: string): Promise<ItemDeletionSnapshot> {
   const now = nowIso();
   return db.transaction('rw', [db.items, db.photos, db.outfits, db.trips, db.planner], async () => {
@@ -221,6 +223,7 @@ export async function deleteItemCascade(db: ArmadioDB, itemId: string): Promise<
     const outfits = await db.outfits.filter((o) => o.itemIds.includes(itemId)).toArray();
     const trips = await db.trips.toArray();
     const planner = await db.planner.filter((p) => p.itemIds.includes(itemId)).toArray();
+    const linked = await db.items.filter((i) => i.id !== itemId && (i.underwearIds ?? []).includes(itemId)).toArray();
 
     const changedTrips = trips
       .map((t) => ({ before: t, after: removeItemFromTrip(t, itemId, now) }))
@@ -229,10 +232,11 @@ export async function deleteItemCascade(db: ArmadioDB, itemId: string): Promise<
     await db.outfits.bulkPut(outfits.map((o) => removeItemFromOutfit(o, itemId, now)!));
     await db.trips.bulkPut(changedTrips.map((x) => x.after));
     await db.planner.bulkPut(planner.map((p) => removeItemFromPlanner(p, itemId, now)!));
+    await db.items.bulkPut(linked.map((i) => ({ ...i, underwearIds: i.underwearIds.filter((x) => x !== itemId), updatedAt: now })));
     await db.photos.bulkDelete(item.photoIds);
     await db.items.delete(itemId);
 
-    return { item, photos, outfits, trips: changedTrips.map((x) => x.before), planner };
+    return { item, linked, photos, outfits, trips: changedTrips.map((x) => x.before), planner };
   });
 }
 
@@ -241,6 +245,7 @@ export async function restoreItemDeletion(db: ArmadioDB, snap: ItemDeletionSnaps
   await db.transaction('rw', [db.items, db.photos, db.outfits, db.trips, db.planner], async () => {
     await db.photos.bulkPut(snap.photos);
     await db.items.put(snap.item);
+    await db.items.bulkPut(snap.linked);
     await db.outfits.bulkPut(snap.outfits);
     await db.trips.bulkPut(snap.trips);
     await db.planner.bulkPut(snap.planner);

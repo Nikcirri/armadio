@@ -11,7 +11,8 @@ import type {
   WearLogRecord,
   WishlistRecord,
 } from '../db/types';
-import { daysBetween, fileStamp } from './util';
+import { categoriesToAddV2, itemToV2 } from './migrations';
+import { daysBetween, fileStamp, nowIso } from './util';
 
 // SPEC.md, sezione 10: file ZIP con data.json + cartella photos/.
 
@@ -78,11 +79,23 @@ export class BackupError extends Error {
   }
 }
 
-/**
- * Migrazioni dei backup: la chiave è la versione DI PARTENZA.
- * Esempio per lo schema 2: `1: (data) => ({ ...data, schemaVersion: 2, tables: { ... } })`.
- */
-export const BACKUP_MIGRATIONS: Record<number, (data: BackupData) => BackupData> = {};
+/** Migrazioni dei backup: la chiave è la versione DI PARTENZA (stesse regole del database). */
+export const BACKUP_MIGRATIONS: Record<number, (data: BackupData) => BackupData> = {
+  // Schema 2: intimo collegato ai capi e categorie di intimo del preset.
+  1: (data) => {
+    const preset = data.tables.settings.find((s) => s.key === 'preset')?.value;
+    const add = categoriesToAddV2(preset, data.tables.categories, data.exportedAt || nowIso());
+    return {
+      ...data,
+      schemaVersion: 2,
+      tables: {
+        ...data.tables,
+        items: data.tables.items.map((i) => itemToV2(i)),
+        categories: [...data.tables.categories, ...add],
+      },
+    };
+  },
+};
 
 export function migrateBackup(data: BackupData, targetVersion: number): BackupData {
   if (data.schemaVersion > targetVersion) {

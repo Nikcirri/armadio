@@ -1,4 +1,6 @@
 import Dexie, { type Table } from 'dexie';
+import { categoriesToAddV2, itemToV2 } from '../logic/migrations';
+import { nowIso } from '../logic/util';
 import type {
   CategoryRecord,
   DiaryRecord,
@@ -20,7 +22,7 @@ import type {
  * 2. aggiunge in `src/lib/logic/backupFormat.ts` la migrazione equivalente per i backup;
  * 3. aggiunge un test per entrambe.
  */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 export const DB_NAME = 'ArmadioDB';
 
@@ -54,6 +56,18 @@ export class ArmadioDB extends Dexie {
       lists: 'id, kind, [kind+order]',
       settings: 'key',
     });
+    // Schema 2 (versione 1.1): intimo collegato ai capi e categorie di intimo del preset.
+    this.version(2)
+      .stores({})
+      .upgrade(async (tx) => {
+        await tx.table('items').toCollection().modify((item: ItemRecord) => {
+          Object.assign(item, itemToV2(item));
+        });
+        const preset = (await tx.table('settings').get('preset')) as SettingRecord | undefined;
+        const categories = (await tx.table('categories').toArray()) as CategoryRecord[];
+        const add = categoriesToAddV2(preset?.value, categories, nowIso());
+        if (add.length) await tx.table('categories').bulkAdd(add);
+      });
   }
 }
 

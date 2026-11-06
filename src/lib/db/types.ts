@@ -8,7 +8,8 @@ export type SlotType =
   | 'full_body'
   | 'outerwear'
   | 'shoes'
-  | 'accessory';
+  | 'accessory'
+  | 'underwear';
 
 export type ItemStatus =
   | 'clean'
@@ -108,6 +109,8 @@ export interface ItemRecord extends Timestamps, DemoFlag {
   warmth: Warmth;
   cutStyle: CutStyle;
   intimateNote: string;
+  /** Capi Intimo da mettere sotto (SPEC 3), nell'ordine di preferenza. */
+  underwearIds: string[];
   waterproof: boolean;
   walkability: Walkability | null;
   bagSize: BagSize | null;

@@ -24,6 +24,7 @@
     type SlotRule,
     type WeatherTag,
   } from '../../lib/logic/outfits';
+  import { joinNames, suggestUnderwear } from '../../lib/logic/underwear';
   import { tapFeedback } from '../../lib/platform';
   import { live } from '../../lib/state/live.svelte';
   import { confirmDialog, showToast } from '../../lib/state/ui.svelte';
@@ -120,6 +121,20 @@
   const palette = $derived(outfitPalette(pieces));
   const warnings = $derived(outfitWarnings(pieces.filter((p) => p.source === 'item').map((p) => itemsById.get(p.id)!)));
   const missing = $derived(missingSlots(picks, mode));
+  // Intimo collegato ai capi scelti che non è ancora nell'outfit.
+  const underSuggest = $derived(
+    suggestUnderwear(
+      pieces.filter((p) => p.source === 'item' && p.slotType !== 'underwear').map((p) => itemsById.get(p.id)!),
+      itemsById,
+      seasonBoxId,
+      picks.underwear ?? [],
+    ),
+  );
+
+  function addUnderwear(id: string) {
+    picks = { ...picks, underwear: [...(picks.underwear ?? []), id] };
+    void tapFeedback();
+  }
   const dirty = $derived(ready && snapshot() !== original);
 
   function slotPieces(rule: SlotRule): Piece[] {
@@ -216,6 +231,17 @@
               <span>{chosen.length && !rule.multiple ? 'Cambia' : 'Scegli'}</span>
             </button>
           </div>
+          {#if rule.slot === 'underwear' && underSuggest.length}
+            <div class="suggested">
+              <span class="hint">Consigliati per i capi scelti:</span>
+              {#each underSuggest as sug (sug.item.id)}
+                <button class="sugg" onclick={() => addUnderwear(sug.item.id)}>
+                  <Icon name="plus" size={16} />
+                  <span><strong>{sug.item.name}</strong> · sotto {joinNames(sug.forNames)}{sug.reason ? ` · ${sug.reason}` : ''}</span>
+                </button>
+              {/each}
+            </div>
+          {/if}
         </section>
       {/each}
     </div>
@@ -286,6 +312,28 @@
 {/if}
 
 <style>
+  .suggested {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sugg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 14px;
+    border: 1px dashed var(--accent);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.875rem;
+    text-align: left;
+    cursor: pointer;
+  }
   .slots {
     display: flex;
     flex-direction: column;

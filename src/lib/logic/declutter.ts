@@ -13,10 +13,13 @@ export function lastUseDate(item: Pick<ItemRecord, 'lastWornDate' | 'purchaseDat
   return item.lastWornDate ?? item.purchaseDate ?? item.createdAt.slice(0, 10);
 }
 
+/** L'intimo non si propone da vendere (SPEC 8.5). */
+const notUnderwear = (i: Pick<ItemRecord, 'slotType'>) => i.slotType !== 'underwear';
+
 /** Non indossati da 12 mesi (i più vecchi prima). */
 export function unwornForAYear(items: readonly ItemRecord[], today: string): ItemRecord[] {
   return items
-    .filter((i) => i.status !== 'forSale' && daysBetween(lastUseDate(i), today) >= UNWORN_DAYS)
+    .filter((i) => i.status !== 'forSale' && notUnderwear(i) && daysBetween(lastUseDate(i), today) >= UNWORN_DAYS)
     .sort((a, b) => lastUseDate(a).localeCompare(lastUseDate(b)));
 }
 
@@ -33,7 +36,7 @@ export function highCostPerWear(items: readonly ItemRecord[]): { item: ItemRecor
     .map((item) => ({ item, cpw: costPerWear(item) }))
     .filter((x): x is { item: ItemRecord; cpw: number } => x.cpw !== null);
   const limit = Math.max(HIGH_CPW_MIN, 3 * median(worn.map((x) => x.cpw)));
-  return worn.filter((x) => x.item.status !== 'forSale' && x.cpw >= limit).sort((a, b) => b.cpw - a.cpw);
+  return worn.filter((x) => x.item.status !== 'forSale' && notUnderwear(x.item) && x.cpw >= limit).sort((a, b) => b.cpw - a.cpw);
 }
 
 export interface Resale {

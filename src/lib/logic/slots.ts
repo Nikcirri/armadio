@@ -17,6 +17,7 @@ export const SLOTS: readonly SlotInfo[] = [
   { id: 'outerwear', label: 'Capospalla', defaultMaxWears: 10, bulkWeight: 4 },
   { id: 'shoes', label: 'Scarpe', defaultMaxWears: null, bulkWeight: 3 },
   { id: 'accessory', label: 'Accessori', defaultMaxWears: null, bulkWeight: 1 },
+  { id: 'underwear', label: 'Intimo (reggiseni, slip, calze)', defaultMaxWears: 1, bulkWeight: 1 },
 ];
 
 export function slotInfo(slot: SlotType): SlotInfo {

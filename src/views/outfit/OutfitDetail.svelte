@@ -1,6 +1,7 @@
 <script lang="ts">
   import { db } from '../../lib/db';
   import {
+    addItemsToOutfit,
     deleteOutfitCascade,
     duplicateOutfit,
     restoreOutfitDeletion,
@@ -33,6 +34,7 @@
     semaphore,
     WEATHER_TAGS,
   } from '../../lib/logic/outfits';
+  import { joinNames, suggestUnderwear } from '../../lib/logic/underwear';
   import { fileStamp, formatDateIt, todayKey } from '../../lib/logic/util';
   import { renderCollageImage } from '../../lib/media/collage';
   import { isShareCancel, saveImageToGallery, shareImage } from '../../lib/media/gallery';
@@ -89,6 +91,25 @@
   const palette = $derived(outfitPalette(pieces));
   const ownItems = $derived(pieces.filter((p) => p.source === 'item').map((p) => itemsById.get(p.id)!));
   const warnings = $derived(outfitWarnings(ownItems));
+  // Intimo collegato ai capi ma non nell'outfit (SPEC 8.2).
+  const underSuggest = $derived(
+    suggestUnderwear(
+      ownItems.filter((i) => i.slotType !== 'underwear'),
+      itemsById,
+      seasonBoxId,
+      ownItems.map((i) => i.id),
+    ),
+  );
+
+  async function addUnderwear(id: string, name: string) {
+    if (!o) return;
+    try {
+      await addItemsToOutfit(db, o.id, [id]);
+      showToast(`${name} aggiunto all’outfit`);
+    } catch (e) {
+      reportError(e);
+    }
+  }
   const stats = $derived(outfitWearStats(wears.value).get(outfitId));
   const occasionNames = $derived(
     (o?.occasions ?? []).map((id) => lists.value.find((l) => l.id === id)?.name).filter((n): n is string => !!n),
@@ -268,10 +289,16 @@
         <PaletteBar colors={palette} />
       {/if}
 
-      {#if warnings.length}
+      {#if warnings.length || underSuggest.length}
         <h2 class="section-title">Da ricordare</h2>
         <ul class="warnings">
-          {#each warnings as w (w.text)}<li class="warning">{w.kind === 'intimate' ? '👙' : '📏'} {w.text}</li>{/each}
+          {#each underSuggest as sug (sug.item.id)}
+            <li class="warning under">
+              <span><span aria-hidden="true">👙</span> Sotto {joinNames(sug.forNames)}: <strong>{sug.item.name}</strong>{sug.reason ? ` (${sug.reason})` : ''}</span>
+              <button class="btn" onclick={() => addUnderwear(sug.item.id, sug.item.name)}>Aggiungi</button>
+            </li>
+          {/each}
+          {#each warnings as w (w.text)}<li class="warning"><span aria-hidden="true">{w.kind === 'intimate' ? '👙' : '📏'}</span> {w.text}</li>{/each}
         </ul>
       {/if}
 
@@ -380,6 +407,20 @@
   }
   .primary .grow {
     flex: 1;
+  }
+  .under {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .under > span {
+    flex: 1;
+  }
+  .under .btn {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.8125rem;
+    flex-shrink: 0;
   }
   .warnings {
     list-style: none;

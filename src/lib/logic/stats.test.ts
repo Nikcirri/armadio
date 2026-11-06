@@ -46,6 +46,15 @@ describe('statistiche', () => {
     expect(forgottenItems(items, '2026-11-06').map((i) => i.name)).toEqual(['C', 'D', 'B']);
   });
 
+  it('l’intimo resta fuori da più indossati, investimenti e dimenticati, ma conta nel valore', () => {
+    const bra = item('underwear', { name: 'Reggiseno', price: 40, purchaseDate: '2026-01-10', wearCount: 99 });
+    const all = [...items, bra];
+    expect(topWorn(all).map((i) => i.name)).toEqual(['C', 'A', 'B']);
+    expect(bestInvestments(all, 'mine').some((x) => x.item.name === 'Reggiseno')).toBe(false);
+    expect(forgottenItems(all, '2026-11-06').some((i) => i.name === 'Reggiseno')).toBe(false);
+    expect(wardrobeValue(all, 'mine')).toBe(170);
+  });
+
   it('distribuzione con percentuali', () => {
     const byColor = distribution(items, (i) => i.colors[0] ?? 'none', (k) => k);
     expect(byColor.map((s) => [s.key, s.count, s.percent])).toEqual([

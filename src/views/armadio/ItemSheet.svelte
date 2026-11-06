@@ -31,6 +31,8 @@
     parseEuro,
   } from '../../lib/logic/labels';
   import { buildListing } from '../../lib/logic/listing';
+  import { blockReason } from '../../lib/logic/outfits';
+  import { garmentsFor } from '../../lib/logic/underwear';
   import { INTIMATE_SUGGESTIONS } from '../../lib/logic/presets';
   import { formatDateIt, todayKey } from '../../lib/logic/util';
   import { tapFeedback } from '../../lib/platform';
@@ -46,6 +48,7 @@
   import PhotoThumb from '../../lib/ui/PhotoThumb.svelte';
   import Sheet from '../../lib/ui/Sheet.svelte';
   import Switch from '../../lib/ui/Switch.svelte';
+  import ItemPickerSheet from '../outfit/ItemPickerSheet.svelte';
   import PieceThumb from './PieceThumb.svelte';
 
   let {
@@ -70,6 +73,7 @@
   const trips = live(() => db.trips.filter((t) => t.status !== 'done').toArray(), [] as TripRecord[]);
   const outfits = live(() => db.outfits.filter((o) => o.itemIds.includes(itemId)).toArray(), [] as OutfitRecord[]);
   const wearDates = live(() => getWearDates(db, itemId), [] as string[]);
+  const allItems = live(() => db.items.toArray(), [] as ItemRecord[]);
 
   // Bozza della scheda: si salva solo con "Salva".
   let draft = $state<EditableItemFields | null>(null);
@@ -80,6 +84,16 @@
   let fabricText = $state('');
   let menuFor = $state<string | null>(null);
   let saving = $state(false);
+  // Intimo: per un capo Intimo, i capi sotto cui va ("Va sotto a"); si salva con "Salva".
+  let underFor = $state<string[] | null>(null);
+  let underForOriginal = '[]';
+  let picking = $state<'underwear' | 'garments' | null>(null);
+
+  $effect(() => {
+    if (underFor !== null || !allItems.ready) return;
+    underFor = garmentsFor(itemId, allItems.value).map((i) => i.id);
+    underForOriginal = JSON.stringify(underFor);
+  });
 
   $effect(() => {
     const it = item.value;
@@ -100,8 +114,30 @@
       (JSON.stringify($state.snapshot(draft)) !== original ||
         priceText !== euroInput(it?.price ?? null) ||
         resaleText !== euroInput(it?.resalePrice ?? null) ||
-        tripId !== ''),
+        tripId !== '' ||
+        (underFor !== null && JSON.stringify(underFor) !== underForOriginal)),
   );
+  const isUnder = $derived(slot === 'underwear');
+  const itemsById = $derived(new Map(allItems.value.map((i) => [i.id, i])));
+  const seasonBoxId = $derived(lists.value.find((l) => l.kind === 'location' && l.extra.key === 'seasonBox')?.id ?? null);
+  const underwearOptions = $derived(allItems.value.filter((i) => i.slotType === 'underwear' && i.id !== itemId));
+  const garmentOptions = $derived(allItems.value.filter((i) => i.slotType !== 'underwear' && i.id !== itemId));
+  const linkedUnder = $derived(
+    (d?.underwearIds ?? []).map((id) => itemsById.get(id)).filter((i): i is ItemRecord => !!i && i.slotType === 'underwear'),
+  );
+  const underForItems = $derived((underFor ?? []).map((id) => itemsById.get(id)).filter((i): i is ItemRecord => !!i));
+
+  function toggleUnderwear(id: string) {
+    if (!draft) return;
+    draft.underwearIds = draft.underwearIds.includes(id) ? draft.underwearIds.filter((x) => x !== id) : [...draft.underwearIds, id];
+    void tapFeedback();
+  }
+
+  function toggleGarment(id: string) {
+    const cur = underFor ?? [];
+    underFor = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    void tapFeedback();
+  }
   const cpw = $derived(it ? costPerWear({ price: parseEuro(priceText), wearCount: it.wearCount }) : null);
   const preset = $derived(settings.value.preset ?? 'neutro');
   const LABELS = ['Fronte', 'Retro', 'Etichetta', 'Indossato'];
@@ -129,7 +165,13 @@
     saving = true;
     try {
       const fields: EditableItemFields = { ...$state.snapshot(draft), price, resalePrice: resale };
-      await saveItem(db, itemId, fields, fields.status === 'packed' && tripId ? tripId : null);
+      await saveItem(
+        db,
+        itemId,
+        fields,
+        fields.status === 'packed' && tripId ? tripId : null,
+        isUnder && underFor ? $state.snapshot(underFor) : null,
+      );
       void tapFeedback();
       showToast('Scheda salvata');
       onclose();
@@ -379,17 +421,63 @@
           <div class="field"><span>Taglio</span>
             <ChipGroup single allowNone={false} label="Taglio" options={CUTS} value={[d.cutStyle]} onchange={(v) => v[0] && (d.cutStyle = v[0])} />
           </div>
-          <div class="field">
-            <span>Nota intimo / cosa mettere sotto</span>
-            <input class="input" bind:value={d.intimateNote} placeholder="Es. reggiseno senza spalline" />
-            <div class="suggest">
-              {#each INTIMATE_SUGGESTIONS[preset] as s (s)}
-                <button class="sug" onclick={() => (d.intimateNote = s)}>{s}</button>
-              {/each}
-            </div>
-          </div>
         </div>
       </section>
+
+      {#if isUnder}
+        <section>
+          <h3 class="section-title">Va sotto a</h3>
+          {#if underForItems.length}
+            <ul class="linked" aria-label="Capi sotto cui va">
+              {#each underForItems as g (g.id)}
+                <li>
+                  <button class="open" onclick={() => leaveTo(() => onopenitem(g.id))}>
+                    <span class="mini"><PhotoThumb photoId={g.photoIds[0]} alt="" /></span>
+                    <span class="grow">{g.name}</span>
+                  </button>
+                  <button class="icon-btn" aria-label="Togli {g.name}" onclick={() => toggleGarment(g.id)}><Icon name="close" size={18} /></button>
+                </li>
+              {/each}
+            </ul>
+          {:else}
+            <p class="note">Scegli i capi con cui lo metti (per esempio le magliette bianche): te lo ricorderò quando li indossi.</p>
+          {/if}
+          <button class="btn btn-block top" onclick={() => (picking = 'garments')}><Icon name="plus" size={20} /> Scegli i capi</button>
+        </section>
+      {:else}
+        <section>
+          <h3 class="section-title">Intimo da mettere sotto</h3>
+          {#if linkedUnder.length}
+            <ul class="linked" aria-label="Intimo da mettere sotto">
+              {#each linkedUnder as u (u.id)}
+                {@const why = blockReason(u, seasonBoxId)}
+                <li>
+                  <button class="open" onclick={() => leaveTo(() => onopenitem(u.id))}>
+                    <span class="mini"><PhotoThumb photoId={u.photoIds[0]} alt="" /></span>
+                    <span class="grow">{u.name}<span class="sub" class:bad={!!why}>{why ?? 'disponibile'}</span></span>
+                  </button>
+                  <button class="icon-btn" aria-label="Togli {u.name}" onclick={() => toggleUnderwear(u.id)}><Icon name="close" size={18} /></button>
+                </li>
+              {/each}
+            </ul>
+            {#if linkedUnder.length > 1}<p class="note">Il primo è quello che preferisci: ti propongo gli altri se non è pulito.</p>{/if}
+          {/if}
+          {#if underwearOptions.length}
+            <button class="btn btn-block top" onclick={() => (picking = 'underwear')}><Icon name="plus" size={20} /> Scegli dall’intimo</button>
+          {:else}
+            <p class="note">Non hai ancora capi intimi: aggiungili all’Armadio in una categoria di intimo (per esempio Reggiseni), poi collegali qui.</p>
+          {/if}
+          <label class="field top">
+            <span>Nota (facoltativa)</span>
+            <input class="input" bind:value={d.intimateNote} placeholder="Es. reggiseno senza spalline" />
+          </label>
+          <div class="suggest">
+            {#each INTIMATE_SUGGESTIONS[preset] as s (s)}
+              <button class="sug" onclick={() => (d.intimateNote = s)}>{s}</button>
+            {/each}
+          </div>
+        </section>
+      {/if}
 
       {#if slot === 'shoes'}
         <section>
@@ -540,6 +628,30 @@
       <button class="btn btn-primary" disabled={!dirty || saving} onclick={save}>Salva</button>
     {/snippet}
   </Sheet>
+
+  {#if picking === 'underwear'}
+    <ItemPickerSheet
+      title="Intimo da mettere sotto"
+      items={underwearOptions}
+      selected={d.underwearIds}
+      multiple
+      {seasonBoxId}
+      onlyAvailableByDefault={false}
+      onpick={toggleUnderwear}
+      onclose={() => (picking = null)}
+    />
+  {:else if picking === 'garments'}
+    <ItemPickerSheet
+      title="Va sotto a"
+      items={garmentOptions}
+      selected={underFor ?? []}
+      multiple
+      {seasonBoxId}
+      onlyAvailableByDefault={false}
+      onpick={toggleGarment}
+      onclose={() => (picking = null)}
+    />
+  {/if}
 
   {#if menuFor}
     {@const pid = menuFor}
@@ -775,6 +887,52 @@
     margin-top: 8px;
   }
   .danger {
+    color: var(--danger);
+  }
+  .linked {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+  }
+  .linked li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-right: 6px;
+  }
+  .linked li + li {
+    border-top: 1px solid var(--border);
+  }
+  .open {
+    flex: 1;
+    min-width: 0;
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .open .grow {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .open .sub {
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+  }
+  .open .sub.bad {
     color: var(--danger);
   }
 </style>

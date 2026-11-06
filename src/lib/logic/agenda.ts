@@ -12,6 +12,7 @@ import type {
 } from '../db/types';
 import { blockReason } from './outfits';
 import { essentialQty, tripDays } from './packing';
+import { isUnderwear, joinNames, linkedUnderwear, suggestUnderwear } from './underwear';
 import { addDays, daysBetween, fromDateKey, newId, toDateKey } from './util';
 
 // Agenda e valigia (SPEC.md, sezione 8.4).
@@ -194,11 +195,16 @@ export interface PackingEntry {
   extra: boolean;
   inTransit: boolean;
   packed: boolean;
+  /** Per l'intimo: i capi del viaggio sotto cui va. */
+  under: string[];
 }
 
-const SLOT_ORDER: readonly SlotType[] = ['outerwear', 'top_layer', 'top_base', 'full_body', 'bottom', 'shoes', 'accessory'];
+const SLOT_ORDER: readonly SlotType[] = ['outerwear', 'top_layer', 'top_base', 'full_body', 'bottom', 'shoes', 'accessory', 'underwear'];
 
-/** Lista unica dei capi del viaggio, senza doppioni ("Jeans blu — 3 look"). */
+/**
+ * Lista unica dei capi del viaggio, senza doppioni ("Jeans blu — 3 look"). L'intimo collegato ai
+ * capi entra da solo: il primo di ogni capo, se nella lista non ce n'è già uno (SPEC 8.4).
+ */
 export function packingList(
   trip: Pick<TripRecord, 'extraItemIds' | 'wearInTransitIds' | 'packedItemIds'>,
   looks: readonly Look[],
@@ -214,6 +220,7 @@ export function packingList(
         extra: false,
         inTransit: trip.wearInTransitIds.includes(itemId),
         packed: trip.packedItemIds.includes(itemId),
+        under: [],
       };
       map.set(itemId, e);
     }
@@ -222,14 +229,20 @@ export function packingList(
   for (const look of looks) for (const id of new Set(look.itemIds)) if (itemsById.has(id)) entry(id).looks += 1;
   for (const id of trip.extraItemIds) if (itemsById.has(id)) entry(id).extra = true;
   for (const id of trip.packedItemIds) if (itemsById.has(id)) entry(id);
+  const garments = [...map.keys()].map((id) => itemsById.get(id)!).filter((i) => !isUnderwear(i));
+  for (const s of suggestUnderwear(garments, itemsById, null, [...map.keys()], false)) entry(s.item.id);
+  for (const e of map.values()) {
+    const item = itemsById.get(e.itemId)!;
+    if (isUnderwear(item)) e.under = garments.filter((g) => linkedUnderwear(g, itemsById).includes(item)).map((g) => g.name);
+  }
   const rank = (id: string) => SLOT_ORDER.indexOf(itemsById.get(id)!.slotType);
   return [...map.values()].sort(
     (a, b) => rank(a.itemId) - rank(b.itemId) || itemsById.get(a.itemId)!.name.localeCompare(itemsById.get(b.itemId)!.name, 'it'),
   );
 }
 
-export function looksLabel(e: Pick<PackingEntry, 'looks' | 'extra'>): string {
-  if (e.looks === 0) return 'extra';
+export function looksLabel(e: Pick<PackingEntry, 'looks' | 'extra'> & { under?: readonly string[] }): string {
+  if (e.looks === 0) return !e.extra && e.under?.length ? `sotto ${joinNames(e.under)}` : 'extra';
   return e.looks === 1 ? '1 look' : `${e.looks} look`;
 }
 

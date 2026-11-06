@@ -11,8 +11,8 @@ import { slotInfo } from './slots';
 import { newId, nowIso } from './util';
 
 export const PRESETS: readonly { id: Preset; label: string; description: string }[] = [
-  { id: 'donna', label: 'Donna', description: 'Abiti, gonne, tacchi, gioielli e note per l’intimo.' },
-  { id: 'uomo', label: 'Uomo', description: 'Camicie, polo, completi, cravatte e mocassini.' },
+  { id: 'donna', label: 'Donna', description: 'Abiti, gonne, tacchi, gioielli e intimo (reggiseni, slip, calze).' },
+  { id: 'uomo', label: 'Uomo', description: 'Camicie, polo, completi, cravatte, mocassini e intimo.' },
   { id: 'neutro', label: 'Neutro', description: 'Categorie essenziali, adatte a tutti.' },
 ];
 
@@ -66,6 +66,52 @@ const EXTRA: Record<Preset, CategorySeed[]> = {
   ],
 };
 
+// Intimo (SPEC 4): id fissi, così la migrazione dello schema 2 e i backup vecchi non creano doppioni.
+export const UNDERWEAR_CATEGORY_IDS = {
+  bra: '5b1f0e7a-7c1d-4a8e-9b11-000000000001',
+  briefs: '5b1f0e7a-7c1d-4a8e-9b11-000000000002',
+  socks: '5b1f0e7a-7c1d-4a8e-9b11-000000000003',
+  undershirt: '5b1f0e7a-7c1d-4a8e-9b11-000000000004',
+} as const;
+
+interface UnderwearSeed {
+  id: string;
+  name: string;
+  icon: string;
+  maxWears: number;
+}
+
+const UNDERWEAR: Record<Preset, UnderwearSeed[]> = {
+  donna: [
+    { id: UNDERWEAR_CATEGORY_IDS.bra, name: 'Reggiseni', icon: '👙', maxWears: 3 },
+    { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Slip e culotte', icon: '🩲', maxWears: 1 },
+    { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calze e collant', icon: '🧦', maxWears: 1 },
+  ],
+  uomo: [
+    { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Boxer e slip', icon: '🩲', maxWears: 1 },
+    { id: UNDERWEAR_CATEGORY_IDS.undershirt, name: 'Canottiere', icon: '🎽', maxWears: 1 },
+    { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calzini', icon: '🧦', maxWears: 1 },
+  ],
+  neutro: [
+    { id: UNDERWEAR_CATEGORY_IDS.briefs, name: 'Intimo', icon: '🩲', maxWears: 1 },
+    { id: UNDERWEAR_CATEGORY_IDS.socks, name: 'Calze e calzini', icon: '🧦', maxWears: 1 },
+  ],
+};
+
+function underwearCategory(seed: UnderwearSeed, order: number, now: string): CategoryRecord {
+  return {
+    id: seed.id,
+    name: seed.name,
+    slotType: 'underwear',
+    icon: seed.icon,
+    defaultMaxWears: seed.maxWears,
+    bulkWeight: slotInfo('underwear').bulkWeight,
+    order,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
 const SLOT_ORDER: SlotType[] = [
   'top_base',
   'top_layer',
@@ -76,11 +122,11 @@ const SLOT_ORDER: SlotType[] = [
   'accessory',
 ];
 
-/** Categorie iniziali del preset, ordinate per slot. */
+/** Categorie iniziali del preset, ordinate per slot (l'intimo per ultimo). */
 export function buildPresetCategories(preset: Preset, now: string = nowIso()): CategoryRecord[] {
   const seeds = [...COMMON, ...EXTRA[preset]];
   const sorted = SLOT_ORDER.flatMap((slot) => seeds.filter((s) => s[1] === slot));
-  return sorted.map(([name, slotType, icon], index) => {
+  const clothes = sorted.map(([name, slotType, icon], index): CategoryRecord => {
     const info = slotInfo(slotType);
     return {
       id: newId(),
@@ -94,6 +140,26 @@ export function buildPresetCategories(preset: Preset, now: string = nowIso()): C
       updatedAt: now,
     };
   });
+  return [...clothes, ...UNDERWEAR[preset].map((seed, i) => underwearCategory(seed, clothes.length + i, now))];
+}
+
+/**
+ * Categorie di intimo da aggiungere a un armadio già configurato (schema 2): quelle del preset,
+ * solo se non c'è ancora nessuna categoria di intimo. Vanno in fondo all'elenco.
+ */
+export function underwearCategoriesToAdd(
+  preset: Preset,
+  existing: readonly Pick<CategoryRecord, 'id' | 'slotType' | 'order'>[],
+  now: string = nowIso(),
+): CategoryRecord[] {
+  if (!existing.length || existing.some((c) => c.slotType === 'underwear')) return [];
+  const taken = new Set(existing.map((c) => c.id));
+  const start = existing.reduce((m, c) => Math.max(m, c.order), -1) + 1;
+  return UNDERWEAR[preset].filter((seed) => !taken.has(seed.id)).map((seed, i) => underwearCategory(seed, start + i, now));
+}
+
+export function isPreset(value: unknown): value is Preset {
+  return value === 'donna' || value === 'uomo' || value === 'neutro';
 }
 
 /** Suggerimenti per la "nota intimo/sotto" della scheda capo. */

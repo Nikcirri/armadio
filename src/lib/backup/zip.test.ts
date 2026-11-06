@@ -96,11 +96,14 @@ describe('backup ZIP', () => {
     await setupNewWardrobe(target, { preset: 'uomo', userName: 'Bruno', palette: 'sabbia', mode: 'light' });
     const [cat] = await getCategories(target);
     await target.items.add(createItem({ name: 'Già mio' }, cat!));
-    const before = await target.categories.count();
+    const before = new Set((await target.categories.toArray()).map((c) => c.id));
 
     await applyBackup(target, zip, data, 'merge');
     expect(await target.items.count()).toBe(2);
-    expect(await target.categories.count()).toBe(before + data.tables.categories.length);
+    // Le categorie di intimo hanno id fissi: quelle che ci sono già non si duplicano.
+    const fresh = data.tables.categories.filter((c) => !before.has(c.id));
+    expect(fresh.length).toBeLessThan(data.tables.categories.length);
+    expect(await target.categories.count()).toBe(before.size + fresh.length);
     expect((await getSetting(target, 'profile'))?.userName).toBe('Bruno');
     expect(await target.photos.count()).toBe(25);
 

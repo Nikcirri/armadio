@@ -14,6 +14,7 @@ import {
   saveDiaryEntry,
   saveOutfit,
   saveOutfitLayout,
+  addItemsToOutfit,
   toggleOutfitFavorite,
   undoEndOfDay,
   undoWear,
@@ -81,6 +82,9 @@ describe('outfit', () => {
 
   it('salva la disposizione, il preferito e duplica', async () => {
     const o = await saveOutfit(db, input({ name: 'A' }));
+    await addItemsToOutfit(db, o.id, ['bra']);
+    await addItemsToOutfit(db, o.id, ['bra', 'calze']);
+    expect((await db.outfits.get(o.id))?.itemIds).toEqual([...o.itemIds, 'bra', 'calze']);
     await saveOutfitLayout(db, o.id, [{ itemId: 'x', x: 0.2, y: 0.3, scale: 0.4, z: 1 }]);
     expect((await db.outfits.get(o.id))?.layout).toHaveLength(1);
     expect(await toggleOutfitFavorite(db, o.id)).toBe(true);

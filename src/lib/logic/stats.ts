@@ -17,6 +17,9 @@ export function isMine(item: Pick<ItemRecord, 'ownerId'>, mineId: string | null)
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/** L'intimo resta fuori da più indossati, investimenti e dimenticati (SPEC 8.5). */
+const notUnderwear = (i: Pick<ItemRecord, 'slotType'>) => i.slotType !== 'underwear';
+
 export function wardrobeValue(items: readonly ItemRecord[], mineId: string | null): number {
   return round2(items.filter((i) => isMine(i, mineId)).reduce((s, i) => s + (i.price ?? 0), 0));
 }
@@ -51,7 +54,7 @@ export function wornRecentlyShare(items: readonly ItemRecord[], today: string): 
 
 export function topWorn(items: readonly ItemRecord[], n = 5): ItemRecord[] {
   return items
-    .filter((i) => i.wearCount > 0)
+    .filter((i) => i.wearCount > 0 && notUnderwear(i))
     .sort((a, b) => b.wearCount - a.wearCount || a.name.localeCompare(b.name, 'it'))
     .slice(0, n);
 }
@@ -59,7 +62,7 @@ export function topWorn(items: readonly ItemRecord[], n = 5): ItemRecord[] {
 /** Migliori investimenti: costo per utilizzo più basso. */
 export function bestInvestments(items: readonly ItemRecord[], mineId: string | null, n = 5): { item: ItemRecord; cpw: number }[] {
   return items
-    .filter((i) => isMine(i, mineId))
+    .filter((i) => isMine(i, mineId) && notUnderwear(i))
     .map((item) => ({ item, cpw: costPerWear(item) }))
     .filter((x): x is { item: ItemRecord; cpw: number } => x.cpw !== null)
     .sort((a, b) => a.cpw - b.cpw || b.item.wearCount - a.item.wearCount)
@@ -69,7 +72,7 @@ export function bestInvestments(items: readonly ItemRecord[], mineId: string | n
 /** Dimenticati: non indossati da almeno 30 giorni (i più vecchi prima). */
 export function forgottenItems(items: readonly ItemRecord[], today: string, n = 10): ItemRecord[] {
   return items
-    .filter((i) => i.status !== 'forSale' && daysBetween(lastUseDate(i), today) >= FORGOTTEN_STATS_DAYS)
+    .filter((i) => i.status !== 'forSale' && notUnderwear(i) && daysBetween(lastUseDate(i), today) >= FORGOTTEN_STATS_DAYS)
     .sort((a, b) => lastUseDate(a).localeCompare(lastUseDate(b)))
     .slice(0, n);
 }

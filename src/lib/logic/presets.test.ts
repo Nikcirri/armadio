@@ -5,17 +5,44 @@ import {
   buildOccasionMatrix,
   buildPresetCategories,
   INTIMATE_SUGGESTIONS,
+  UNDERWEAR_CATEGORY_IDS,
+  isPreset,
+  underwearCategoriesToAdd,
 } from './presets';
 import { SLOTS } from './slots';
 
 describe('preset', () => {
-  it('ogni preset copre tutti e 7 gli slot', () => {
+  it('ogni preset copre tutti e 8 gli slot', () => {
     for (const p of PRESETS) {
       const cats = buildPresetCategories(p.id);
       for (const slot of SLOTS) {
         expect(cats.some((c) => c.slotType === slot.id), `${p.id} ${slot.id}`).toBe(true);
       }
     }
+  });
+
+  it('l’intimo ha id fissi e va in fondo; si aggiunge una volta sola agli armadi già configurati', () => {
+    const donna = buildPresetCategories('donna');
+    const under = donna.filter((c) => c.slotType === 'underwear');
+    expect(under.map((c) => [c.id, c.name, c.defaultMaxWears])).toEqual([
+      [UNDERWEAR_CATEGORY_IDS.bra, 'Reggiseni', 3],
+      [UNDERWEAR_CATEGORY_IDS.briefs, 'Slip e culotte', 1],
+      [UNDERWEAR_CATEGORY_IDS.socks, 'Calze e collant', 1],
+    ]);
+    expect(donna.slice(-3)).toEqual(under);
+    expect(buildPresetCategories('uomo').filter((c) => c.slotType === 'underwear').map((c) => c.name)).toEqual(['Boxer e slip', 'Canottiere', 'Calzini']);
+
+    const old = donna.filter((c) => c.slotType !== 'underwear');
+    const add = underwearCategoriesToAdd('uomo', old, '2026-11-06T10:00:00.000Z');
+    expect(add.map((c) => [c.name, c.order])).toEqual([
+      ['Boxer e slip', old.length],
+      ['Canottiere', old.length + 1],
+      ['Calzini', old.length + 2],
+    ]);
+    expect(underwearCategoriesToAdd('uomo', donna)).toEqual([]);
+    expect(underwearCategoriesToAdd('donna', [])).toEqual([]);
+    expect(isPreset('donna')).toBe(true);
+    expect(isPreset('altro')).toBe(false);
   });
 
   it('le categorie hanno ordine progressivo, nomi unici e soglie dello slot', () => {

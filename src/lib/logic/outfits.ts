@@ -35,6 +35,7 @@ const EXTRA_SLOTS: SlotRule[] = [
   { slot: 'outerwear', label: 'Capospalla', multiple: true, optional: true },
   { slot: 'shoes', label: 'Scarpe', multiple: true, optional: true },
   { slot: 'accessory', label: 'Accessori', multiple: true, optional: true },
+  { slot: 'underwear', label: 'Intimo', multiple: true, optional: true },
 ];
 
 export const MODE_SLOTS: Record<OutfitMode, readonly SlotRule[]> = {
@@ -209,6 +210,7 @@ const SLOT_Z: Record<SlotType, number> = {
   top_base: 3,
   shoes: 4,
   accessory: 5,
+  underwear: 6,
 };
 
 const round = (v: number) => Math.round(v * 1000) / 1000;
@@ -233,9 +235,14 @@ function row(
   }));
 }
 
+/** L'intimo non compare nel collage (SPEC 4). */
+export function collagePieces<T extends Pick<Piece, 'slotType'>>(pieces: readonly T[]): T[] {
+  return pieces.filter((p) => p.slotType !== 'underwear');
+}
+
 /**
  * Disposizione automatica (SPEC 8.2): capospalla e sopra in alto, sotto al centro,
- * scarpe in basso, accessori di lato.
+ * scarpe in basso, accessori di lato. L'intimo resta fuori.
  */
 export function autoLayout(pieces: readonly Pick<Piece, 'id' | 'slotType'>[]): OutfitLayoutEntry[] {
   const of = (slot: SlotType) => pieces.filter((p) => p.slotType === slot).map((p) => p.id);
@@ -283,8 +290,9 @@ export function clampEntry(e: OutfitLayoutEntry): OutfitLayoutEntry {
 /** Tiene le posizioni salvate dei pezzi presenti; i pezzi nuovi prendono quella automatica. */
 export function mergeLayout(
   saved: readonly OutfitLayoutEntry[],
-  pieces: readonly Pick<Piece, 'id' | 'slotType'>[],
+  all: readonly Pick<Piece, 'id' | 'slotType'>[],
 ): OutfitLayoutEntry[] {
+  const pieces = collagePieces(all);
   const byId = new Map(saved.map((e) => [e.itemId, e]));
   if (pieces.every((p) => byId.has(p.id))) return pieces.map((p) => byId.get(p.id)!);
   const auto = new Map(autoLayout(pieces).map((e) => [e.itemId, e]));

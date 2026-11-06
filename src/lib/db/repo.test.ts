@@ -136,6 +136,20 @@ describe('eliminazione capo con Annulla', () => {
     expect((await db.trips.get(trip.id))?.extraItemIds).toEqual([item.id]);
     expect((await db.planner.get('2026-11-06'))?.itemIds).toEqual([item.id]);
   });
+
+  it('eliminando un capo intimo lo toglie dai capi collegati, e Annulla lo rimette', async () => {
+    const cats = await getCategories(db);
+    const under = cats.find((c) => c.slotType === 'underwear')!;
+    const top = cats.find((c) => c.slotType === 'top_base')!;
+    const bra = createItem({ name: 'Reggiseno' }, under);
+    const tee = createItem({ name: 'Maglietta', underwearIds: [bra.id, 'altro'] }, top);
+    await db.items.bulkAdd([bra, tee]);
+    const snap = await deleteItemCascade(db, bra.id);
+    expect((await db.items.get(tee.id))?.underwearIds).toEqual(['altro']);
+    await restoreItemDeletion(db, snap);
+    expect((await db.items.get(tee.id))?.underwearIds).toEqual([bra.id, 'altro']);
+    expect(await db.items.get(bra.id)).toBeDefined();
+  });
 });
 
 describe('dati di esempio e svuota', () => {
