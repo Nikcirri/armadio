@@ -458,7 +458,7 @@
   <PickerSheet
     title="Metti in valigia per"
     options={trips.value.map((t) => ({ id: t.id, label: t.name, sub: formatDateIt(t.startDate) }))}
-    empty="Non hai viaggi in programma. Potrai crearli nell’Agenda (Fase 7)."
+    empty="Non hai viaggi in programma: crealo nell’Agenda, sezione Viaggi."
     onpick={applyTrip}
     onclose={() => (bulkPicker = null)}
   />

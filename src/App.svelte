@@ -17,10 +17,10 @@
   import TopBar from './lib/ui/TopBar.svelte';
   import Altro from './views/Altro.svelte';
   import Armadio from './views/Armadio.svelte';
-  import ComingSoon from './views/ComingSoon.svelte';
   import Onboarding from './views/Onboarding.svelte';
   import Outfit from './views/Outfit.svelte';
   import CosaMetto from './views/CosaMetto.svelte';
+  import Agenda from './views/Agenda.svelte';
 
   let lastBackPressAt: number | null = null;
   let autoBackupChecked = false;
@@ -28,7 +28,6 @@
 
   const onboarded = $derived(settings.loaded && settings.value.app?.onboarded === true);
   const activeId = $derived(currentTab());
-  const activeTab = $derived(TABS.find((t) => t.id === activeId) ?? TABS[0]!);
 
   // Tema: segue le impostazioni (durante il primo avvio lo gestisce Onboarding).
   $effect(() => {
@@ -123,9 +122,7 @@
       {:else if activeId === 'cosa-metto'}
         <CosaMetto />
       {:else}
-        {#key activeId}
-          <ComingSoon tab={activeTab} />
-        {/key}
+        <Agenda />
       {/if}
     </main>
 

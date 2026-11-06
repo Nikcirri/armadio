@@ -180,6 +180,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
   - necessaire con quantità calcolate sui giorni (intimo e calzini = giorni + 1, pigiama, beauty, caricabatterie, documenti, sacchetto per i panni sporchi), personalizzabile;
   - spuntare un capo lo mette nello stato In valigia;
   - "Disfa valigia": per ogni capo scegli Da lavare o Pulito (di default Da lavare se risulta indossato in agenda), tutto in un solo passaggio.
+  - Dettagli: l'outfit di ogni giorno del viaggio è il giorno dell'agenda (planner); `outfitIds` del viaggio sono gli outfit da portare senza un giorno preciso. Un look = un giorno pianificato oppure un outfit senza giorno. I punti di ingombro vengono dalla categoria del capo. "Indossato in agenda" = nello storico durante il viaggio, oppure pianificato per un giorno del viaggio già passato. Togliere la spunta rimette il capo Pulito senza azzerare gli utilizzi. Eliminare un viaggio (con "Annulla") lascia i giorni dell'agenda e rimette Pulito i capi ancora in valigia. Cambiando le date si ricalcolano le quantità del necessaire che vengono dal template. I template si gestiscono da Agenda → Viaggi → "Template valigia"; "Salva come template" crea un template dal necessaire del viaggio.
 
 ### 8.5 Altro
 - Wishlist: schede con foto, prezzo, link o negozio, priorità; "Si abbina con N capi" calcolato con le regole del generatore; avviso se possiedi già capi simili; "Comprato!" lo sposta nell'armadio tenendo foto e dati e chiedendo prezzo e data.

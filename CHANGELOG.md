@@ -1,5 +1,18 @@
 # Novità
 
+## [0.7.0] - 2026-11-06
+
+- Nuova sezione Agenda con calendario in vista settimana (si scorre con il dito o con le frecce) o mese. Nei giorni passati c'è cosa hai indossato, in quelli futuri cosa hai pianificato. I viaggi compaiono come una fascia sotto i giorni.
+- Per ogni giorno: un outfit o dei capi, più una nota. Un pallino giallo avvisa se un capo pianificato non sarà pronto (da lavare, macchiato, in prestito…). Oggi puoi indossare il piano con un tocco.
+- Viaggi: nome, date, meteo previsto e bagaglio (zaino sotto il sedile 12 punti, trolley cabina 25, valigia grande 50).
+- Per ogni viaggio: l'outfit di ogni giorno (lo stesso dell'agenda), gli outfit da portare senza un giorno preciso e i capi extra.
+- Lista unica dei capi, senza doppioni, con quanti look servono ("Jeans blu — 3 look"). La barra mostra quanto è piena la valigia; "Lo indosso in viaggio" toglie un capo dal conteggio.
+- Spuntando un capo passa a "In valigia". Un avviso ricorda i capi da sistemare prima di partire, e le note sull'intimo dei capi scelti sono in evidenza.
+- Necessaire dal template (Weekend in città, Mare, Montagna/Freddo, Lavoro), con le quantità calcolate sui giorni. Puoi aggiungere voci, cambiare le quantità, spuntarle, e "Salva come template".
+- "Template valigia" per creare e modificare i template.
+- "Valigia pronta" e "Disfa valigia": per ogni capo scegli Pulito o Da lavare. I capi indossati durante il viaggio sono già su "Da lavare". C'è sempre "Annulla".
+- I menu a tendina non restano evidenziati dopo la scelta.
+
 ## [0.6.0] - 2026-11-06
 
 - Nuova sezione "Cosa metto?": scegli Caldo, Mite o Freddo, attiva Pioggia o A cipolla e l'app ti propone un abbinamento completo, con collage.

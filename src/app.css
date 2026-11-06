@@ -227,9 +227,10 @@ h3 {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
-/* Data e ora si scelgono in una finestra di Android: dopo la scelta il campo non resta evidenziato. */
+/* Data, ora e menu si scelgono in una finestra di Android: dopo la scelta il campo non resta evidenziato. */
 .input[type='date']:focus,
-.input[type='time']:focus {
+.input[type='time']:focus,
+select.input:focus {
   outline: none;
 }
 

@@ -3,41 +3,14 @@ export type TabId = 'armadio' | 'outfit' | 'cosa-metto' | 'agenda' | 'altro';
 export interface TabInfo {
   id: TabId;
   label: string;
-  phase: number;
-  description: string;
 }
 
 export const TABS: readonly TabInfo[] = [
-  {
-    id: 'armadio',
-    label: 'Armadio',
-    phase: 3,
-    description: 'Qui troverai tutti i tuoi capi, con foto, filtri e lavanderia.',
-  },
-  {
-    id: 'outfit',
-    label: 'Outfit',
-    phase: 5,
-    description: 'Qui creerai i tuoi look e il diario dei ricordi.',
-  },
-  {
-    id: 'cosa-metto',
-    label: 'Cosa metto?',
-    phase: 6,
-    description: "Qui l'app ti proporrà un abbinamento in base a meteo e occasione.",
-  },
-  {
-    id: 'agenda',
-    label: 'Agenda',
-    phase: 7,
-    description: 'Qui pianificherai i giorni e preparerai la valigia.',
-  },
-  {
-    id: 'altro',
-    label: 'Altro',
-    phase: 8,
-    description: 'Qui troverai wishlist, taglie, statistiche, impostazioni e backup.',
-  },
+  { id: 'armadio', label: 'Armadio' },
+  { id: 'outfit', label: 'Outfit' },
+  { id: 'cosa-metto', label: 'Cosa metto?' },
+  { id: 'agenda', label: 'Agenda' },
+  { id: 'altro', label: 'Altro' },
 ];
 
 /** Tempo massimo (ms) tra due pressioni di Indietro per uscire dall'app. */
