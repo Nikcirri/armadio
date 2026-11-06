@@ -1,5 +1,9 @@
 # Novità
 
+## [0.4.1] - 2026-11-06
+
+- Lavanderia: il tasto "Lava tutto insieme" ora è dentro ogni carico diviso per colore, accanto alla scritta "Separati per colore", invece che in fondo ai carichi dove si vedeva poco.
+
 ## [0.4.0] - 2026-11-06
 
 - Nuova pagina Lavanderia: si apre toccando "puliti · da lavare" in alto o il pulsante "Lavanderia" nell'Armadio.

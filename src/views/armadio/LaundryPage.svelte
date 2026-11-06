@@ -19,7 +19,6 @@
 
   const o = $derived(laundryOverview(items.value));
   const loads = $derived(buildLoads(o.toWash, new Set(merged)));
-  const splitPrograms = $derived([...new Set(loads.filter((l) => l.split).map((l) => l.program))]);
   const nothing = $derived(
     !o.toWash.length && !o.drying.length && !o.toIron.length && !o.maintenance.length && !o.dueSoon.length,
   );
@@ -103,7 +102,10 @@
             {/if}
           </p>
         {:else if load.split}
-          <p class="info">Separati per colore così i bianchi non si macchiano.</p>
+          <div class="split-row">
+            <p class="info">Separati per colore così i bianchi non si macchiano.</p>
+            <button class="merge-btn" onclick={() => merge(load.program)}>Lava tutto insieme</button>
+          </div>
         {/if}
         <div class="thumbs">
           {#each load.items as item (item.id)}
@@ -124,12 +126,6 @@
           {/if}
         </div>
       </section>
-    {/each}
-    {#each splitPrograms as p (p)}
-      <p class="note">
-        Vuoi fare un solo lavaggio a {programLabel(p)}?
-        <button class="link" onclick={() => merge(p)}>Lava tutto insieme</button>
-      </p>
     {/each}
   {/if}
 
@@ -242,10 +238,33 @@
     font-size: 0.875rem;
     line-height: 1.45;
   }
+  .split-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
   .info {
+    flex: 1;
     margin: 0;
     font-size: 0.8125rem;
     color: var(--text-muted);
+    line-height: 1.4;
+  }
+  .merge-btn {
+    flex: none;
+    min-height: 40px;
+    padding: 0 14px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--accent);
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .merge-btn:active {
+    background: var(--surface-2, transparent);
   }
   .thumbs {
     display: flex;
