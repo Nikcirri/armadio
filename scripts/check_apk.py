@@ -533,15 +533,56 @@ def jni_targets(blob: bytes) -> set[tuple[str, str]]:
     return out
 
 
-def check_jni(libs: list[tuple[str, bytes]], classes: dict[str, ClassInfo], rep: Report):
-    targets = set()
-    for _name, blob in libs:
-        targets |= jni_targets(blob)
-    for cls_name, method in sorted(targets):
-        cls = classes.get(cls_name)
-        if not cls or not any(m.native for m in cls.methods_named(method)):
-            rep.error(f'funzione nativa {cls_name}.{method} non trovata (classe o metodo rinominati)')
-    rep.info(f'funzioni native JNI collegate: {len(targets)}')
+def dex_strings(apk: zipfile.ZipFile) -> set[str]:
+    out: set[str] = set()
+    for name in apk.namelist():
+        if re.fullmatch(r'classes\d*\.dex', name):
+            dex = Dex(apk.read(name))
+            out.update(dex.string(i) for i in range(dex.str_n))
+    return out
+
+
+def check_jni(apk: zipfile.ZipFile, libs: list[tuple[str, bytes]], classes: dict[str, ClassInfo], rep: Report):
+    """Collegamento tra codice Java e librerie native.
+
+    Il caso pericoloso è un metodo nativo Java che non trova più la sua funzione nella libreria
+    (classe o metodo rinominati da R8): al primo uso l'app si chiude. Se invece R8 ha tolto del tutto
+    una classe mai usata, la funzione nativa resta orfana ma nessuno può chiamarla: va bene, purché
+    nessuno carichi più quella libreria.
+    """
+    strings = dex_strings(apk)
+    native_names = {(k, m.name) for k, ci in classes.items() for m in ci.methods if m.native}
+    method_names = {m for _k, m in native_names}
+    abi = 'arm64-v8a' if any(n.startswith('lib/arm64-v8a/') for n, _ in libs) else None
+    linked = 0
+    symbols: set[tuple[str, str]] = set()
+    for name, blob in libs:
+        if abi and not name.startswith(f'lib/{abi}/'):
+            continue
+        lib = re.sub(r'^lib|\.so$', '', os.path.basename(name))
+        targets = jni_targets(blob)
+        symbols |= targets
+        unused = []
+        for cls_name, method in sorted(targets):
+            cls = classes.get(cls_name)
+            if cls:
+                if any(m.native for m in cls.methods_named(method)):
+                    linked += 1
+                else:
+                    rep.error(f'{lib}: il metodo nativo {cls_name}.{method} non c\'è più (rinominato?)')
+            elif method in method_names:
+                rep.error(f'{lib}: la classe {cls_name} sembra rinominata (il metodo nativo {method} esiste altrove)')
+            else:
+                unused.append(f'{cls_name}.{method}')
+        if unused:
+            if lib in strings:
+                rep.error(f'{lib}: la libreria viene ancora caricata ma mancano le classi di {", ".join(unused)}')
+            else:
+                rep.info(f'{lib}: codice Java mai usato dall\'app, tolto da R8 (la libreria non viene caricata): {len(unused)} funzioni')
+    orphans = sorted(f'{k}.{m}' for k, m in native_names if (k, m) not in symbols)
+    if orphans:
+        rep.info('metodi nativi senza libreria nell\'APK (forniti da Google Play services o mai usati): ' + ', '.join(orphans))
+    rep.info(f'funzioni native collegate: {linked}')
 
 
 def check_manifest(apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report):
@@ -601,7 +642,8 @@ def compare_with(reference: str, classes: dict[str, ClassInfo], rep: Report):
         ref, ref_bytes = load_classes(ref_apk)
 
     def synthetic(name: str) -> bool:
-        return any(t in name for t in ('$$', 'ExternalSynthetic', '$r8$', '-$$Nest$', 'Lambda$'))
+        # Classi e metodi generati dal compilatore (lambda, accessi interni, ecc.): possono cambiare.
+        return any(t in name for t in ('$$', 'ExternalSynthetic', '$r8$', '-$$Nest$', 'Lambda$')) or name.endswith('-IA')
 
     missing_classes = []
     missing_methods = []
@@ -614,7 +656,8 @@ def compare_with(reference: str, classes: dict[str, ClassInfo], rep: Report):
             continue
         names = {m.name for m in new.methods}
         for m in cls.methods:
-            if m.name not in names and not synthetic(m.name) and not m.name.startswith(('lambda$', 'access$')):
+            # <clinit>: R8 può sostituire gli inizializzatori statici con valori costanti (stesso effetto).
+            if m.name not in names and m.name != '<clinit>' and not synthetic(m.name) and not m.name.startswith(('lambda$', 'access$')):
                 missing_methods.append(f'{name}.{m.name}')
     rep.info(f'confronto con {os.path.basename(reference)}: classi protette mancanti {len(missing_classes)}, metodi mancanti {len(set(missing_methods))}')
     for line in (missing_classes + sorted(set(missing_methods)))[:40]:
@@ -638,7 +681,7 @@ def main() -> int:
         check_assets(apk, args.dist, rep)
         sources = scan_plugin_sources(args.android)
         check_plugins(apk, classes, sources, rep)
-        check_jni(libs, classes, rep)
+        check_jni(apk, libs, classes, rep)
         check_manifest(apk, classes, rep)
     if args.compare:
         compare_with(args.compare, classes, rep)
