@@ -15,6 +15,15 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     target: 'es2020',
+    rolldownOptions: {
+      output: {
+        // Tutto il codice che serve all'avvio in un solo file (meno richieste); le pagine caricate
+        // a richiesta (SPEC.md, sezione 7) restano in file separati.
+        codeSplitting: {
+          groups: [{ name: 'app', tags: ['$initial'] }],
+        },
+      },
+    },
   },
   test: {
     include: ['src/**/*.test.ts', 'build/**/*.test.ts'],

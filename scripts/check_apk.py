@@ -93,6 +93,7 @@ class ClassInfo:
     superclass: str | None
     annotations: dict[str, dict] = field(default_factory=dict)  # tipo -> elementi (solo runtime)
     methods: list[MethodInfo] = field(default_factory=list)
+    fields: dict[str, str] = field(default_factory=dict)  # nome -> tipo
 
     def methods_named(self, name: str) -> list[MethodInfo]:
         return [m for m in self.methods if m.name == name]
@@ -202,9 +203,15 @@ class Dex:
                 inf, off = uleb128(self.d, off)
                 dm, off = uleb128(self.d, off)
                 vm, off = uleb128(self.d, off)
-                for _ in range(sf + inf):
+                fidx = 0
+                for k in range(sf + inf):
+                    if k == sf:
+                        fidx = 0  # gli indici dei campi d'istanza ripartono da zero
+                    diff, off = uleb128(self.d, off)
                     _, off = uleb128(self.d, off)
-                    _, off = uleb128(self.d, off)
+                    fidx += diff
+                    _fcls, ftype, fname = struct.unpack_from('<HHI', self.d, self.field_off + 8 * fidx)
+                    info.fields[self.string(fname)] = descriptor_to_name(self.type_desc(ftype))
                 for count in (dm, vm):
                     idx = 0
                     for _ in range(count):
@@ -585,6 +592,22 @@ def check_jni(apk: zipfile.ZipFile, libs: list[tuple[str, bytes]], classes: dict
     rep.info(f'funzioni native collegate: {linked}')
 
 
+DYNAMITE_PREFIX = 'com.google.android.gms.dynamite.descriptors.'
+
+
+def check_dynamite(classes: dict[str, ClassInfo], rep: Report):
+    """Descrittori dei moduli di Google Play services: DynamiteModule li cerca per nome e ne legge
+    MODULE_ID e MODULE_VERSION per scegliere il modello incluso nell'app (es. il viso di ML Kit)."""
+    descriptors = sorted(k for k in classes if k.startswith(DYNAMITE_PREFIX))
+    for k in descriptors:
+        f = classes[k].fields
+        if f.get('MODULE_ID') != 'java.lang.String' or f.get('MODULE_VERSION') != 'I':
+            rep.error(f'descrittore di modulo Google senza MODULE_ID/MODULE_VERSION: {k}')
+    if any(k.startswith('com.google.mlkit.vision.face.') for k in classes) and not any('mlkit.dynamite.face' in k for k in descriptors):
+        rep.error('manca il descrittore del modulo viso di ML Kit (...dynamite.face.ModuleDescriptor)')
+    rep.info(f'descrittori dei moduli Google: {len(descriptors)}' + (f' ({", ".join(k[len(DYNAMITE_PREFIX):] for k in descriptors)})' if descriptors else ''))
+
+
 def check_manifest(apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report):
     elements = parse_axml(apk.read('AndroidManifest.xml'))
     package = next((e.attrs.get('package', '') for e in elements if e.tag == 'manifest'), '')
@@ -637,9 +660,17 @@ def check_manifest(apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Rep
     rep.info(f'classi del manifest controllate: {checked}')
 
 
-def compare_with(reference: str, classes: dict[str, ClassInfo], rep: Report):
+def compare_with(reference: str, apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report):
     with zipfile.ZipFile(reference) as ref_apk:
         ref, ref_bytes = load_classes(ref_apk)
+
+    # Classi cercate per nome (Class.forName): il nome è ancora scritto nel codice, la classe c'era
+    # nella versione di riferimento e ora non c'è più. Da guardare una per una.
+    by_name = sorted(
+        x for x in dex_strings(apk)
+        if re.fullmatch(r'[a-z]\w*(?:\.\w+)+', x) and x in ref and x not in classes
+    )
+    rep.info(f'classi nominate nel codice e tolte da R8: {len(by_name)}' + (' — ' + ', '.join(by_name[:30]) if by_name else ''))
 
     def synthetic(name: str) -> bool:
         # Classi e metodi generati dal compilatore (lambda, accessi interni, ecc.): possono cambiare.
@@ -659,6 +690,9 @@ def compare_with(reference: str, classes: dict[str, ClassInfo], rep: Report):
             # <clinit>: R8 può sostituire gli inizializzatori statici con valori costanti (stesso effetto).
             if m.name not in names and m.name != '<clinit>' and not synthetic(m.name) and not m.name.startswith(('lambda$', 'access$')):
                 missing_methods.append(f'{name}.{m.name}')
+    for name in sorted(ref):
+        if name.startswith(DYNAMITE_PREFIX) and name not in classes:
+            rep.error(f'descrittore di modulo Google presente in {os.path.basename(reference)} e sparito: {name}')
     rep.info(f'confronto con {os.path.basename(reference)}: classi protette mancanti {len(missing_classes)}, metodi mancanti {len(set(missing_methods))}')
     for line in (missing_classes + sorted(set(missing_methods)))[:40]:
         rep.info(f'  differenza: {line}')
@@ -683,8 +717,10 @@ def main() -> int:
         check_plugins(apk, classes, sources, rep)
         check_jni(apk, libs, classes, rep)
         check_manifest(apk, classes, rep)
+        check_dynamite(classes, rep)
     if args.compare:
-        compare_with(args.compare, classes, rep)
+        with zipfile.ZipFile(args.apk) as apk:
+            compare_with(args.compare, apk, classes, rep)
 
     for line in rep.infos:
         print(line)

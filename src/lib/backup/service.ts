@@ -1,8 +1,8 @@
 import { db, tracker } from '../db';
-import { countData, getSetting, updateSetting } from '../db/repo';
-import { shouldRunAutoBackup, summarizeBackup, type BackupData, type BackupSummary } from '../logic/backupFormat';
+import { countData, updateSetting } from '../db/repo';
+import { summarizeBackup, type BackupData, type BackupSummary } from '../logic/backupFormat';
 import { nowIso } from '../logic/util';
-import { isNative } from '../platform';
+import { isAutoBackupDue } from './auto';
 import { cleanupAutoBackups, saveBackupFile, shareBackupFile, type SavedBackup } from './device';
 import { applyBackup, readBackupData, type ProgressInfo, type RestoreMode } from './zip';
 
@@ -25,17 +25,7 @@ export async function exportAndShare(onProgress?: (p: ProgressInfo) => void): Pr
 
 /** Backup automatico settimanale (solo app Android, in silenzio). */
 export async function runAutoBackupIfDue(): Promise<boolean> {
-  if (!isNative()) return false;
-  const backup = await getSetting(db, 'backup');
-  if (!backup) return false;
-  const counts = await countData(db);
-  const due = shouldRunAutoBackup({
-    enabled: backup.autoWeekly,
-    hasData: counts.items + counts.outfits + counts.diary > 0,
-    lastAutoBackupDate: backup.lastAutoBackupDate,
-    now: nowIso(),
-  });
-  if (!due) return false;
+  if (!(await isAutoBackupDue())) return false;
   await saveBackupFile(db, 'auto');
   await updateSetting(db, 'backup', { lastAutoBackupDate: nowIso() });
   await cleanupAutoBackups();

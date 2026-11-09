@@ -2,21 +2,13 @@ import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import type { ArmadioDB } from '../db/schema';
 import { autoBackupsToDelete, backupFileName, type BackupKind } from '../logic/backupFormat';
+import { u8ToBase64 } from '../logic/bytes';
 import { APP_VERSION, isNative } from '../platform';
 import { BlobSink, exportBackup, type BackupSink, type ProgressInfo } from './zip';
 
 const FOLDER = 'Armadio';
 const AUTO_FOLDER = 'Armadio/auto';
 const FLUSH_BYTES = 512 * 1024;
-
-export function u8ToBase64(bytes: Uint8Array): string {
-  let binary = '';
-  const step = 0x8000;
-  for (let i = 0; i < bytes.length; i += step) {
-    binary += String.fromCharCode(...bytes.subarray(i, i + step));
-  }
-  return btoa(binary);
-}
 
 /** Scrive il backup in un file del telefono a blocchi di 512 KB (poca memoria anche con tante foto). */
 class NativeFileSink implements BackupSink {

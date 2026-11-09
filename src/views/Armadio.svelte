@@ -29,7 +29,8 @@
   import Fab, { type FabAction } from '../lib/ui/Fab.svelte';
   import Icon from '../lib/ui/Icon.svelte';
   import Lightbox from '../lib/ui/Lightbox.svelte';
-  import PhotoEditor from '../lib/ui/PhotoEditor.svelte';
+  import Lazy from '../lib/ui/Lazy.svelte';
+  import { photoEditor } from '../lib/ui/photoEditor';
   import VirtualGrid from '../lib/ui/VirtualGrid.svelte';
   import PhotoThumb from '../lib/ui/PhotoThumb.svelte';
   import PickerSheet from '../lib/ui/PickerSheet.svelte';
@@ -542,12 +543,18 @@
 {/if}
 
 {#if editor}
-  <PhotoEditor
-    img={editor.img}
+  <Lazy
+    loader={photoEditor}
+    variant="full"
     title={editor.kind === 'new' ? 'Nuovo capo' : 'Modifica foto'}
-    saveLabel={editor.kind === 'new' ? 'Avanti' : 'Salva'}
-    onsave={onEditorSave}
-    oncancel={() => (editor = null)}
+    onclose={() => (editor = null)}
+    props={{
+      img: editor.img,
+      title: editor.kind === 'new' ? 'Nuovo capo' : 'Modifica foto',
+      saveLabel: editor.kind === 'new' ? 'Avanti' : 'Salva',
+      onsave: onEditorSave,
+      oncancel: () => (editor = null),
+    }}
   />
 {/if}
 

@@ -9,3 +9,6 @@ dist/
 *.keystore
 *.p12
 keystore*.txt
+
+# Python (scripts/check_apk.py)
+__pycache__/

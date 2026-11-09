@@ -15,7 +15,8 @@
   import ChipGroup from '../../lib/ui/ChipGroup.svelte';
   import ColorChips from '../../lib/ui/ColorChips.svelte';
   import Icon from '../../lib/ui/Icon.svelte';
-  import PhotoEditor from '../../lib/ui/PhotoEditor.svelte';
+  import Lazy from '../../lib/ui/Lazy.svelte';
+  import { photoEditor } from '../../lib/ui/photoEditor';
   import PhotoThumb from '../../lib/ui/PhotoThumb.svelte';
   import Sheet from '../../lib/ui/Sheet.svelte';
 
@@ -206,7 +207,13 @@
 </Sheet>
 
 {#if editor}
-  <PhotoEditor img={editor} title="Foto del desiderio" saveLabel="Usa" onsave={onEdited} oncancel={() => (editor = null)} />
+  <Lazy
+    loader={photoEditor}
+    variant="full"
+    title="Foto del desiderio"
+    onclose={() => (editor = null)}
+    props={{ img: editor, title: 'Foto del desiderio', saveLabel: 'Usa', onsave: onEdited, oncancel: () => (editor = null) }}
+  />
 {/if}
 
 <style>

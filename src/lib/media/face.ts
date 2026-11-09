@@ -1,6 +1,6 @@
 import { Capacitor, registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { u8ToBase64 } from '../backup/device';
+import { u8ToBase64 } from '../logic/bytes';
 import type { ContourName, FaceGeometry, Point } from '../logic/faceColors';
 import type { Img } from '../logic/imageOps';
 import { imgToJpegBlob } from './pipeline';

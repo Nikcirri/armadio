@@ -1,16 +1,24 @@
 <script lang="ts">
   import { closeAltroPage, nav, type AltroPageId } from '../lib/state/nav.svelte';
   import Icon, { type IconName } from '../lib/ui/Icon.svelte';
-  import ArmocromiaPage from './altro/ArmocromiaPage.svelte';
-  import BackupPage from './altro/BackupPage.svelte';
-  import CategoriesPage from './altro/CategoriesPage.svelte';
-  import DeclutterPage from './altro/DeclutterPage.svelte';
-  import InfoPage from './altro/InfoPage.svelte';
-  import ListsPage from './altro/ListsPage.svelte';
-  import SettingsPage from './altro/SettingsPage.svelte';
-  import SizesPage from './altro/SizesPage.svelte';
-  import StatsPage from './altro/StatsPage.svelte';
-  import WishlistPage from './altro/WishlistPage.svelte';
+  import { lazyComponent } from '../lib/lazy';
+  import Lazy from '../lib/ui/Lazy.svelte';
+
+  // Le pagine di Altro si caricano quando si aprono (SPEC.md, sezione 7): all'avvio non servono.
+  const PAGES = {
+    settings: lazyComponent(() => import('./altro/SettingsPage.svelte')),
+    lists: lazyComponent(() => import('./altro/ListsPage.svelte')),
+    categories: lazyComponent(() => import('./altro/CategoriesPage.svelte')),
+    backup: lazyComponent(() => import('./altro/BackupPage.svelte')),
+    info: lazyComponent(() => import('./altro/InfoPage.svelte')),
+    wishlist: lazyComponent(() => import('./altro/WishlistPage.svelte')),
+    sizes: lazyComponent(() => import('./altro/SizesPage.svelte')),
+    declutter: lazyComponent(() => import('./altro/DeclutterPage.svelte')),
+    stats: lazyComponent(() => import('./altro/StatsPage.svelte')),
+    armocromia: lazyComponent(() => import('./altro/ArmocromiaPage.svelte')),
+  };
+  const toLists = () => (nav.altroPage = 'lists');
+  const toCategories = () => (nav.altroPage = 'categories');
 
   const GROUPS: { title: string; entries: { page: AltroPageId; label: string; sub: string; icon: IconName }[] }[] = [
     {
@@ -52,25 +60,30 @@
 </div>
 
 {#if nav.altroPage === 'settings'}
-  <SettingsPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.settings} title="Impostazioni" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'lists'}
-  <ListsPage onclose={closeAltroPage} oncategories={() => (nav.altroPage = 'categories')} />
+  <Lazy
+    loader={PAGES.lists}
+    title="Categorie e liste"
+    onclose={closeAltroPage}
+    props={{ onclose: closeAltroPage, oncategories: toCategories }}
+  />
 {:else if nav.altroPage === 'categories'}
-  <CategoriesPage onclose={() => (nav.altroPage = 'lists')} />
+  <Lazy loader={PAGES.categories} title="Categorie" onclose={toLists} props={{ onclose: toLists }} />
 {:else if nav.altroPage === 'backup'}
-  <BackupPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.backup} title="Backup e dati" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'info'}
-  <InfoPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.info} title="Informazioni" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'wishlist'}
-  <WishlistPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.wishlist} title="Wishlist" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'sizes'}
-  <SizesPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.sizes} title="Taglie e misure" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'declutter'}
-  <DeclutterPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.declutter} title="Decluttering" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'stats'}
-  <StatsPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.stats} title="Statistiche" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'armocromia'}
-  <ArmocromiaPage onclose={closeAltroPage} />
+  <Lazy loader={PAGES.armocromia} title="Armocromia" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {/if}
 
 <style>

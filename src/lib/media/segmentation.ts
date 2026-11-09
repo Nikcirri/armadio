@@ -5,7 +5,7 @@ import {
   SubjectSegmentation,
 } from '@capacitor-mlkit/subject-segmentation';
 import { applyConfidence, resizeMask, subjectShare, type Img } from '../logic/imageOps';
-import { u8ToBase64 } from '../backup/device';
+import { u8ToBase64 } from '../logic/bytes';
 import { UserError, errorText } from '../errors';
 import { isAiModuleAlreadyInstalled } from '../logic/aiErrors';
 import { Cutout, base64ToBytes } from './cutoutPlugin';

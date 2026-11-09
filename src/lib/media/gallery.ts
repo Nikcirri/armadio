@@ -1,7 +1,7 @@
 import { registerPlugin } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
-import { u8ToBase64 } from '../backup/device';
+import { u8ToBase64 } from '../logic/bytes';
 import { isNative } from '../platform';
 
 // Salvataggio in galleria (plugin dell'app GalleryPlugin.java) e condivisione di un'immagine.

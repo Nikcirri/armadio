@@ -3,7 +3,7 @@
   import { App as CapApp } from '@capacitor/app';
   import { TABS, decideBack, type TabId } from './lib/logic/navigation';
   import { isNative, tapFeedback } from './lib/platform';
-  import { runAutoBackupIfDue } from './lib/backup/service';
+  import { isAutoBackupDue } from './lib/backup/auto';
   import { reportError } from './lib/errors';
   import { currentTab, nav, previousTab, requestEndOfDay, selectTab } from './lib/state/nav.svelte';
   import { END_OF_DAY_ACTION, onNotificationTap, refreshEndOfDayReminder } from './lib/notify';
@@ -21,12 +21,16 @@
   import { autoCheckForUpdates, openExternal } from './lib/updates';
   import Altro from './views/Altro.svelte';
   import Armadio from './views/Armadio.svelte';
-  import Onboarding from './views/Onboarding.svelte';
+  import { lazyComponent } from './lib/lazy';
+  import Lazy from './lib/ui/Lazy.svelte';
   import Outfit from './views/Outfit.svelte';
   import CosaMetto from './views/CosaMetto.svelte';
   import Agenda from './views/Agenda.svelte';
 
   let lastBackPressAt: number | null = null;
+  // Il primo avvio serve una volta sola: il suo codice si carica solo se serve (SPEC.md, sezione 7).
+  const onboarding = lazyComponent(() => import('./views/Onboarding.svelte'));
+
   let autoBackupChecked = false;
   let reminderChecked = false;
   let updateCheckRunning = false;
@@ -47,7 +51,9 @@
   $effect(() => {
     if (!onboarded || autoBackupChecked) return;
     autoBackupChecked = true;
-    runAutoBackupIfDue()
+    // La libreria ZIP si carica solo se oggi il backup va fatto davvero (SPEC.md, sezione 7).
+    isAutoBackupDue()
+      .then(async (due) => (due ? (await import('./lib/backup/service')).runAutoBackupIfDue() : false))
       .then((done) => {
         if (done) showToast('Backup automatico salvato in Documenti/Armadio/auto');
       })
@@ -156,7 +162,7 @@
 {#if !settings.loaded}
   <div class="loading" aria-busy="true"></div>
 {:else if !onboarded}
-  <Onboarding />
+  <Lazy loader={onboarding} variant="full" title="Benvenuto in Armadio" props={{}} />
 {:else}
   <div class="shell">
     <TopBar />

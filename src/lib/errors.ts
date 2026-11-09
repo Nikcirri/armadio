@@ -39,6 +39,12 @@ export function reportError(e: unknown, userMessage?: string): void {
   });
 }
 
+/** Registra un errore senza toast, quando è l'interfaccia stessa a spiegare cosa è successo. */
+export function logError(e: unknown, context: string): void {
+  console.error(e);
+  void appendErrorLog(db, `${context}\n${messageOf(e)}`).catch(() => undefined);
+}
+
 /** Gestore globale: nessun errore deve chiudere l'app. */
 export function installGlobalErrorHandlers(): void {
   window.addEventListener('error', (ev) => reportError(ev.error ?? ev.message));
