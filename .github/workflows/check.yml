@@ -74,4 +74,5 @@ jobs:
         run: |
           REF=$(ls ref/*.apk 2>/dev/null | head -n 1 || true)
           python3 scripts/check_apk.py android/app/build/outputs/apk/release/app-release-unsigned.apk \
-            --dist dist --android android ${REF:+--compare "$REF"}
+            --dist dist --android android ${REF:+--compare "$REF"} \
+            --mapping android/app/build/outputs/mapping/release/mapping.txt

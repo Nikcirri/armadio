@@ -17,7 +17,7 @@ lo stesso ma si rompe sul telefono. Questo script apre l'APK e controlla che ci 
 Con --compare <apk di riferimento> elenca anche le differenze nei pacchetti protetti dalle regole
 (solo informazione: tra due versioni il codice può cambiare davvero).
 
-Uso: python3 scripts/check_apk.py <apk> [--dist dist] [--android android] [--compare vecchio.apk]
+Uso: python3 scripts/check_apk.py <apk> [--dist dist] [--android android] [--compare vecchio.apk] [--mapping mapping.txt]
 Esce con codice 1 se trova un problema. Su GitHub Actions scrive anche annotazioni e riepilogo.
 """
 
@@ -660,7 +660,20 @@ def check_manifest(apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Rep
     rep.info(f'classi del manifest controllate: {checked}')
 
 
-def compare_with(reference: str, apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report):
+def load_mapping(path: str | None) -> dict[str, str]:
+    """mapping.txt di R8: nome originale -> nome nell'APK (solo le classi rimaste)."""
+    out: dict[str, str] = {}
+    if not path or not os.path.exists(path):
+        return out
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            m = re.match(r'^(\S+) -> (\S+):$', line)
+            if m:
+                out[m.group(1)] = m.group(2)
+    return out
+
+
+def compare_with(reference: str, apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report, mapping: dict[str, str]):
     with zipfile.ZipFile(reference) as ref_apk:
         ref, ref_bytes = load_classes(ref_apk)
 
@@ -670,7 +683,16 @@ def compare_with(reference: str, apk: zipfile.ZipFile, classes: dict[str, ClassI
         x for x in dex_strings(apk)
         if re.fullmatch(r'[a-z]\w*(?:\.\w+)+', x) and x in ref and x not in classes
     )
-    rep.info(f'classi nominate nel codice e tolte da R8: {len(by_name)}' + (' — ' + ', '.join(by_name[:30]) if by_name else ''))
+    renamed = [f'{x} -> {mapping[x]}' for x in by_name if x in mapping]
+    removed = [x for x in by_name if x not in mapping]
+    rep.info(f'classi nominate nel codice ma non più con quel nome: {len(by_name)}' + (f' (mapping: {len(renamed)} rinominate, {len(removed)} tolte)' if mapping else ''))
+    if mapping:
+        if renamed:
+            rep.info('  rinominate: ' + ', '.join(renamed))
+        if removed:
+            rep.info('  tolte: ' + ', '.join(removed))
+    elif by_name:
+        rep.info('  ' + ', '.join(by_name))
 
     def synthetic(name: str) -> bool:
         # Classi e metodi generati dal compilatore (lambda, accessi interni, ecc.): possono cambiare.
@@ -705,6 +727,7 @@ def main() -> int:
     ap.add_argument('--dist', help='cartella dist/ da confrontare con i file web dell\'APK')
     ap.add_argument('--android', default='android', help='cartella del progetto Android (per i sorgenti dei plugin)')
     ap.add_argument('--compare', help='APK di riferimento per elencare le differenze nei pacchetti protetti')
+    ap.add_argument('--mapping', help='mapping.txt di R8, per distinguere le classi rinominate da quelle tolte')
     args = ap.parse_args()
 
     rep = Report()
@@ -720,7 +743,7 @@ def main() -> int:
         check_dynamite(classes, rep)
     if args.compare:
         with zipfile.ZipFile(args.apk) as apk:
-            compare_with(args.compare, apk, classes, rep)
+            compare_with(args.compare, apk, classes, rep, load_mapping(args.mapping))
 
     for line in rep.infos:
         print(line)

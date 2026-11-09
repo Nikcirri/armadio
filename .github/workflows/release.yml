@@ -132,7 +132,8 @@ jobs:
           mkdir -p ref
           gh release download --repo "$GITHUB_REPOSITORY" --pattern 'Armadio-v*.apk' --dir ref || echo "Nessuna Release da confrontare."
           REF=$(ls ref/*.apk 2>/dev/null | head -n 1 || true)
-          python3 scripts/check_apk.py "out/Armadio-v${APP_VERSION_NAME}.apk" --dist dist --android android ${REF:+--compare "$REF"}
+          python3 scripts/check_apk.py "out/Armadio-v${APP_VERSION_NAME}.apk" --dist dist --android android ${REF:+--compare "$REF"} \
+            --mapping android/app/build/outputs/mapping/release/mapping.txt
 
       - name: Prepara le note della versione
         if: env.SKIP != 'true'
