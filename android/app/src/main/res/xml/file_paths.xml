@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
     <external-path name="my_images" path="." />
+    <!-- Tutta la cache, compresa cache/updates: l'installazione di Android legge da qui l'APK scaricato. -->
     <cache-path name="my_cache_images" path="." />
     <files-path name="my_files" path="." />
 </paths>

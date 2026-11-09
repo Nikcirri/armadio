@@ -53,4 +53,6 @@
     <!-- Solo Android 10 e precedenti: servono per salvare i backup nella cartella Documenti. -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="29" />
+    <!-- Aggiornamento dall'app: aprire l'installazione dell'APK scaricato da GitHub (SPEC.md, sezione 11). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>
