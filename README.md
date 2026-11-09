@@ -37,6 +37,8 @@ I dati della versione web restano nel browser e sono separati da quelli dell'app
 - Specifica completa: [`SPEC.md`](SPEC.md). Regole di lavoro: [`CLAUDE.md`](CLAUDE.md).
 - `npm run dev` avvia la versione web, `npm run verify` fa controlli, test e build.
 - Quando su `main` cambia la versione in `package.json`, GitHub Actions costruisce l'APK firmato e pubblica la Release `vX.Y.Z` (`.github/workflows/release.yml`).
+- L'APK contiene solo le librerie native ARM ed è ridotto con R8 (regole prudenti in `android/app/proguard-rules.pro`). Prima di ogni Release, e a ogni push nel workflow "Controllo", `scripts/check_apk.py` apre l'APK e controlla plugin Capacitor, ponte JavaScript, funzioni native, classi del manifest e file web: `python3 scripts/check_apk.py <apk> --dist dist [--compare vecchio.apk]`.
+- Le pagine di Altro, l'editor foto, il primo avvio e la libreria dei backup si caricano a richiesta (`src/lib/lazy.ts`, `src/lib/ui/Lazy.svelte`).
 - La versione web si pubblica a mano con `.github/workflows/pages.yml`; il service worker è generato al build da `build/serviceWorker.ts`.
 - Icona e schermata di avvio: sorgenti in `resources/`.
 - Armocromia: il viso si trova sul telefono con ML Kit Face Detection (`FacePlugin.java`, modello incluso nell'app); i colori si misurano in `src/lib/logic/faceColors.ts` e la stagione in `src/lib/logic/armocromia.ts`.

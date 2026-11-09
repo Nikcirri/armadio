@@ -1,5 +1,11 @@
 # Novità
 
+## [1.3.1] - 2026-11-09
+
+- App più leggera: il file da scaricare passa da 45 MB a circa 21 MB. Ho tolto le librerie che servono solo agli emulatori sul computer e ho compattato il codice Android delle librerie grandi. Il codice dell'app e dei plugin resta intatto.
+- Avvio un po' più rapido: all'apertura l'app legge circa il 22% di codice in meno. Le pagine di Altro, l'editor delle foto, la prima configurazione e la parte dei backup si caricano solo quando le apri.
+- Prima di ogni pubblicazione un controllo automatico apre l'APK e verifica che ci siano ancora tutti i pezzi usati da fotocamera, galleria, scontorno, riconoscimento del viso, notifiche, impronta, file e condivisione.
+
 ## [1.3.0] - 2026-11-06
 
 - Armocromia (in Altro): fai un selfie con la luce del giorno e l'app trova il viso sul telefono, senza internet. Misura pelle, capelli, occhi, labbra e sopracciglia, scartando ombre, riflessi, bianco degli occhi e pupilla, e corregge la luce con il bianco degli occhi o con un foglio bianco che tocchi nella foto.
