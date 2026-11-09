@@ -1,4 +1,5 @@
-# Controlla il codice a ogni modifica (non crea l'APK).
+# Controlla il codice a ogni modifica: test e build web, poi l'APK release (senza firma)
+# costruito e verificato con scripts/check_apk.py, come prima di ogni Release. Non pubblica nulla.
 name: Controllo
 
 on:
@@ -18,3 +19,59 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run verify
+
+  apk:
+    name: APK Android
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installa le librerie
+        run: npm ci
+
+      - name: Build web
+        run: npm run build
+
+      - name: Copia l'app web nel progetto Android
+        run: npx cap sync android
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Android SDK
+        run: |
+          test -d "$ANDROID_HOME"
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+
+      - name: Costruisci l'APK release (senza firma)
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          if ! ./gradlew --no-daemon --console=plain --stacktrace assembleRelease 2>&1 | tee gradle.log; then
+            MISSING=app/build/outputs/mapping/release/missing_rules.txt
+            MSG=$( { sed -n '/What went wrong/,/Try:/p' gradle.log; grep -E "^Caused by|^e: |error:|Missing class" gradle.log | head -n 25; [ -f "$MISSING" ] && { echo "missing_rules.txt:"; cat "$MISSING"; }; } | head -n 60 | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=Build Android fallita::$MSG"
+            exit 1
+          fi
+
+      - name: Scarica l'APK dell'ultima Release (per il confronto)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ref
+          gh release download --repo "$GITHUB_REPOSITORY" --pattern 'Armadio-v*.apk' --dir ref || echo "Nessuna Release da confrontare."
+
+      - name: Controlla l'APK
+        run: |
+          REF=$(ls ref/*.apk 2>/dev/null | head -n 1 || true)
+          python3 scripts/check_apk.py android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            --dist dist --android android ${REF:+--compare "$REF"}

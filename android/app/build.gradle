@@ -11,6 +11,11 @@ android {
         versionCode = Integer.parseInt(System.getenv("APP_VERSION_CODE") ?: "1")
         versionName = System.getenv("APP_VERSION_NAME") ?: "0.0.0-dev"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // Solo telefoni ARM (SPEC.md, sezione 1): le librerie native per x86 servono solo agli emulatori
+        // e pesavano circa 19 MB (soprattutto il rilevamento volti di ML Kit).
+        ndk {
+            abiFilters 'arm64-v8a', 'armeabi-v7a'
+        }
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
@@ -35,8 +40,12 @@ android {
             if (System.getenv("ANDROID_KEYSTORE_PATH") && System.getenv("ANDROID_KEYSTORE_PASSWORD")) {
                 signingConfig = signingConfigs.release
             }
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // R8 riduce il codice delle librerie grandi; le regole prudenti sono in proguard-rules.pro
+            // e scripts/check_apk.py controlla l'APK prima della pubblicazione (SPEC.md, sezione 2).
+            // Le risorse non vengono ridotte: alcuni plugin le cercano per nome (es. splash, suoni).
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

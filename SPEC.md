@@ -14,7 +14,7 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 - 100% offline: nessun account, nessun server, nessuna analitica. Dati e foto restano sul telefono. Nessuna risorsa da CDN: font, icone e librerie sono inclusi nell'app.
 - Distribuzione gratuita: APK firmato pubblicato su GitHub Releases da GitHub Actions. Lo stesso codice è pubblicabile come PWA su GitHub Pages per chi ha iPhone (obiettivo secondario).
 - Interfaccia in italiano. Utenti di qualsiasi genere: nessun presupposto nei testi, preset scelto al primo avvio.
-- Android 8 o superiore, schermi da 360 px di larghezza in su, fluida su telefoni di fascia media.
+- Android 8 o superiore, telefoni con processore ARM (64 e 32 bit: l'APK non contiene le librerie per x86, usate solo dagli emulatori), schermi da 360 px di larghezza in su, fluida su telefoni di fascia media.
 
 ## 2. Stack tecnico (vincolante)
 - Vite + Svelte 5 + TypeScript in modalità strict. CSS con variabili, nessuna libreria UI pesante.
@@ -28,6 +28,9 @@ Questo file è la fonte di verità del progetto. Leggilo tutto prima di ogni fas
 - CI con GitHub Actions:
   - quando su main cambia la versione in package.json (o a ogni tag v*), se la Release non esiste ancora: build web, cap sync, build Gradle release firmata con il keystore preso dai Secrets (file in base64 + password), pubblicazione di una Release con il file Armadio-vX.Y.Z.apk e le note dal CHANGELOG;
   - versionCode incrementato automaticamente, versionName uguale al tag;
+  - APK release ridotto con R8 (riduzione del codice Java/Kotlin, non delle risorse) con regole prudenti: il codice dell'app, di Capacitor, dei plugin e delle librerie Ionic resta intatto (niente nomi cambiati né parti tolte), si riducono solo le librerie grandi (AndroidX, Material, Kotlin, Google/ML Kit) con le loro regole ufficiali;
+  - prima di pubblicare, `scripts/check_apk.py` controlla l'APK: solo architetture ARM con le stesse librerie native, file web e modelli di ML Kit presenti, ogni plugin Capacitor con la sua classe, il suo nome e tutti i metodi `@PluginMethod` (presi dai sorgenti) ancora annotati, il ponte JavaScript, i componenti del manifest e le classi caricate per nome (registrar di ML Kit, inizializzatori AndroidX). Se qualcosa manca la Release non viene pubblicata;
+  - il workflow "Controllo" a ogni push costruisce anche l'APK release (senza firma) e lo verifica con lo stesso script;
   - workflow separato e facoltativo, avviato solo a mano, che pubblica la versione PWA su GitHub Pages (con manifest e service worker veri: il service worker è generato al build con l'elenco di tutti i file, quindi la versione web funziona senza internet; quando è pronta una versione nuova compare un messaggio con "Ricarica"). Nell'app Android il service worker non viene registrato;
   - il keystore non va mai nel repository.
 
@@ -119,7 +122,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Ergonomia: aree di tocco minime 48 px, testo degli input 16 px, margini sicuri (status bar, notch, barra dei gesti). Zoom non bloccato.
 - Vibrazione leggera sulle azioni principali. Animazioni ≤ 200 ms, disattivate se il sistema chiede movimento ridotto.
 - Ogni lista vuota ha uno stato vuoto con spiegazione e pulsante d'azione.
-- Prestazioni: griglia virtualizzata oltre 200 capi, URL delle immagini liberati quando non servono, avvio sotto i 2 secondi e scorrimento fluido con 500 capi e 1.500 foto.
+- Prestazioni: griglia virtualizzata oltre 200 capi, URL delle immagini liberati quando non servono, avvio sotto i 2 secondi e scorrimento fluido con 500 capi e 1.500 foto. All'avvio si carica solo il codice delle 5 sezioni principali: le pagine di Altro, l'editor foto, il primo avvio e la libreria ZIP dei backup (caricata solo quando serve un backup o un ripristino, compreso il backup automatico se è il giorno) stanno in file separati caricati quando si aprono (sono comunque dentro l'app e nella cache della versione web, quindi funzionano offline). Mentre si caricano compare un indicatore; se il caricamento fallisce (solo nella versione web, dopo un aggiornamento) compare un messaggio con "Ricarica".
 - Accessibilità: etichette per lettori di schermo, contrasto AA, significato mai affidato solo al colore o alle emoji. Un test controlla il contrasto AA di tutte le palette, chiare e scure, leggendo i colori da app.css.
 
 ## 8. Sezioni

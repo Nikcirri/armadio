@@ -114,12 +114,25 @@ jobs:
           set -o pipefail
           if ! ./gradlew --no-daemon --console=plain --stacktrace assembleRelease 2>&1 | tee gradle.log; then
             # Riassunto dell'errore visibile anche senza aprire i log completi.
-            MSG=$( { sed -n '/What went wrong/,/Try:/p' gradle.log; grep -E "^Caused by|^e: |error:" gradle.log | head -n 15; } | head -n 40 | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            MISSING=app/build/outputs/mapping/release/missing_rules.txt
+            MSG=$( { sed -n '/What went wrong/,/Try:/p' gradle.log; grep -E "^Caused by|^e: |error:|Missing class" gradle.log | head -n 25; [ -f "$MISSING" ] && { echo "missing_rules.txt:"; cat "$MISSING"; }; } | head -n 60 | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
             echo "::error title=Build Android fallita::$MSG"
             exit 1
           fi
           mkdir -p ../out
           cp app/build/outputs/apk/release/app-release.apk "../out/Armadio-v${APP_VERSION_NAME}.apk"
+
+      # Con R8 attivo, prima di pubblicare si controlla che nell'APK ci sia tutto (plugin, ponte
+      # JavaScript, classi native e del manifest, file web). Se manca qualcosa la Release non parte.
+      - name: Controlla l'APK prima di pubblicarlo
+        if: env.SKIP != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p ref
+          gh release download --repo "$GITHUB_REPOSITORY" --pattern 'Armadio-v*.apk' --dir ref || echo "Nessuna Release da confrontare."
+          REF=$(ls ref/*.apk 2>/dev/null | head -n 1 || true)
+          python3 scripts/check_apk.py "out/Armadio-v${APP_VERSION_NAME}.apk" --dist dist --android android ${REF:+--compare "$REF"}
 
       - name: Prepara le note della versione
         if: env.SKIP != 'true'

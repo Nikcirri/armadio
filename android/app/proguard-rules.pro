@@ -1,21 +1,33 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# Regole R8 dell'APK release (SPEC.md, sezione 2): prudenti di proposito.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Il codice dell'app, di Capacitor, dei plugin e delle librerie Ionic resta intatto: niente nomi
+# cambiati e niente parti tolte, perché Capacitor trova plugin e metodi per nome e con le annotazioni,
+# e la fotocamera usa Gson sui suoi oggetti. Si riducono solo le librerie grandi (AndroidX, Material,
+# Kotlin, Google Play services, ML Kit), che portano con sé le loro regole ufficiali.
+# Prima di ogni Release scripts/check_apk.py controlla che nell'APK ci sia tutto.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+-keep class com.nikcirri.armadio.** { *; }
+-keep class com.getcapacitor.** { *; }
+-keep class com.capacitorjs.** { *; }
+-keep class io.capawesome.** { *; }
+-keep class io.ionic.libs.** { *; }
+-keep class org.apache.cordova.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Annotazioni lette a runtime (@CapacitorPlugin, @PluginMethod, @JavascriptInterface)
+# e firme generiche (servono a Gson per i TypeToken).
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Ponte tra JavaScript e Android nella WebView.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Gson 2.10 (usato da @capacitor/camera) non include le sue regole: queste sono quelle ufficiali.
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Numeri di riga negli errori Java, utili se qualcosa si rompe.
+-keepattributes SourceFile,LineNumberTable
