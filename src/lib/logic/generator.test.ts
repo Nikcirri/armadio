@@ -4,6 +4,7 @@ import { createItem } from './factories';
 import {
   accentColors,
   candidates,
+  coveredOccasions,
   cycle,
   defaultGeneratorOptions,
   exclusionReason,
@@ -11,10 +12,13 @@ import {
   explainSlot,
   generateLook,
   harmonyOk,
+  joinLabels,
   lookItemIds,
   lookViolation,
   modesFor,
+  occasionAllowed,
   occasionsCompatible,
+  occasionsSummary,
   outfitTagsFor,
   pickAmongBest,
   scoreLook,
@@ -88,7 +92,7 @@ describe('struttura del look', () => {
     expect(slotNeeds('separates', opts({ temperature: 'cold' }), ctx).outerwear).toBe('required');
     expect(slotNeeds('separates', opts({ temperature: 'mild' }), ctx).outerwear).toBe('optional');
     expect(slotNeeds('separates', opts({ temperature: 'hot' }), ctx).outerwear).toBe('never');
-    expect(slotNeeds('separates', opts({ temperature: 'hot', occasionId: 'evening' }), ctx).outerwear).toBe('optional');
+    expect(slotNeeds('separates', opts({ temperature: 'hot', occasionIds: ['evening'] }), ctx).outerwear).toBe('optional');
   });
 
   it('a cipolla vuole base, strato e capospalla, solo spezzato', () => {
@@ -122,8 +126,8 @@ describe('regole sui capi', () => {
   });
 
   it('occasione, disponibilità, cipolla e capi indossati di recente', () => {
-    expect(exclusionReason(w.shirt, 'top_base', opts({ occasionId: 'evening' }), ctx)).toBe('occasion');
-    expect(exclusionReason(w.tee, 'top_base', opts({ occasionId: 'evening' }), ctx)).toBeNull();
+    expect(exclusionReason(w.shirt, 'top_base', opts({ occasionIds: ['evening'] }), ctx)).toBe('occasion');
+    expect(exclusionReason(w.tee, 'top_base', opts({ occasionIds: ['evening'] }), ctx)).toBeNull();
     const dirty = { ...w.jeans, status: 'toWash' as const };
     expect(exclusionReason(dirty, 'bottom', opts(), ctx)).toBe('unavailable');
     expect(exclusionReason(dirty, 'bottom', opts({ onlyAvailable: false }), ctx)).toBeNull();
@@ -153,6 +157,109 @@ describe('colori e occasioni', () => {
     expect(occasionsCompatible(['sport'], ['formal'], m)).toBe(false);
     expect(occasionsCompatible(['sport', 'casual'], ['formal'], m)).toBe(true);
     expect(occasionsCompatible([], ['formal'], m)).toBe(true);
+  });
+});
+
+describe('più occasioni insieme', () => {
+  const casualTee = item('top_base', 'Maglietta', { occasions: ['casual'] });
+  const workShirt = item('top_base', 'Camicia', { occasions: ['work', 'evening'] });
+  const blazer = item('outerwear', 'Blazer', { occasions: ['work', 'evening'], warmth: 'light' });
+  const chinos = item('bottom', 'Chino', { occasions: ['casual', 'work'] });
+  const dressPants = item('bottom', 'Pantalone', { occasions: ['work', 'evening'] });
+  const gym = item('bottom', 'Tuta', { occasions: ['sport'] });
+  const silk = item('top_base', 'Top di seta', { occasions: ['formal'] });
+  const free = item('shoes', 'Scarpe', {});
+  const label = (id: string) => ({ casual: 'Casual', work: 'Studio/Lavoro', evening: 'Serata', sport: 'Sport/Relax', formal: 'Elegante' })[id] ?? id;
+
+  it('una qualsiasi: basta una delle occasioni scelte; tutte insieme: servono tutte', () => {
+    const any = { occasionIds: ['casual', 'evening'], occasionMode: 'any' as const };
+    const all = { occasionIds: ['work', 'evening'], occasionMode: 'all' as const };
+    expect(occasionAllowed(casualTee, any)).toBe(true);
+    expect(occasionAllowed(workShirt, any)).toBe(true);
+    expect(occasionAllowed(gym, any)).toBe(false);
+    expect(occasionAllowed(free, any)).toBe(true);
+    expect(occasionAllowed(workShirt, all)).toBe(true);
+    expect(occasionAllowed(chinos, all)).toBe(false);
+    expect(occasionAllowed(free, all)).toBe(true);
+    expect(occasionAllowed(gym, { occasionIds: [], occasionMode: 'all' })).toBe(true);
+    const ctx = context([casualTee, workShirt, chinos, free]);
+    expect(exclusionReason(chinos, 'bottom', opts(all), ctx)).toBe('occasion');
+    expect(exclusionReason(chinos, 'bottom', opts({ ...all, occasionMode: 'any' }), ctx)).toBeNull();
+  });
+
+  it('con una qualsiasi la matrice vale tra le occasioni scelte dei capi', () => {
+    // Il top elegante è anche casual, la tuta è anche casual: senza occasioni stanno insieme,
+    // ma scegliendo Sport/Relax ed Elegante uno è "sportivo" e l'altro "elegante".
+    const top = { ...silk, occasions: ['formal', 'casual'] };
+    const pants = { ...gym, occasions: ['sport', 'casual'] };
+    const ctx = context([top, pants, free]);
+    const byId = new Map(ctx.items.map((i) => [i.id, i]));
+    const look: Look = { mode: 'separates', picks: { top_base: top.id, bottom: pants.id, shoes: free.id } };
+    expect(lookViolation(look, byId, opts(), ctx)).toBeNull();
+    expect(lookViolation(look, byId, opts({ occasionIds: ['sport', 'formal'] }), ctx)).toBe('occasions');
+    expect(lookViolation(look, byId, opts({ occasionIds: ['sport', 'formal', 'casual'] }), ctx)).toBeNull();
+    expect(lookViolation(look, byId, opts({ occasionIds: ['casual'] }), ctx)).toBeNull();
+  });
+
+  it('preferisce i look adatti a una stessa occasione e lo dice nella chip', () => {
+    const ctx = context([casualTee, workShirt, chinos, dressPants, free], { occasionLabel: label });
+    const byId = new Map(ctx.items.map((i) => [i.id, i]));
+    const any = opts({ occasionIds: ['casual', 'work'] });
+    const mixed: Look = { mode: 'separates', picks: { top_base: casualTee.id, bottom: dressPants.id, shoes: free.id } };
+    const casual: Look = { mode: 'separates', picks: { top_base: casualTee.id, bottom: chinos.id, shoes: free.id } };
+    const a = scoreLook(mixed, byId, any, ctx);
+    const b = scoreLook(casual, byId, any, ctx);
+    expect(b.score).toBeGreaterThan(a.score);
+    expect(b.reasons).toContain('Adatto a Casual');
+    expect(a.reasons.some((r) => r.startsWith('Adatto a'))).toBe(false);
+    const both = scoreLook(
+      { mode: 'separates', picks: { top_base: workShirt.id, bottom: dressPants.id, shoes: free.id } },
+      byId,
+      opts({ occasionIds: ['work', 'evening'], occasionMode: 'all' }),
+      ctx,
+    );
+    expect(both.reasons).toContain('Adatto a Studio/Lavoro e Serata');
+  });
+
+  it('genera solo abbinamenti validi con tutte insieme e spiega cosa manca', () => {
+    const ctx = context([casualTee, workShirt, blazer, chinos, dressPants, gym, free], { occasionLabel: label });
+    const o = opts({ occasionIds: ['work', 'evening'], occasionMode: 'all' });
+    const list = candidates(o, ctx, {}, seededRandom(3));
+    expect(list.length).toBeGreaterThan(0);
+    for (const c of list) {
+      const ids = lookItemIds(c.look);
+      expect(ids).not.toContain(casualTee.id);
+      expect(ids).not.toContain(chinos.id);
+    }
+    const noShirt = context([casualTee, chinos, dressPants, free], { occasionLabel: label });
+    expect(explainSlot('top_base', o, noShirt)).toBe('Nessun capo sopra per “Studio/Lavoro” e “Serata” insieme.');
+    expect(explainSlot('top_base', opts({ occasionIds: ['sport', 'formal'] }), noShirt)).toBe(
+      'Nessun capo sopra per le occasioni “Sport/Relax” o “Elegante”.',
+    );
+    expect(explainSlot('top_base', opts({ occasionIds: ['sport'] }), noShirt)).toBe('Nessun capo sopra per l’occasione “Sport/Relax”.');
+    // Con una polo solo da lavoro "Una qualsiasi" basta; senza, serve "Qualsiasi occasione".
+    const polo = item('top_base', 'Polo', { occasions: ['work'] });
+    const withPolo = context([casualTee, polo, chinos, dressPants, free], { occasionLabel: label });
+    expect(workingFixes(o, withPolo).map((f) => f.label)).toEqual(['Una qualsiasi delle occasioni', 'Qualsiasi occasione']);
+    expect(workingFixes(o, noShirt).map((f) => f.label)).toEqual(['Qualsiasi occasione']);
+  });
+
+  it('serata tra le scelte: capospalla facoltativo col caldo', () => {
+    const ctx = context([]);
+    expect(slotNeeds('separates', opts({ temperature: 'hot', occasionIds: ['casual', 'evening'] }), ctx).outerwear).toBe('optional');
+    expect(slotNeeds('separates', opts({ temperature: 'hot', occasionIds: ['casual', 'work'] }), ctx).outerwear).toBe('never');
+  });
+
+  it('testi: elenco, riepilogo e occasioni coperte', () => {
+    expect(joinLabels([], 'e')).toBe('');
+    expect(joinLabels(['A'], 'o')).toBe('A');
+    expect(joinLabels(['A', 'B'], 'o')).toBe('A o B');
+    expect(joinLabels(['A', 'B', 'C'], 'e')).toBe('A, B e C');
+    expect(occasionsSummary({ occasionIds: ['casual', 'work'], occasionMode: 'any' }, label)).toBe('Casual o Studio/Lavoro');
+    expect(occasionsSummary({ occasionIds: ['work', 'evening'], occasionMode: 'all' }, label)).toBe('Studio/Lavoro + Serata');
+    expect(occasionsSummary({ occasionIds: [], occasionMode: 'any' }, label)).toBe('');
+    expect(coveredOccasions([workShirt, dressPants, free], { occasionIds: ['casual', 'work', 'evening'] })).toEqual(['work', 'evening']);
+    expect(coveredOccasions([casualTee, dressPants], { occasionIds: ['casual', 'work'] })).toEqual([]);
   });
 });
 

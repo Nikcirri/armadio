@@ -8,6 +8,7 @@ export const MEASUREMENTS: readonly { key: string; label: string; hint: string }
   { key: 'chest', label: 'Petto / seno', hint: 'Nel punto più largo' },
   { key: 'underbust', label: 'Sottoseno', hint: 'Subito sotto il seno' },
   { key: 'waist', label: 'Vita', hint: 'Nel punto più stretto' },
+  { key: 'lowWaist', label: 'Vita bassa / cintura', hint: 'Dove porti cintura e pantaloni a vita bassa' },
   { key: 'hips', label: 'Fianchi', hint: 'Nel punto più largo' },
   { key: 'shoulders', label: 'Spalle', hint: 'Da una spalla all’altra' },
   { key: 'inseam', label: 'Interno gamba', hint: 'Dal cavallo alla caviglia' },
@@ -26,6 +27,32 @@ export function parseCm(text: string): number | null {
 
 export function formatCm(value: number | null | undefined): string {
   return value === null || value === undefined ? '' : String(value).replace('.', ',');
+}
+
+/** Anelli: una misura italiana per dito (stesso record delle misure del corpo, SPEC.md 8.5). */
+export const RING_FINGERS: readonly { key: string; label: string }[] = [
+  { key: 'ringThumb', label: 'Pollice' },
+  { key: 'ringIndex', label: 'Indice' },
+  { key: 'ringMiddle', label: 'Medio' },
+  { key: 'ringRingFinger', label: 'Anulare' },
+  { key: 'ringLittle', label: 'Mignolo' },
+];
+
+/** "14", "14,5", "IT 14" → misura italiana (1-40, a mezze misure). Null se vuoto o non sensata. */
+export function parseRingSize(text: string): number | null {
+  const t = text
+    .trim()
+    .replace(',', '.')
+    .replace(/^(it|ita|n\.?)\s*/i, '');
+  if (!t) return null;
+  const n = Number(t);
+  if (!Number.isFinite(n) || n < 1 || n > 40) return null;
+  return Math.round(n * 2) / 2;
+}
+
+/** Circonferenza interna in mm: misura italiana + 40 (è anche la misura europea). */
+export function ringCircumferenceMm(size: number): number {
+  return size + 40;
 }
 
 export interface BrandSize {

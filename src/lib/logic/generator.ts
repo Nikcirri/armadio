@@ -25,12 +25,22 @@ export const HARMONIES: readonly { id: Harmony; label: string; hint: string }[] 
   { id: 'balanced', label: 'Contrasto bilanciato', hint: 'Neutri più al massimo un colore d’accento.' },
 ];
 
+/** Con più occasioni scelte (SPEC 8.3): adatto ad almeno una oppure a tutte insieme. */
+export type OccasionMode = 'any' | 'all';
+
+export const OCCASION_MODES: readonly { id: OccasionMode; label: string; hint: string }[] = [
+  { id: 'any', label: 'Una qualsiasi', hint: 'Ogni abbinamento va bene per almeno una delle occasioni scelte.' },
+  { id: 'all', label: 'Tutte insieme', hint: 'Ogni capo va bene per tutte le occasioni scelte, es. dall’ufficio all’aperitivo.' },
+];
+
 export interface GeneratorOptions {
   temperature: Temperature;
   rain: boolean;
   /** "A cipolla": base leggera + strato + capospalla. */
   layers: boolean;
-  occasionId: string | null;
+  /** Occasioni scelte (nessuna = tutte, con la matrice delle incompatibilità). */
+  occasionIds: string[];
+  occasionMode: OccasionMode;
   harmony: Harmony;
   /** Palette preferita (SPEC 8.3): id di COLOR_PALETTES, "season" per la propria stagione, null per nessuna. */
   paletteId: string | null;
@@ -46,7 +56,8 @@ export function defaultGeneratorOptions(): GeneratorOptions {
     temperature: 'mild',
     rain: false,
     layers: false,
-    occasionId: null,
+    occasionIds: [],
+    occasionMode: 'any',
     harmony: 'free',
     paletteId: null,
     coordinate: true,
@@ -98,7 +109,7 @@ export const GEN_SLOTS: readonly { slot: GenSlot; label: string }[] = [
 export type Need = 'required' | 'optional' | 'never';
 
 export function slotNeeds(mode: OutfitMode, opts: GeneratorOptions, ctx: Pick<GeneratorContext, 'eveningOccasionIds'>): Record<GenSlot, Need> {
-  const evening = !!opts.occasionId && ctx.eveningOccasionIds.includes(opts.occasionId);
+  const evening = opts.occasionIds.some((id) => ctx.eveningOccasionIds.includes(id));
   const outerwear: Need = opts.layers || opts.temperature === 'cold' ? 'required' : opts.temperature === 'hot' ? (evening ? 'optional' : 'never') : 'optional';
   const separates = mode === 'separates';
   return {
@@ -152,9 +163,33 @@ function rainAllowed(item: ItemRecord, slot: GenSlot, ctx: GeneratorContext): bo
   });
 }
 
-/** Il capo ha l'occasione scelta (i capi senza occasioni vanno bene per tutte). */
-function occasionAllowed(item: ItemRecord, opts: GeneratorOptions): boolean {
-  return !opts.occasionId || item.occasions.length === 0 || item.occasions.includes(opts.occasionId);
+type OccasionChoice = Pick<GeneratorOptions, 'occasionIds' | 'occasionMode'>;
+
+/**
+ * Il capo va bene per le occasioni scelte: almeno una ("Una qualsiasi") o tutte ("Tutte insieme").
+ * I capi senza occasioni vanno bene per tutte.
+ */
+export function occasionAllowed(item: Pick<ItemRecord, 'occasions'>, opts: OccasionChoice): boolean {
+  const chosen = opts.occasionIds;
+  if (!chosen.length || !item.occasions.length) return true;
+  return opts.occasionMode === 'all' ? chosen.every((id) => item.occasions.includes(id)) : chosen.some((id) => item.occasions.includes(id));
+}
+
+/** Le occasioni scelte per cui vanno bene tutti i capi (quelli senza occasioni valgono per tutte). */
+export function coveredOccasions(items: readonly Pick<ItemRecord, 'occasions'>[], opts: Pick<GeneratorOptions, 'occasionIds'>): string[] {
+  return opts.occasionIds.filter((id) => items.every((i) => !i.occasions.length || i.occasions.includes(id)));
+}
+
+/** "A", "A e B", "A, B e C" (oppure con "o"). */
+export function joinLabels(labels: readonly string[], conjunction: 'e' | 'o'): string {
+  if (labels.length <= 1) return labels[0] ?? '';
+  return `${labels.slice(0, -1).join(', ')} ${conjunction} ${labels[labels.length - 1]}`;
+}
+
+/** Testo breve delle occasioni scelte, es. "Casual o Studio/Lavoro" oppure "Studio/Lavoro + Serata". */
+export function occasionsSummary(opts: OccasionChoice, label: (id: string) => string): string {
+  const names = opts.occasionIds.map(label);
+  return opts.occasionMode === 'all' ? names.join(' + ') : joinLabels(names, 'o');
 }
 
 function wornRecently(item: ItemRecord, slot: GenSlot, ctx: GeneratorContext): boolean {
@@ -266,10 +301,15 @@ export function lookViolation(
   const items = lookItemIds(look)
     .map((id) => byId.get(id))
     .filter((i): i is ItemRecord => !!i);
-  if (!opts.occasionId) {
+  // Matrice delle incompatibilità: senza occasioni su tutte quelle dei capi; con "Una qualsiasi" e più
+  // occasioni solo su quelle scelte (niente capo sportivo con uno elegante se le hai scelte entrambe).
+  // Con un'occasione sola o "Tutte insieme" i capi la condividono già.
+  const chosen = opts.occasionIds;
+  if (!chosen.length || (chosen.length > 1 && opts.occasionMode === 'any')) {
+    const occ = (i: ItemRecord) => (chosen.length ? i.occasions.filter((id) => chosen.includes(id)) : i.occasions);
     for (let i = 0; i < items.length; i++)
       for (let j = i + 1; j < items.length; j++)
-        if (!occasionsCompatible(items[i]!.occasions, items[j]!.occasions, ctx.occasionMatrix)) return 'occasions';
+        if (!occasionsCompatible(occ(items[i]!), occ(items[j]!), ctx.occasionMatrix)) return 'occasions';
   }
   if (!harmonyOk(items.flatMap((i) => i.colors), opts.harmony)) return 'harmony';
   if (opts.temperature === 'cold' && look.mode === 'separates' && !look.picks.top_layer) {
@@ -416,7 +456,12 @@ export function scoreLook(look: Look, byId: ReadonlyMap<string, ItemRecord>, opt
   if (opts.layers) reasons.push('A cipolla: base leggera, strato e capospalla');
   else if (opts.temperature === 'cold' && get('outerwear')) reasons.push('Capospalla per il freddo');
   else if (opts.temperature === 'hot') reasons.push('Leggero per il caldo');
-  if (opts.occasionId) reasons.push(`Adatto a ${ctx.occasionLabel(opts.occasionId)}`);
+  if (opts.occasionIds.length) {
+    const covered = coveredOccasions(all, opts);
+    // Con "Una qualsiasi" sono meglio i look tutti adatti a una stessa occasione scelta.
+    if (opts.occasionMode === 'any' && opts.occasionIds.length > 1 && covered.length) score += 1.5;
+    if (covered.length) reasons.push(`Adatto a ${joinLabels(covered.map(ctx.occasionLabel), 'e')}`);
+  }
 
   return { score: Math.round(score * 10) / 10, reasons };
 }
@@ -611,8 +656,11 @@ function qualifier(reason: ExclusionReason, slot: GenSlot, opts: GeneratorOption
   switch (reason) {
     case 'unavailable':
       return a('pulito', 'pulita');
-    case 'occasion':
-      return `per l’occasione “${opts.occasionId ? ctx.occasionLabel(opts.occasionId) : ''}”`;
+    case 'occasion': {
+      const names = opts.occasionIds.map((id) => `“${ctx.occasionLabel(id)}”`);
+      if (names.length <= 1) return `per l’occasione ${names[0] ?? ''}`;
+      return opts.occasionMode === 'all' ? `per ${joinLabels(names, 'e')} insieme` : `per le occasioni ${joinLabels(names, 'o')}`;
+    }
     case 'temperature':
       return opts.temperature === 'hot'
         ? a('abbastanza leggero per il caldo', 'abbastanza leggera per il caldo')
@@ -676,7 +724,8 @@ export const FIXES: readonly { label: string; applies: (o: GeneratorOptions) => 
   { label: 'Usa anche i capi non disponibili', applies: (o) => o.onlyAvailable, patch: { onlyAvailable: false } },
   { label: 'Senza pioggia', applies: (o) => o.rain, patch: { rain: false } },
   { label: 'Senza “A cipolla”', applies: (o) => o.layers, patch: { layers: false } },
-  { label: 'Qualsiasi occasione', applies: (o) => !!o.occasionId, patch: { occasionId: null } },
+  { label: 'Una qualsiasi delle occasioni', applies: (o) => o.occasionIds.length > 1 && o.occasionMode === 'all', patch: { occasionMode: 'any' } },
+  { label: 'Qualsiasi occasione', applies: (o) => o.occasionIds.length > 0, patch: { occasionIds: [] } },
   { label: 'Colori liberi', applies: (o) => o.harmony !== 'free', patch: { harmony: 'free' } },
   { label: 'Clima mite', applies: (o) => o.temperature !== 'mild', patch: { temperature: 'mild' } },
 ];

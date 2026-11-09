@@ -1,5 +1,14 @@
 # Novità
 
+## [1.4.0] - 2026-11-09
+
+- Cosa metto?: nelle Opzioni puoi scegliere più occasioni insieme (Casual, Studio/Lavoro, Serata…). Con due o più compare un interruttore:
+  - "Una qualsiasi": ogni look va bene per almeno una delle occasioni scelte. L'app non mischia occasioni che non stanno insieme e preferisce i look tutti della stessa occasione (chip "Adatto a …").
+  - "Tutte insieme": ogni capo va bene per tutte le occasioni scelte, per esempio dall'ufficio all'aperitivo.
+- Se non esce nessun abbinamento, l'app propone anche "Una qualsiasi delle occasioni". L'outfit salvato tiene le occasioni giuste.
+- Taglie e misure: nuova misura "Vita bassa / cintura", cioè dove porti cintura e pantaloni a vita bassa.
+- Taglie e misure: nuova sezione Anelli, con la misura italiana per ogni dito (pollice, indice, medio, anulare, mignolo). Accanto compare la circonferenza in mm (che è anche la misura europea), comoda per comprare online.
+
 ## [1.3.1] - 2026-11-09
 
 - App più leggera: il file da scaricare passa da 45 MB a circa 21 MB. Ho tolto le librerie che servono solo agli emulatori sul computer e ho compattato il codice Android delle librerie grandi. Il codice dell'app e dei plugin resta intatto.

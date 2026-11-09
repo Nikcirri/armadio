@@ -11,6 +11,9 @@
     generateLook,
     lookItemIds,
     outfitTagsFor,
+    OCCASION_MODES,
+    coveredOccasions,
+    occasionsSummary,
     scoreLook,
     slotAlternatives,
     slotNeeds,
@@ -61,6 +64,14 @@
       .sort((a, b) => a.order - b.order)
       .map((l) => ({ id: l.id, label: l.name })),
   );
+  // Un'occasione eliminata dalle liste esce anche da quelle scelte (SPEC 8.3).
+  $effect(() => {
+    if (!occasions.length) return;
+    const known = new Set(occasions.map((x) => x.id));
+    const chosen = untrack(() => view.options.occasionIds);
+    if (chosen.some((id) => !known.has(id))) untrack(() => setOption('occasionIds', chosen.filter((id) => known.has(id))));
+  });
+  const occasionLabel = (id: string) => occasions.find((x) => x.id === id)?.label ?? '';
   const byId = $derived(new Map(items.value.map((i) => [i.id, i])));
   // Armocromia (SPEC 8.6) e palette (SPEC 8.3).
   const colorProfile = $derived(parseColorProfile(settings.value.colorProfile ?? null));
@@ -200,7 +211,7 @@
   }
   const summary = $derived(
     [
-      o.occasionId ? (occasions.find((x) => x.id === o.occasionId)?.label ?? '') : '',
+      occasionsSummary(o, occasionLabel),
       o.harmony !== 'free' ? (HARMONIES.find((h) => h.id === o.harmony)?.label ?? '') : '',
       chosenPalette ? `Palette ${chosenPalette.name}` : seasonPaletteOn ? 'La mia stagione' : '',
       o.forgotten ? 'Dimenticati' : '',
@@ -208,6 +219,13 @@
       !o.coordinate ? 'Senza coordinare' : '',
     ].filter(Boolean),
   );
+
+  /** Occasioni dell'outfit salvato: quelle scelte adatte a tutti i capi, oppure tutte quelle scelte. */
+  function savedOccasions(): string[] {
+    if (!look) return [];
+    const covered = coveredOccasions(lookItemIds(look).map((id) => byId.get(id)).filter((i): i is ItemRecord => !!i), o);
+    return covered.length ? covered : [...o.occasionIds];
+  }
 
   function openSave() {
     outfitName = '';
@@ -224,7 +242,7 @@
         itemIds: allPieces.map((p) => p.id),
         wishlistIds: [],
         season: tags.season,
-        occasions: o.occasionId ? [o.occasionId] : [],
+        occasions: savedOccasions(),
         weatherTags: tags.weatherTags,
         favorite: false,
         notes: '',
@@ -403,12 +421,22 @@
     <h3 class="section-title first">Occasione</h3>
     <ChipGroup
       label="Occasione"
-      single
       options={occasions}
-      value={o.occasionId ? [o.occasionId] : []}
-      onchange={(v) => setOption('occasionId', v[0] ?? null)}
+      value={o.occasionIds}
+      onchange={(v) => setOption('occasionIds', occasions.filter((x) => v.includes(x.id)).map((x) => x.id))}
     />
-    <p class="note">Facoltativa. Senza occasione evito gli abbinamenti che non stanno insieme (es. sport con elegante).</p>
+    {#if o.occasionIds.length > 1}
+      <div class="segmented modes" role="group" aria-label="Con più occasioni">
+        {#each OCCASION_MODES as m (m.id)}
+          <button aria-pressed={o.occasionMode === m.id} onclick={() => setOption('occasionMode', m.id)}>{m.label}</button>
+        {/each}
+      </div>
+      <p class="note">{OCCASION_MODES.find((m) => m.id === o.occasionMode)?.hint}</p>
+    {:else}
+      <p class="note">
+        Facoltative, anche più di una. Senza occasione evito gli abbinamenti che non stanno insieme (es. sport con elegante).
+      </p>
+    {/if}
 
     <h3 class="section-title">Armonia dei colori</h3>
     <div class="list">
@@ -498,6 +526,9 @@
 <style>
   .cosa {
     padding: 12px 16px 120px;
+  }
+  .modes {
+    margin-top: 12px;
   }
   .temp button {
     min-height: 44px;

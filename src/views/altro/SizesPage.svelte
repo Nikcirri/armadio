@@ -2,7 +2,18 @@
   import { db } from '../../lib/db';
   import { updateSetting } from '../../lib/db/repo';
   import type { ItemRecord } from '../../lib/db/types';
-  import { addBrandSize, filterBrandSizes, formatCm, MEASUREMENTS, parseCm, sizeSuggestions, type BrandSize } from '../../lib/logic/sizes';
+  import {
+    addBrandSize,
+    filterBrandSizes,
+    formatCm,
+    MEASUREMENTS,
+    parseCm,
+    parseRingSize,
+    RING_FINGERS,
+    ringCircumferenceMm,
+    sizeSuggestions,
+    type BrandSize,
+  } from '../../lib/logic/sizes';
   import { live } from '../../lib/state/live.svelte';
   import { settings } from '../../lib/state/settings.svelte';
   import { showToast, showUndoToast } from '../../lib/state/ui.svelte';
@@ -28,6 +39,16 @@
   async function saveMeasure(key: string, text: string) {
     const value = parseCm(text);
     if (text.trim() && value === null) return showToast('Scrivi la misura in centimetri, es. 72 o 72,5');
+    await storeMeasure(key, value);
+  }
+
+  async function saveRing(key: string, text: string) {
+    const value = parseRingSize(text);
+    if (text.trim() && value === null) return showToast('Scrivi la misura italiana dell’anello, es. 14 o 14,5');
+    await storeMeasure(key, value);
+  }
+
+  async function storeMeasure(key: string, value: number | null) {
     try {
       await updateSetting(db, 'profile', { measurements: { ...$state.snapshot(measurements), [key]: value } });
     } catch (e) {
@@ -113,6 +134,31 @@
     {/each}
   </div>
   <p class="note">Misura con un metro da sarta, senza stringere.</p>
+
+  <h2 class="section-title">Anelli (misura italiana)</h2>
+  <div class="list">
+    {#each RING_FINGERS as f (f.key)}
+      {@const ring = measurements[f.key]}
+      <label class="row measure">
+        <span class="grow"
+          >{f.label}{#if ring}<span class="sub">Circonferenza {formatCm(ringCircumferenceMm(ring))} mm (EU {formatCm(ringCircumferenceMm(ring))})</span>{/if}</span
+        >
+        <input
+          class="input cm"
+          inputmode="decimal"
+          value={formatCm(ring)}
+          placeholder="—"
+          aria-label="Anello al {f.label.toLowerCase()}, misura italiana"
+          onchange={(e) => saveRing(f.key, e.currentTarget.value)}
+        />
+        <span class="unit">IT</span>
+      </label>
+    {/each}
+  </div>
+  <p class="note">
+    È il numero che usano i gioiellieri (es. 14). Se non lo sai, avvolgi una striscia di carta alla base del dito, misura il giro in
+    millimetri e togli 40.
+  </p>
 </Page>
 
 <style>
