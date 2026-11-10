@@ -1,3 +1,5 @@
+import type { UpdateCheckState } from '../logic/updates';
+
 // Tipi dei record del database "ArmadioDB" (SPEC.md, sezione 3).
 // Id: UUID stringa. Date: "YYYY-MM-DD". Timestamp: ISO 8601.
 
@@ -287,6 +289,8 @@ export interface SettingsMap {
   endOfDay: EndOfDayPending | null;
   /** Ultimo controllo aggiornamenti (solo su questo telefono). */
   updates: UpdateCheckState;
+  /** Versione dell'ultimo avvio, per "App aggiornata alla versione X" (solo su questo telefono). */
+  lastVersion: string;
   /** Armocromia (SPEC 8.6); null se non è stata fatta. */
   colorProfile: ColorProfile | null;
 }
@@ -321,12 +325,7 @@ export interface ColorProfile {
   useInGenerator: boolean;
 }
 
-export interface UpdateCheckState {
-  lastCheck: string | null;
-  latestVersion: string | null;
-  apkUrl: string | null;
-  pageUrl: string | null;
-}
+export type { UpdateCheckState };
 
 export type SettingKey = keyof SettingsMap;
 

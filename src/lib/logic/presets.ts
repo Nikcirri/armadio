@@ -8,6 +8,7 @@ import type {
   SlotType,
 } from '../db/types';
 import { slotInfo } from './slots';
+import { EMPTY_UPDATE_STATE } from './updates';
 import { newId, nowIso } from './util';
 
 export const PRESETS: readonly { id: Preset; label: string; description: string }[] = [
@@ -316,7 +317,7 @@ export function buildOccasionMatrix(lists: ListRecord[]): [string, string][] {
 
 export function defaultSettings(
   input: { preset: Preset; userName: string; now?: string },
-): Omit<SettingsMap, 'occasionMatrix' | 'theme'> {
+): Omit<SettingsMap, 'occasionMatrix' | 'theme' | 'lastVersion'> {
   const now = input.now ?? nowIso();
   return {
     app: { appName: 'Armadio', onboarded: false, createdAt: now },
@@ -335,7 +336,7 @@ export function defaultSettings(
     schemaVersion: 1,
     errorLog: [],
     endOfDay: null,
-    updates: { lastCheck: null, latestVersion: null, apkUrl: null, pageUrl: null },
+    updates: { ...EMPTY_UPDATE_STATE },
     colorProfile: null,
   };
 }

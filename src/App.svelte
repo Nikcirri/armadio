@@ -18,7 +18,8 @@
   import { unlockInProgress } from './lib/appLock';
   import { lock, shouldRelock } from './lib/state/lock.svelte';
   import TopBar from './lib/ui/TopBar.svelte';
-  import { autoCheckForUpdates, openExternal } from './lib/updates';
+  import { announceUpdate, refreshUpdate, resumeUpdate } from './lib/state/update.svelte';
+  import UpdateBanner from './lib/ui/UpdateBanner.svelte';
   import Altro from './views/Altro.svelte';
   import Armadio from './views/Armadio.svelte';
   import { lazyComponent } from './lib/lazy';
@@ -33,7 +34,7 @@
 
   let autoBackupChecked = false;
   let reminderChecked = false;
-  let updateCheckRunning = false;
+  let versionChecked = false;
 
   const onboarded = $derived(settings.loaded && settings.value.app?.onboarded === true);
   // Blocco con impronta o PIN (solo nell'app Android): all'apertura e al ritorno dopo un minuto.
@@ -67,29 +68,18 @@
     refreshEndOfDayReminder().catch((e) => console.error(e));
   });
 
-  // Controllo aggiornamenti silenzioso (solo app Android): al massimo una volta al giorno, con internet.
-  function silentUpdateCheck() {
-    if (updateCheckRunning || !isNative()) return;
-    updateCheckRunning = true;
-    autoCheckForUpdates()
-      .then((release) => {
-        if (!release) return;
-        const url = release.apkUrl ?? release.pageUrl;
-        showToast(`È uscita la versione ${release.version} di Armadio`, {
-          actionLabel: 'Scarica',
-          onAction: () => openExternal(url),
-          duration: 10000,
-        });
-      })
-      .catch((e) => console.error(e))
-      .finally(() => {
-        updateCheckRunning = false;
-      });
-  }
+  // Primo avvio di una versione nuova: "App aggiornata alla versione X" (SPEC.md, sezione 11).
+  // Si guarda appena le impostazioni sono lette: su un'installazione nuova l'app non è ancora configurata.
+  $effect(() => {
+    if (!settings.loaded || versionChecked) return;
+    versionChecked = true;
+    announceUpdate(settings.value.app?.onboarded === true).catch((e) => console.error(e));
+  });
 
+  // Aggiornamenti (solo app Android): all'apertura e al ritorno nell'app, GitHub al massimo ogni 10 minuti.
   $effect(() => {
     if (!onboarded || locked) return;
-    silentUpdateCheck();
+    void refreshUpdate();
   });
 
   function onTab(id: TabId) {
@@ -144,8 +134,9 @@
       } else {
         if (shouldRelock(lock.hiddenAt, Date.now())) lock.unlocked = false;
         lock.hiddenAt = null;
-        // Se l'app resta aperta per giorni, il controllo riparte quando torni.
-        if (!locked) silentUpdateCheck();
+        // Dopo le impostazioni del permesso l'aggiornamento riparte; poi un nuovo controllo (al massimo ogni 10 minuti).
+        void resumeUpdate();
+        if (!locked) void refreshUpdate();
       }
     });
     const stopTaps = onNotificationTap((action) => {
@@ -166,6 +157,7 @@
 {:else}
   <div class="shell">
     <TopBar />
+    <UpdateBanner />
 
     <main class="content">
       {#if activeId === 'altro'}

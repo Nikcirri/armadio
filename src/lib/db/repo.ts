@@ -71,6 +71,16 @@ export interface SetupInput {
   mode: ThemeMode;
 }
 
+/**
+ * Svuota tutte le tabelle tranne la versione dell'ultimo avvio: riguarda l'installazione, non i dati,
+ * e serve per "App aggiornata alla versione X" (SPEC.md, sezione 11). Va chiamata dentro una transazione.
+ */
+async function clearAllTables(db: ArmadioDB): Promise<void> {
+  const lastVersion = await db.settings.get('lastVersion');
+  await Promise.all(db.tables.map((t) => t.clear()));
+  if (lastVersion) await db.settings.put(lastVersion);
+}
+
 /** Crea categorie, liste e impostazioni iniziali. Sostituisce eventuali dati precedenti. */
 export async function setupNewWardrobe(db: ArmadioDB, input: SetupInput): Promise<void> {
   const now = nowIso();
@@ -80,13 +90,13 @@ export async function setupNewWardrobe(db: ArmadioDB, input: SetupInput): Promis
     ...defaultSettings({ preset: input.preset, userName: input.userName.trim(), now }),
     theme: { palette: input.palette, mode: input.mode },
     occasionMatrix: buildOccasionMatrix(lists),
-  } satisfies SettingsMap;
+  } satisfies Omit<SettingsMap, 'lastVersion'>;
   await db.transaction('rw', db.tables, async () => {
-    await Promise.all(db.tables.map((t) => t.clear()));
+    await clearAllTables(db);
     await db.categories.bulkAdd(categories);
     await db.lists.bulkAdd(lists);
     await db.settings.bulkPut(
-      (Object.keys(settings) as SettingKey[]).map((key) => ({ key, value: settings[key] })),
+      (Object.keys(settings) as Exclude<SettingKey, 'lastVersion'>[]).map((key) => ({ key, value: settings[key] })),
     );
   });
 }
@@ -299,9 +309,9 @@ export async function deleteDemoData(db: ArmadioDB): Promise<number> {
   });
 }
 
-/** Cancella tutto, impostazioni comprese: l'app riparte dal primo avvio. */
+/** Cancella tutto, impostazioni comprese: l'app riparte dal primo avvio (resta solo la versione dell'ultimo avvio). */
 export async function wipeEverything(db: ArmadioDB): Promise<void> {
   await db.transaction('rw', db.tables, async () => {
-    await Promise.all(db.tables.map((t) => t.clear()));
+    await clearAllTables(db);
   });
 }

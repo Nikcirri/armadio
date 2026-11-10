@@ -14,6 +14,7 @@ import {
   hasDemoData,
   moveCategory,
   restoreItemDeletion,
+  setSetting,
   setupNewWardrobe,
   updateCategory,
   wipeEverything,
@@ -166,6 +167,16 @@ describe('dati di esempio e svuota', () => {
     await wipeEverything(db);
     expect(await db.categories.count()).toBe(0);
     expect(await db.settings.count()).toBe(0);
+  });
+
+  it('svuotando o ripartendo da zero resta solo la versione dell’ultimo avvio', async () => {
+    await setSetting(db, 'lastVersion', '1.5.0');
+    await wipeEverything(db);
+    expect(await db.settings.count()).toBe(1);
+    expect(await getSetting(db, 'lastVersion')).toBe('1.5.0');
+    await setupNewWardrobe(db, { preset: 'donna', userName: 'Prova', palette: 'sabbia', mode: 'light' });
+    expect(await getSetting(db, 'lastVersion')).toBe('1.5.0');
+    expect((await getSetting(db, 'profile'))?.userName).toBe('Prova');
   });
 });
 

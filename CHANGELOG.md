@@ -1,5 +1,15 @@
 # Novità
 
+## [1.5.0] - 2026-11-10
+
+- Aggiornamento dall'app: quando esce una versione nuova compare un avviso in alto.
+- "Aggiorna" scarica la versione nuova dentro l'app, con la percentuale, e apre l'installazione di Android.
+- La prima volta l'app spiega come dare il permesso "Installa app sconosciute" e poi riparte da sola.
+- "Dopo" chiude l'avviso: lo ritrovi nella nuova pagina Aggiornamenti, in Altro e nel menu ⋮. Lì ci sono anche "Controlla aggiornamenti", "Aggiorna dall'app" e "Scarica da GitHub".
+- Il file scaricato sta nella memoria temporanea dell'app, non nella cartella Download, e si cancella da solo. Per liberare spazio prima basta "Svuota cache".
+- Dopo un aggiornamento compare il messaggio "App aggiornata alla versione X".
+- Sicurezza: l'app scarica solo i file delle versioni di Armadio su GitHub e prima di installarli controlla che siano completi e integri.
+
 ## [1.4.0] - 2026-11-09
 
 - Cosa metto?: nelle Opzioni puoi scegliere più occasioni insieme (Casual, Studio/Lavoro, Serata…). Con due o più compare un interruttore:

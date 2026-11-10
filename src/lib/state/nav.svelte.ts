@@ -6,6 +6,7 @@ export type AltroPageId =
   | 'lists'
   | 'backup'
   | 'info'
+  | 'updates'
   | 'wishlist'
   | 'sizes'
   | 'declutter'

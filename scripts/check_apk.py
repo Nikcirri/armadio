@@ -673,9 +673,20 @@ def load_mapping(path: str | None) -> dict[str, str]:
     return out
 
 
+def permissions(apk: zipfile.ZipFile) -> set[str]:
+    return {e.attrs['name'] for e in parse_axml(apk.read('AndroidManifest.xml')) if e.tag == 'uses-permission' and 'name' in e.attrs}
+
+
 def compare_with(reference: str, apk: zipfile.ZipFile, classes: dict[str, ClassInfo], rep: Report, mapping: dict[str, str]):
     with zipfile.ZipFile(reference) as ref_apk:
         ref, ref_bytes = load_classes(ref_apk)
+        ref_permissions = permissions(ref_apk)
+
+    # Permessi chiesti ad Android: ogni differenza con la versione di riferimento va vista.
+    new_permissions = permissions(apk)
+    added = sorted(new_permissions - ref_permissions)
+    removed = sorted(ref_permissions - new_permissions)
+    rep.info(f'permessi: {len(new_permissions)}' + (f'; aggiunti {", ".join(added)}' if added else '') + (f'; tolti {", ".join(removed)}' if removed else '; nessuna differenza' if not added else ''))
 
     # Classi cercate per nome (Class.forName): il nome è ancora scritto nel codice, la classe c'era
     # nella versione di riferimento e ora non c'è più. Da guardare una per una.

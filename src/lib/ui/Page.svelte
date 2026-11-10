@@ -25,11 +25,12 @@
 
 <style>
   .page {
-    /* Copre l'area tra la barra in alto e quella in basso, anche se la lista sotto è scorsa. */
+    /* Copre l'area tra la barra in alto (e l'eventuale avviso di aggiornamento) e quella in basso,
+       anche se la lista sotto è scorsa. */
     position: fixed;
     left: 0;
     right: 0;
-    top: calc(var(--topbar-h) + var(--safe-top));
+    top: calc(var(--topbar-h) + var(--safe-top) + var(--banner-h, 0px));
     bottom: calc(var(--navbar-h) + var(--safe-bottom));
     display: flex;
     flex-direction: column;

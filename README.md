@@ -12,9 +12,15 @@ L'app per gestire il tuo armadio: capi, outfit, lavanderia, valigia e ricordi. F
 
 ## Aggiornare
 
-L'app controlla da sola, al massimo una volta al giorno, se è uscita una versione nuova: in quel caso compare un messaggio con **Scarica**. Puoi controllare anche a mano da **Altro → Informazioni → Controlla aggiornamenti**.
+Quando esce una versione nuova, in alto compare un avviso con le novità e due pulsanti:
 
-Tocca **Scarica l'aggiornamento**, apri il file e tocca **Aggiorna**: la nuova versione si installa sopra quella vecchia e i dati restano. In alternativa scaricala dallo stesso link dell'installazione.
+1. Tocca **Aggiorna**: l'app scarica la versione nuova (vedi la percentuale) e apre l'installazione di Android.
+2. La prima volta Android chiede il permesso **Installa app sconosciute**: l'app ti porta alla schermata giusta, attiva **Consenti da questa origine** e torna indietro. L'aggiornamento riparte da solo.
+3. Nella finestra di Android tocca **Aggiorna** (o **Installa**), poi **Apri**. I tuoi dati restano.
+
+**Dopo** chiude l'avviso: lo ritrovi in **Altro → Aggiornamenti** (o nel menu **⋮ → Aggiornamenti**), dove ci sono anche **Controlla aggiornamenti**, **Aggiorna dall'app** e **Scarica da GitHub** (apre la pagina delle versioni nel browser).
+
+Il file scaricato sta nella memoria temporanea dell'app, non nella cartella Download, e si cancella da solo dopo l'aggiornamento; per liberare spazio prima basta **Svuota cache** nelle impostazioni dell'app di Android.
 
 ## Backup
 

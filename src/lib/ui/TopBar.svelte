@@ -45,6 +45,7 @@
     { page: 'settings', label: 'Impostazioni', icon: 'settings' },
     { page: 'categories', label: 'Categorie', icon: 'tag' },
     { page: 'backup', label: 'Backup e dati', icon: 'save' },
+    { page: 'updates', label: 'Aggiornamenti', icon: 'download' },
     { page: 'info', label: 'Informazioni', icon: 'info' },
   ];
 

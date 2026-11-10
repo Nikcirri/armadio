@@ -11,6 +11,7 @@
     categories: lazyComponent(() => import('./altro/CategoriesPage.svelte')),
     backup: lazyComponent(() => import('./altro/BackupPage.svelte')),
     info: lazyComponent(() => import('./altro/InfoPage.svelte')),
+    updates: lazyComponent(() => import('./altro/UpdatesPage.svelte')),
     wishlist: lazyComponent(() => import('./altro/WishlistPage.svelte')),
     sizes: lazyComponent(() => import('./altro/SizesPage.svelte')),
     declutter: lazyComponent(() => import('./altro/DeclutterPage.svelte')),
@@ -18,6 +19,19 @@
     armocromia: lazyComponent(() => import('./altro/ArmocromiaPage.svelte')),
   };
   const toLists = () => (nav.altroPage = 'lists');
+  // Aggiornamenti aperto da Informazioni torna a Informazioni; dal menu o da Altro torna ad Altro.
+  let updatesFromInfo = $state(false);
+  $effect(() => {
+    if (nav.altroPage !== 'updates' && nav.altroPage !== 'info') updatesFromInfo = false;
+  });
+  const toUpdatesFromInfo = () => {
+    updatesFromInfo = true;
+    nav.altroPage = 'updates';
+  };
+  const closeUpdates = () => {
+    nav.altroPage = updatesFromInfo ? 'info' : null;
+    updatesFromInfo = false;
+  };
   const toCategories = () => (nav.altroPage = 'categories');
 
   const GROUPS: { title: string; entries: { page: AltroPageId; label: string; sub: string; icon: IconName }[] }[] = [
@@ -37,7 +51,8 @@
         { page: 'lists', label: 'Categorie e liste', sub: 'Categorie, posizioni, occasioni, persone…', icon: 'tag' },
         { page: 'settings', label: 'Impostazioni', sub: 'Nome, colori, promemoria, blocco', icon: 'settings' },
         { page: 'backup', label: 'Backup e dati', sub: 'Esporta, ripristina, esempio', icon: 'save' },
-        { page: 'info', label: 'Informazioni', sub: 'Versione e guida rapida', icon: 'info' },
+        { page: 'updates', label: 'Aggiornamenti', sub: 'Versione installata e versioni nuove', icon: 'download' },
+        { page: 'info', label: 'Informazioni', sub: 'Guida rapida e versione', icon: 'info' },
       ],
     },
   ];
@@ -73,7 +88,9 @@
 {:else if nav.altroPage === 'backup'}
   <Lazy loader={PAGES.backup} title="Backup e dati" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'info'}
-  <Lazy loader={PAGES.info} title="Informazioni" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
+  <Lazy loader={PAGES.info} title="Informazioni" onclose={closeAltroPage} props={{ onclose: closeAltroPage, onupdates: toUpdatesFromInfo }} />
+{:else if nav.altroPage === 'updates'}
+  <Lazy loader={PAGES.updates} title="Aggiornamenti" onclose={closeUpdates} props={{ onclose: closeUpdates }} />
 {:else if nav.altroPage === 'wishlist'}
   <Lazy loader={PAGES.wishlist} title="Wishlist" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'sizes'}
