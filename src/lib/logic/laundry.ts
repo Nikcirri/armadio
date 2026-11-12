@@ -33,9 +33,24 @@ export const COLOR_GROUPS: readonly { id: ColorGroup; label: string }[] = [
 ];
 
 const LIGHT: ColorId[] = ['white', 'cream'];
-const DARK: ColorId[] = ['black', 'navy', 'brown', 'denim', 'grey', 'burgundy'];
+const DARK: ColorId[] = ['black', 'charcoal', 'navy', 'brown', 'chocolate', 'denim', 'grey', 'burgundy', 'forest', 'teal', 'plum'];
 /** Colori che possono stingere sui bianchi. */
-const BLEEDING: ColorId[] = ['red', 'burgundy', 'black', 'navy', 'denim', 'brown'];
+const BLEEDING: ColorId[] = [
+  'red',
+  'burgundy',
+  'fuchsia',
+  'rust',
+  'black',
+  'charcoal',
+  'navy',
+  'blue',
+  'denim',
+  'brown',
+  'chocolate',
+  'forest',
+  'teal',
+  'plum',
+];
 
 export function colorGroupOf(item: Pick<ItemRecord, 'colors'>): ColorGroup {
   const main = item.colors[0];

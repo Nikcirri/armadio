@@ -54,7 +54,26 @@ export type ColorId =
   | 'orange'
   | 'purple'
   | 'brown'
+  | 'charcoal'
+  | 'taupe'
+  | 'camel'
+  | 'khaki'
+  | 'chocolate'
+  | 'blue'
+  | 'lightBlue'
+  | 'turquoise'
+  | 'teal'
+  | 'sage'
+  | 'forest'
+  | 'mustard'
+  | 'coral'
+  | 'rust'
+  | 'fuchsia'
+  | 'lilac'
+  | 'plum'
+  /** Oro (fino alla 1.5 era "Oro/Argento": l'id resta lo stesso per i capi già salvati). */
   | 'metallic'
+  | 'silver'
   | 'pattern';
 
 export type Preset = 'donna' | 'uomo' | 'neutro';

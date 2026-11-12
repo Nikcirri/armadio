@@ -32,12 +32,20 @@ describe('programmi di lavaggio', () => {
     expect(colorGroupOf({ colors: ['denim', 'white'] })).toBe('dark');
     expect(colorGroupOf({ colors: ['yellow'] })).toBe('colored');
     expect(colorGroupOf({ colors: [] })).toBe('colored');
+    expect(colorGroupOf({ colors: ['charcoal'] })).toBe('dark');
+    expect(colorGroupOf({ colors: ['chocolate'] })).toBe('dark');
+    expect(colorGroupOf({ colors: ['forest'] })).toBe('dark');
+    expect(colorGroupOf({ colors: ['lightBlue'] })).toBe('colored');
+    expect(colorGroupOf({ colors: ['camel'] })).toBe('colored');
   });
   it('riconosce il rischio che un colore stinga sui bianchi', () => {
     expect(hasBleedRisk([{ colors: ['white'] }, { colors: ['red'] }])).toBe(true);
     expect(hasBleedRisk([{ colors: ['white'] }, { colors: ['navy'] }])).toBe(true);
     expect(hasBleedRisk([{ colors: ['white'] }, { colors: ['yellow'] }])).toBe(false);
     expect(hasBleedRisk([{ colors: ['black'] }, { colors: ['red'] }])).toBe(false);
+    expect(hasBleedRisk([{ colors: ['cream'] }, { colors: ['fuchsia'] }])).toBe(true);
+    expect(hasBleedRisk([{ colors: ['white'] }, { colors: ['rust'] }])).toBe(true);
+    expect(hasBleedRisk([{ colors: ['white'] }, { colors: ['lilac'] }])).toBe(false);
   });
 });
 

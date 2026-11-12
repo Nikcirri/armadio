@@ -4,6 +4,7 @@ import { createItem } from './factories';
 import {
   accentColors,
   candidates,
+  colorFamily,
   coveredOccasions,
   cycle,
   defaultGeneratorOptions,
@@ -150,6 +151,21 @@ describe('colori e occasioni', () => {
     expect(harmonyOk(['white', 'red', 'green'], 'balanced')).toBe(false);
     expect(harmonyOk(['white', 'pattern', 'yellow'], 'balanced')).toBe(false);
     expect(accentColors(['white', 'red', 'red', 'pattern'])).toEqual(['red', 'pattern']);
+  });
+
+  it('i colori nuovi stanno nella famiglia giusta', () => {
+    // tono su tono: blu navy, blu, celeste e petrolio sono tutti blu; cammello e cioccolato sono "terra"
+    expect(harmonyOk(['navy', 'blue', 'lightBlue', 'teal'], 'neutral')).toBe(true);
+    expect(harmonyOk(['camel', 'chocolate', 'rust', 'cream'], 'neutral')).toBe(true);
+    expect(harmonyOk(['sage', 'forest', 'olive'], 'neutral')).toBe(true);
+    expect(harmonyOk(['lilac', 'plum', 'purple'], 'neutral')).toBe(true);
+    expect(harmonyOk(['fuchsia', 'blue'], 'neutral')).toBe(false);
+    // i nuovi neutri non sono accenti; oro e argento sì
+    expect(accentColors(['charcoal', 'taupe', 'camel', 'khaki', 'chocolate'])).toEqual([]);
+    expect(harmonyOk(['charcoal', 'camel', 'fuchsia'], 'balanced')).toBe(true);
+    expect(accentColors(['metallic', 'silver', 'black'])).toEqual(['metallic', 'silver']);
+    expect(colorFamily('silver')).toBe(colorFamily('metallic'));
+    expect(colorFamily('mustard')).toBe(colorFamily('yellow'));
   });
 
   it('due capi sono incompatibili solo se nessuna loro occasione sta insieme', () => {

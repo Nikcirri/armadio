@@ -11,27 +11,60 @@ export interface PaletteColor {
 }
 
 export const GARMENT_COLORS: readonly PaletteColor[] = [
+  // Neutri scuri e chiari
   { id: 'black', label: 'Nero', hex: '#1c1c1e', neutral: true },
+  { id: 'charcoal', label: 'Antracite', hex: '#3c3f44', neutral: true },
+  { id: 'grey', label: 'Grigio', hex: '#9a9a9e', neutral: true },
   { id: 'white', label: 'Bianco', hex: '#f7f7f5', neutral: true },
   { id: 'cream', label: 'Panna/Beige', hex: '#e3d3b4', neutral: true },
-  { id: 'grey', label: 'Grigio', hex: '#9a9a9e', neutral: true },
+  { id: 'taupe', label: 'Tortora', hex: '#a08f80', neutral: true },
+  // Terra
+  { id: 'camel', label: 'Cammello', hex: '#c19a6b', neutral: true },
+  { id: 'khaki', label: 'Kaki', hex: '#a99a6b', neutral: true },
+  { id: 'brown', label: 'Marrone/Cuoio', hex: '#7a5032', neutral: true },
+  { id: 'chocolate', label: 'Cioccolato', hex: '#4a2f22', neutral: true },
+  // Blu e azzurri
   { id: 'navy', label: 'Blu navy', hex: '#1f2f56', neutral: true },
+  { id: 'blue', label: 'Blu', hex: '#2f5bbf', neutral: false },
   { id: 'denim', label: 'Azzurro/Denim', hex: '#5b7fae', neutral: true },
+  { id: 'lightBlue', label: 'Celeste', hex: '#a9cbe8', neutral: false },
+  { id: 'turquoise', label: 'Turchese', hex: '#2bb3b1', neutral: false },
+  { id: 'teal', label: 'Petrolio', hex: '#1f5f6b', neutral: false },
+  // Verdi
+  { id: 'sage', label: 'Verde salvia', hex: '#9cb29a', neutral: false },
   { id: 'green', label: 'Verde', hex: '#3f8f4f', neutral: false },
+  { id: 'forest', label: 'Verde bosco', hex: '#1f4d33', neutral: false },
   { id: 'olive', label: 'Oliva', hex: '#6b6b35', neutral: false },
+  // Gialli, aranci e rossi
+  { id: 'yellow', label: 'Giallo', hex: '#e9c93b', neutral: false },
+  { id: 'mustard', label: 'Senape', hex: '#c99a2e', neutral: false },
+  { id: 'orange', label: 'Arancio', hex: '#e07a2e', neutral: false },
+  { id: 'coral', label: 'Corallo', hex: '#f2775f', neutral: false },
+  { id: 'rust', label: 'Terracotta', hex: '#b5532f', neutral: false },
   { id: 'red', label: 'Rosso', hex: '#c62f2f', neutral: false },
   { id: 'burgundy', label: 'Bordeaux', hex: '#6d1f2f', neutral: false },
+  // Rosa e viola
   { id: 'pink', label: 'Rosa', hex: '#e79ab4', neutral: false },
-  { id: 'yellow', label: 'Giallo', hex: '#e9c93b', neutral: false },
-  { id: 'orange', label: 'Arancio', hex: '#e07a2e', neutral: false },
+  { id: 'fuchsia', label: 'Fucsia', hex: '#d1307f', neutral: false },
+  { id: 'lilac', label: 'Lilla', hex: '#c3a6d6', neutral: false },
   { id: 'purple', label: 'Viola', hex: '#7a4a9e', neutral: false },
-  { id: 'brown', label: 'Marrone/Cuoio', hex: '#7a5032', neutral: true },
-  { id: 'metallic', label: 'Oro/Argento', hex: '#c8b273', neutral: false, manualOnly: true },
+  { id: 'plum', label: 'Prugna', hex: '#5e2a4e', neutral: false },
+  // Solo a mano
+  { id: 'metallic', label: 'Oro', hex: '#c8b273', neutral: false, manualOnly: true },
+  { id: 'silver', label: 'Argento', hex: '#c0c4c8', neutral: false, manualOnly: true },
   { id: 'pattern', label: 'Fantasia', hex: '#888888', neutral: false, manualOnly: true },
 ];
 
 export function colorInfo(id: ColorId): PaletteColor {
   return GARMENT_COLORS.find((c) => c.id === id) ?? GARMENT_COLORS[0]!;
+}
+
+/** Sfondo CSS del pallino di un colore: sfumature per oro, argento e fantasia. */
+export function swatchCss(id: ColorId): string {
+  if (id === 'pattern') return 'conic-gradient(#c62f2f, #e9c93b, #3f8f4f, #5b7fae, #7a4a9e, #c62f2f)';
+  if (id === 'metallic') return 'linear-gradient(135deg, #f1e3a6, #c8a84e 45%, #a8862f 55%, #e6d48e)';
+  if (id === 'silver') return 'linear-gradient(135deg, #f2f3f5, #b9bdc3 45%, #8f949b 55%, #dfe2e6)';
+  return colorInfo(id).hex;
 }
 
 export type Lab = [number, number, number];

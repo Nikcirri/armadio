@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { CategoryRecord, ColorId, ItemStatus, ListRecord } from '../../lib/db/types';
-  import { GARMENT_COLORS } from '../../lib/logic/colors';
+  import { GARMENT_COLORS, swatchCss } from '../../lib/logic/colors';
   import { CUTS, SEASONS, STATUSES, WARMTHS } from '../../lib/logic/labels';
   import { activeFilterCount, emptyFilters, type ItemFilters } from '../../lib/logic/items';
   import ChipGroup from '../../lib/ui/ChipGroup.svelte';
@@ -79,7 +79,7 @@
       <h3 class="section-title">Colore</h3>
       <ChipGroup
         label="Colore"
-        options={GARMENT_COLORS.map((c) => ({ id: c.id, label: c.label, color: c.id === 'pattern' ? 'conic-gradient(#c62f2f,#e9c93b,#3f8f4f,#5b7fae,#c62f2f)' : c.hex }))}
+        options={GARMENT_COLORS.map((c) => ({ id: c.id, label: c.label, color: swatchCss(c.id) }))}
         value={filters.colors}
         onchange={(v) => set('colors', v as ColorId[])}
       />

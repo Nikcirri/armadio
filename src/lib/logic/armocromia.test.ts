@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GARMENT_COLORS } from './colors';
+import { colorInfo, deltaE, GARMENT_COLORS, hexToLab } from './colors';
 import {
   SEASONS,
   colorFit,
@@ -35,7 +35,7 @@ describe('armocromia: le 12 stagioni', () => {
   it('dati completi e coerenti', () => {
     expect(SEASONS).toHaveLength(12);
     expect(new Set(SEASONS.map((s) => s.id)).size).toBe(12);
-    const judged = GARMENT_COLORS.map((c) => c.id).filter((c) => c !== 'metallic' && c !== 'pattern');
+    const judged = GARMENT_COLORS.map((c) => c.id).filter((c) => c !== 'metallic' && c !== 'silver' && c !== 'pattern');
     for (const s of SEASONS) {
       expect(s.best.length, s.id).toBeGreaterThanOrEqual(13);
       expect(s.neutrals.length, s.id).toBeGreaterThanOrEqual(5);
@@ -85,13 +85,41 @@ describe('armocromia: le 12 stagioni', () => {
     expect(hueOf([50, 0, -10])).toBe(270);
   });
 
-  it('giudica i colori dei capi (oro/argento e fantasia no)', () => {
+  it('giudica i colori dei capi; oro e argento seguono il metallo, la fantasia no', () => {
     expect(colorFit('warmAutumn', 'black')).toBe('avoid');
     expect(colorFit('deepWinter', 'black')).toBe('good');
-    expect(colorFit('coolSummer', 'metallic')).toBeNull();
+    expect(colorFit('coolSummer', 'metallic')).toBe('avoid');
+    expect(colorFit('coolSummer', 'silver')).toBe('good');
+    expect(colorFit('warmAutumn', 'metallic')).toBe('good');
+    expect(colorFit('warmAutumn', 'silver')).toBe('avoid');
+    expect(colorFit('warmAutumn', 'pattern')).toBeNull();
     expect(itemFit('warmAutumn', ['pattern', 'olive'])).toBe('good');
-    expect(itemFit('warmAutumn', ['metallic'])).toBeNull();
+    expect(itemFit('warmAutumn', ['metallic'])).toBe('good');
+    expect(itemFit('warmAutumn', ['pattern'])).toBeNull();
     expect(itemFit('lightSummer', [])).toBeNull();
+  });
+
+  it('giudica anche i colori nuovi in modo coerente con le stagioni', () => {
+    expect(colorFit('warmAutumn', 'camel')).toBe('good');
+    expect(colorFit('coolWinter', 'camel')).toBe('avoid');
+    expect(colorFit('brightWinter', 'fuchsia')).toBe('good');
+    expect(colorFit('warmSpring', 'fuchsia')).toBe('avoid');
+    expect(colorFit('softSummer', 'sage')).toBe('good');
+    expect(colorFit('deepAutumn', 'teal')).toBe('good');
+    expect(colorFit('lightSpring', 'charcoal')).toBe('avoid');
+    expect(colorFit('lightSummer', 'lightBlue')).toBe('good');
+    // Il giudizio dei colori nuovi non contraddice le sfumature della stagione: un colore "da evitare"
+    // non è quasi uguale a una sfumatura consigliata, uno "che valorizza" non è quasi uguale a una da evitare.
+    const fresh = ['charcoal', 'taupe', 'camel', 'khaki', 'chocolate', 'blue', 'lightBlue', 'turquoise', 'teal', 'sage', 'forest', 'mustard', 'coral', 'rust', 'fuchsia', 'lilac', 'plum'] as const;
+    for (const s of SEASONS) {
+      for (const c of fresh) {
+        const lab = hexToLab(colorInfo(c).hex);
+        const near = (list: readonly { hex: string }[]) => Math.min(...list.map((sw) => deltaE(lab, hexToLab(sw.hex))));
+        const fit = colorFit(s.id, c);
+        if (fit === 'avoid') expect(near([...s.best, ...s.neutrals]), `${s.id} ${c}`).toBeGreaterThan(3);
+        if (fit === 'good') expect(near(s.avoid), `${s.id} ${c}`).toBeGreaterThan(3);
+      }
+    }
   });
 
   it('legge il profilo salvato tenendo solo i dati validi', () => {

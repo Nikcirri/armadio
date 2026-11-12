@@ -1,5 +1,14 @@
 # Novità
 
+## [1.6.0] - 2026-11-12
+
+- Colori dei capi: sono passati da 17 a 35, con quelli simili vicini tra loro.
+- Oro e Argento sono due colori separati. I capi segnati "Oro/Argento" diventano "Oro": quelli d'argento correggili nella scheda del capo.
+- Nuovi colori: Antracite, Tortora, Cammello, Kaki, Cioccolato, Blu, Celeste, Turchese, Petrolio, Verde salvia, Verde bosco, Senape, Corallo, Terracotta, Fucsia, Lilla, Prugna.
+- Armocromia: anche i colori nuovi vengono giudicati per la tua stagione. Oro e Argento seguono il metallo che ti consiglia.
+- Cosa metto?: 7 palette nuove (Cioccolato e cammello, Salvia e tortora, Petrolio e senape, Laguna, Blu reale, Fucsia e nero, Prugna e lilla). Le palette che già c'erano ora usano i colori giusti (es. Cammello e blu, Terracotta, Lavanda, Notte blu con l'argento).
+- Il colore riconosciuto dalla foto è più preciso, e in lavanderia i colori nuovi finiscono nel carico giusto (es. antracite e cioccolato con gli scuri).
+
 ## [1.5.0] - 2026-11-10
 
 - Aggiornamento dall'app: quando esce una versione nuova compare un avviso in alto.

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { ColorId } from '../db/types';
-  import { GARMENT_COLORS } from '../logic/colors';
+  import { GARMENT_COLORS, swatchCss } from '../logic/colors';
 
   let {
     value,
@@ -11,12 +11,6 @@
   function toggle(id: ColorId) {
     if (value.includes(id)) onchange(value.filter((c) => c !== id));
     else onchange([...value, id]);
-  }
-
-  function swatch(id: ColorId, hex: string): string {
-    if (id === 'pattern') return 'conic-gradient(#c62f2f, #e9c93b, #3f8f4f, #5b7fae, #7a4a9e, #c62f2f)';
-    if (id === 'metallic') return 'linear-gradient(135deg, #e8d48a, #a88a3a 50%, #d9d9d9 51%, #9a9a9a)';
-    return hex;
   }
 </script>
 
@@ -30,7 +24,7 @@
       onclick={() => toggle(c.id)}
       title={c.label}
     >
-      <span class="dot" style:background={swatch(c.id, c.hex)}></span>
+      <span class="dot" style:background={swatchCss(c.id)}></span>
       <span class="label">
         {c.label}{#if index === 0}<span class="main"> · principale</span>{/if}
         {#if detected.includes(c.id) && index < 0}<span class="hint"> · rilevato</span>{/if}

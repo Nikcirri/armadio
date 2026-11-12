@@ -10,8 +10,8 @@ export type SeasonFamily = 'spring' | 'summer' | 'autumn' | 'winter';
 /** Come sta un colore vicino al viso. */
 export type Fit = 'good' | 'ok' | 'avoid';
 
-/** Colori dei capi giudicabili (oro/argento e fantasia no). */
-export type JudgedColor = Exclude<ColorId, 'metallic' | 'pattern'>;
+/** Colori dei capi giudicati dalla stagione (oro e argento seguono il metallo, la fantasia non si giudica). */
+export type JudgedColor = Exclude<ColorId, 'metallic' | 'silver' | 'pattern'>;
 
 export interface Swatch {
   name: string;
@@ -78,6 +78,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'ok', cream: 'good', grey: 'ok', navy: 'ok', denim: 'good', green: 'good', olive: 'avoid',
       red: 'ok', burgundy: 'avoid', pink: 'good', yellow: 'good', orange: 'good', purple: 'ok', brown: 'ok',
+      charcoal: 'avoid', taupe: 'ok', camel: 'good', khaki: 'ok', chocolate: 'avoid', blue: 'ok',
+      lightBlue: 'good', turquoise: 'good', teal: 'avoid', sage: 'ok', forest: 'avoid', mustard: 'avoid',
+      coral: 'good', rust: 'avoid', fuchsia: 'avoid', lilac: 'good', plum: 'avoid',
     },
   },
   {
@@ -109,6 +112,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'ok', cream: 'good', grey: 'avoid', navy: 'ok', denim: 'ok', green: 'good', olive: 'ok',
       red: 'good', burgundy: 'avoid', pink: 'ok', yellow: 'good', orange: 'good', purple: 'ok', brown: 'good',
+      charcoal: 'avoid', taupe: 'avoid', camel: 'good', khaki: 'ok', chocolate: 'ok', blue: 'ok',
+      lightBlue: 'ok', turquoise: 'good', teal: 'ok', sage: 'avoid', forest: 'avoid', mustard: 'ok',
+      coral: 'good', rust: 'ok', fuchsia: 'avoid', lilac: 'avoid', plum: 'avoid',
     },
   },
   {
@@ -139,6 +145,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'ok', white: 'good', cream: 'ok', grey: 'ok', navy: 'good', denim: 'good', green: 'good', olive: 'avoid',
       red: 'good', burgundy: 'ok', pink: 'good', yellow: 'good', orange: 'good', purple: 'good', brown: 'avoid',
+      charcoal: 'ok', taupe: 'avoid', camel: 'ok', khaki: 'avoid', chocolate: 'ok', blue: 'good',
+      lightBlue: 'ok', turquoise: 'good', teal: 'ok', sage: 'avoid', forest: 'avoid', mustard: 'avoid',
+      coral: 'good', rust: 'avoid', fuchsia: 'ok', lilac: 'ok', plum: 'avoid',
     },
   },
   {
@@ -170,6 +179,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'good', cream: 'ok', grey: 'good', navy: 'ok', denim: 'good', green: 'ok', olive: 'avoid',
       red: 'ok', burgundy: 'avoid', pink: 'good', yellow: 'ok', orange: 'avoid', purple: 'good', brown: 'avoid',
+      charcoal: 'avoid', taupe: 'ok', camel: 'avoid', khaki: 'avoid', chocolate: 'avoid', blue: 'ok',
+      lightBlue: 'good', turquoise: 'ok', teal: 'avoid', sage: 'good', forest: 'avoid', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'avoid', lilac: 'good', plum: 'avoid',
     },
   },
   {
@@ -201,6 +213,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'ok', cream: 'avoid', grey: 'good', navy: 'good', denim: 'good', green: 'ok', olive: 'avoid',
       red: 'ok', burgundy: 'ok', pink: 'good', yellow: 'avoid', orange: 'avoid', purple: 'good', brown: 'avoid',
+      charcoal: 'good', taupe: 'ok', camel: 'avoid', khaki: 'avoid', chocolate: 'avoid', blue: 'good',
+      lightBlue: 'good', turquoise: 'ok', teal: 'ok', sage: 'ok', forest: 'ok', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'ok', lilac: 'good', plum: 'ok',
     },
   },
   {
@@ -232,6 +247,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'ok', cream: 'ok', grey: 'good', navy: 'good', denim: 'good', green: 'good', olive: 'ok',
       red: 'avoid', burgundy: 'ok', pink: 'good', yellow: 'avoid', orange: 'avoid', purple: 'good', brown: 'ok',
+      charcoal: 'good', taupe: 'good', camel: 'ok', khaki: 'ok', chocolate: 'ok', blue: 'avoid',
+      lightBlue: 'ok', turquoise: 'avoid', teal: 'good', sage: 'good', forest: 'ok', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'avoid', lilac: 'ok', plum: 'good',
     },
   },
   {
@@ -263,6 +281,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'avoid', cream: 'good', grey: 'ok', navy: 'ok', denim: 'ok', green: 'good', olive: 'good',
       red: 'ok', burgundy: 'ok', pink: 'ok', yellow: 'ok', orange: 'ok', purple: 'avoid', brown: 'good',
+      charcoal: 'ok', taupe: 'good', camel: 'good', khaki: 'good', chocolate: 'good', blue: 'avoid',
+      lightBlue: 'avoid', turquoise: 'avoid', teal: 'good', sage: 'good', forest: 'ok', mustard: 'good',
+      coral: 'ok', rust: 'good', fuchsia: 'avoid', lilac: 'avoid', plum: 'ok',
     },
   },
   {
@@ -294,6 +315,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'avoid', white: 'avoid', cream: 'good', grey: 'avoid', navy: 'ok', denim: 'ok', green: 'good', olive: 'good',
       red: 'good', burgundy: 'ok', pink: 'avoid', yellow: 'good', orange: 'good', purple: 'avoid', brown: 'good',
+      charcoal: 'avoid', taupe: 'ok', camel: 'good', khaki: 'good', chocolate: 'good', blue: 'avoid',
+      lightBlue: 'avoid', turquoise: 'ok', teal: 'good', sage: 'ok', forest: 'good', mustard: 'good',
+      coral: 'ok', rust: 'good', fuchsia: 'avoid', lilac: 'avoid', plum: 'ok',
     },
   },
   {
@@ -325,6 +349,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'ok', white: 'avoid', cream: 'good', grey: 'ok', navy: 'ok', denim: 'ok', green: 'good', olive: 'good',
       red: 'good', burgundy: 'good', pink: 'avoid', yellow: 'ok', orange: 'good', purple: 'ok', brown: 'good',
+      charcoal: 'ok', taupe: 'ok', camel: 'good', khaki: 'ok', chocolate: 'good', blue: 'avoid',
+      lightBlue: 'avoid', turquoise: 'ok', teal: 'good', sage: 'ok', forest: 'good', mustard: 'good',
+      coral: 'ok', rust: 'good', fuchsia: 'avoid', lilac: 'avoid', plum: 'good',
     },
   },
   {
@@ -355,6 +382,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'good', white: 'good', cream: 'avoid', grey: 'good', navy: 'good', denim: 'ok', green: 'good', olive: 'avoid',
       red: 'good', burgundy: 'good', pink: 'ok', yellow: 'avoid', orange: 'avoid', purple: 'good', brown: 'avoid',
+      charcoal: 'good', taupe: 'avoid', camel: 'avoid', khaki: 'avoid', chocolate: 'ok', blue: 'good',
+      lightBlue: 'ok', turquoise: 'ok', teal: 'good', sage: 'avoid', forest: 'good', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'good', lilac: 'ok', plum: 'good',
     },
   },
   {
@@ -385,6 +415,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'good', white: 'good', cream: 'avoid', grey: 'good', navy: 'good', denim: 'good', green: 'ok', olive: 'avoid',
       red: 'good', burgundy: 'good', pink: 'good', yellow: 'avoid', orange: 'avoid', purple: 'good', brown: 'avoid',
+      charcoal: 'good', taupe: 'avoid', camel: 'avoid', khaki: 'avoid', chocolate: 'avoid', blue: 'good',
+      lightBlue: 'ok', turquoise: 'ok', teal: 'ok', sage: 'avoid', forest: 'ok', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'good', lilac: 'ok', plum: 'good',
     },
   },
   {
@@ -416,6 +449,9 @@ export const SEASONS: readonly SeasonInfo[] = [
     garments: {
       black: 'good', white: 'good', cream: 'avoid', grey: 'ok', navy: 'good', denim: 'good', green: 'good', olive: 'avoid',
       red: 'good', burgundy: 'ok', pink: 'good', yellow: 'ok', orange: 'avoid', purple: 'good', brown: 'avoid',
+      charcoal: 'good', taupe: 'avoid', camel: 'avoid', khaki: 'avoid', chocolate: 'avoid', blue: 'good',
+      lightBlue: 'ok', turquoise: 'good', teal: 'ok', sage: 'avoid', forest: 'ok', mustard: 'avoid',
+      coral: 'avoid', rust: 'avoid', fuchsia: 'good', lilac: 'ok', plum: 'ok',
     },
   },
 ];
@@ -581,10 +617,18 @@ export function describeMetrics(m: ColorMetrics): MetricLabels {
 
 // ---------- Colori dei capi ----------
 
-/** Come sta un colore dei capi alla stagione (null per oro/argento e fantasia). */
+/**
+ * Come sta un colore dei capi alla stagione (null per la fantasia). Oro e argento seguono il metallo
+ * consigliato: quello della stagione valorizza, l'altro è da evitare vicino al viso; con "entrambi" vanno bene.
+ */
 export function colorFit(season: SeasonId, color: ColorId): Fit | null {
-  if (color === 'metallic' || color === 'pattern') return null;
-  return seasonInfo(season).garments[color];
+  if (color === 'pattern') return null;
+  const info = seasonInfo(season);
+  if (color === 'metallic' || color === 'silver') {
+    if (info.metal === 'both') return 'ok';
+    return (color === 'metallic') === (info.metal === 'gold') ? 'good' : 'avoid';
+  }
+  return info.garments[color];
 }
 
 /** Come sta un capo: conta il primo colore giudicabile (quello principale). */

@@ -13,7 +13,7 @@ import {
 
 describe('palette di colori', () => {
   it('tante palette, ben formate', () => {
-    expect(COLOR_PALETTES.length).toBeGreaterThanOrEqual(30);
+    expect(COLOR_PALETTES.length).toBeGreaterThanOrEqual(38);
     expect(new Set(COLOR_PALETTES.map((x) => x.id)).size).toBe(COLOR_PALETTES.length);
     expect(new Set(COLOR_PALETTES.map((x) => x.name)).size).toBe(COLOR_PALETTES.length);
     const ids = new Set(GARMENT_COLORS.map((c) => c.id));
@@ -43,6 +43,20 @@ describe('palette di colori', () => {
     // due neutri soli non bastano, colori fuori da tutte le palette nemmeno
     expect(matchingPalette(['black', 'white'])).toBeNull();
     expect(matchingPalette(['purple', 'yellow', 'olive'])).toBeNull();
+    // palette con i colori nuovi
+    expect(matchingPalette(['teal', 'mustard', 'cream'])?.id).toBe('petrolioSenape');
+    expect(matchingPalette(['chocolate', 'camel', 'white'])?.id).toBe('cioccolatoCammello');
+    expect(matchingPalette(['navy', 'camel', 'cream'])?.id).toBe('cammelloBlu');
+    expect(matchingPalette(['forest', 'navy', 'cream', 'brown'])?.id).toBe('college');
+  });
+
+  it('con oro e argento conta il metallo che sta meglio alla stagione', () => {
+    // Notte elegante offre oro o argento: va bene sia all'inverno (argento) sia all'autunno scuro (oro).
+    expect(paletteSeasonScore(paletteById('notteElegante')!, 'deepWinter')).toBe(1);
+    expect(paletteSeasonScore(paletteById('notteElegante')!, 'deepAutumn')).not.toBeNull();
+    // Oro e nero ha solo l'oro: non va all'inverno.
+    expect(paletteSeasonScore(paletteById('oroNero')!, 'coolWinter')).toBeNull();
+    expect(paletteSeasonScore({ colors: ['black', 'silver'] }, 'coolWinter')).toBe(1);
   });
 
   it('sceglie le palette adatte a ogni stagione', () => {
