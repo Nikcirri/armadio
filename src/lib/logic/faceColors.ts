@@ -53,7 +53,7 @@ export type FaceRegions = Record<FeatureId, Region[]>;
 export type Gains = readonly [number, number, number];
 export const NO_GAINS: Gains = [1, 1, 1];
 
-type Rgb = readonly [number, number, number];
+export type Rgb = readonly [number, number, number];
 
 // ---------- Geometria ----------
 

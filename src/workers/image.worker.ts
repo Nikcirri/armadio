@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 // Worker delle immagini: decodifica, ridimensiona, codifica in WebP, rileva colori e sfondo
-// fuori dal thread dell'interfaccia, così l'app resta fluida.
+// fuori dal thread dell'interfaccia, così l'app resta fluida. Cerca anche l'iride (armocromia).
+import { locateIris } from '../lib/logic/closeups';
 import { detectGarmentColors } from '../lib/logic/garmentColors';
 import { floodFillBackground } from '../lib/logic/imageOps';
 import { THUMB_QUALITY, WEBP_QUALITY, fitSize } from '../lib/media/constants';
@@ -66,6 +67,9 @@ self.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         break;
       case 'colors':
         result = detectGarmentColors({ width: req.width, height: req.height, data: new Uint8ClampedArray(req.buffer) });
+        break;
+      case 'iris':
+        result = locateIris({ width: req.width, height: req.height, data: new Uint8ClampedArray(req.buffer) }, req.seed);
         break;
       case 'floodFill': {
         const mask = floodFillBackground(

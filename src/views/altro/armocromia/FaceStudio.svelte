@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { PhotoKind } from '../../../lib/db/types';
   import { labToHex, type Lab } from '../../../lib/logic/colors';
   import {
     FEATURE_LABEL,
@@ -19,6 +20,7 @@
     height,
     regions,
     features,
+    sources,
     overrides,
     reference,
     warnings,
@@ -32,6 +34,8 @@
     height: number;
     regions: FaceRegions | null;
     features: Record<FeatureId, Lab | null>;
+    /** Da quale foto viene ogni colore (le foto da vicino vincono). */
+    sources: Record<FeatureId, PhotoKind>;
     overrides: Partial<Record<FeatureId, ManualSample>>;
     reference: ManualSample | null;
     warnings: readonly string[];
@@ -42,6 +46,11 @@
   } = $props();
 
   const ORDER: FeatureId[] = ['skin', 'hair', 'eyes', 'lips', 'brows'];
+  const CLOSEUP_SOURCE: Record<PhotoKind, string> = {
+    face: '',
+    eyes: 'Dalla foto degli occhi da vicino (si corregge lì sotto)',
+    hair: 'Dalla foto dei capelli da vicino (si corregge lì sotto)',
+  };
   const HINT: Record<FeatureId | 'white', string> = {
     skin: 'Tocca la pelle della guancia, dove non c’è ombra né riflesso.',
     hair: 'Tocca i capelli, vicino alla fronte.',
@@ -125,20 +134,25 @@
   <div class="list">
     {#each ORDER as f (f)}
       {@const lab = features[f]}
+      {@const closeup = sources[f] !== 'face'}
       <div class="feat">
         <span class="sw" class:empty={!lab} style:background={lab ? labToHex(lab) : undefined} aria-hidden="true"></span>
         <span class="grow">
           {FEATURE_LABEL[f]}
-          <span class="sub">{lab ? (overrides[f] ? 'Scelto da te' : 'Trovato da solo') : f === 'skin' ? 'Serve per l’analisi: toccala' : 'Non trovato'}</span>
+          <span class="sub">
+            {#if closeup}{CLOSEUP_SOURCE[sources[f]]}{:else if lab}{overrides[f] ? 'Scelto da te' : 'Trovato da solo'}{:else if f === 'skin'}Serve per l’analisi: toccala{:else}Non trovato{/if}
+          </span>
         </span>
-        {#if overrides[f] && faceFound}
-          <button class="icon-btn" aria-label="Torna al colore trovato da solo per {FEATURE_LABEL[f].toLowerCase()}" onclick={() => onreset(f)}>
-            <Icon name="refresh" size={20} />
+        {#if !closeup}
+          {#if overrides[f] && faceFound}
+            <button class="icon-btn" aria-label="Torna al colore trovato da solo per {FEATURE_LABEL[f].toLowerCase()}" onclick={() => onreset(f)}>
+              <Icon name="refresh" size={20} />
+            </button>
+          {/if}
+          <button class="btn mini" aria-pressed={editing === f} onclick={() => (editing = editing === f ? null : f)}>
+            {lab ? 'Correggi' : 'Tocca'}
           </button>
         {/if}
-        <button class="btn mini" aria-pressed={editing === f} onclick={() => (editing = editing === f ? null : f)}>
-          {lab ? 'Correggi' : 'Tocca'}
-        </button>
       </div>
     {/each}
     <div class="feat">

@@ -1,4 +1,4 @@
-import type { ColorId, ColorProfile, SeasonId } from '../db/types';
+import type { ColorId, ColorProfile, PhotoKind, SeasonId } from '../db/types';
 import type { Lab } from './colors';
 
 export type { SeasonId };
@@ -664,9 +664,13 @@ export function parseColorProfile(v: unknown): ColorProfile | null {
         .filter((x) => isSeasonId(x?.season) && typeof x.percent === 'number')
         .map((x) => ({ season: x.season as SeasonId, percent: Math.round(Math.min(100, Math.max(0, x.percent as number))) }))
     : [];
+  const source = r.source === 'manual' ? 'manual' : 'photo';
+  const listed = Array.isArray(r.photos) ? (r.photos as unknown[]) : [];
+  const photos: PhotoKind[] = source === 'manual' ? [] : PHOTO_KINDS.filter((k) => k === 'face' || listed.includes(k));
   return {
     season: r.season,
-    source: r.source === 'manual' ? 'manual' : 'photo',
+    source,
+    photos,
     date: typeof r.date === 'string' ? r.date : new Date(0).toISOString(),
     colors:
       c && isHex(c.skin)
@@ -680,5 +684,17 @@ export function parseColorProfile(v: unknown): ColorProfile | null {
 
 /** Profilo scelto a mano ("Conosco già la mia stagione"). */
 export function manualProfile(season: SeasonId, now: string, useInGenerator = true): ColorProfile {
-  return { season, source: 'manual', date: now, colors: null, metrics: null, ranking: [], useInGenerator };
+  return { season, source: 'manual', photos: [], date: now, colors: null, metrics: null, ranking: [], useInGenerator };
+}
+
+/** Le foto dell'armocromia, nell'ordine in cui si fanno. */
+export const PHOTO_KINDS: readonly PhotoKind[] = ['face', 'eyes', 'hair'];
+
+const PHOTO_NAME: Record<PhotoKind, string> = { face: 'viso', eyes: 'occhi da vicino', hair: 'capelli da vicino' };
+
+/** "Analisi dalla foto del viso" oppure "Analisi dalle foto di viso e occhi da vicino". */
+export function photosDescription(photos: readonly PhotoKind[]): string {
+  const names = PHOTO_KINDS.filter((k) => photos.includes(k)).map((k) => PHOTO_NAME[k]);
+  if (names.length <= 1) return `Analisi dalla foto del ${names[0] ?? 'viso'}`;
+  return `Analisi dalle foto di ${names.slice(0, -1).join(', ')} e ${names[names.length - 1]}`;
 }

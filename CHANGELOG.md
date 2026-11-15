@@ -1,5 +1,15 @@
 # Novità
 
+## [1.7.0] - 2026-11-15
+
+- Armocromia con più foto: prima la foto del viso, poi una foto di un occhio da vicino (consigliata) e, se vuoi, una di una ciocca di capelli. Da lontano molte fotocamere sbagliano il colore degli occhi e delle parti piccole del viso: da vicino si misura molto meglio.
+- Occhio da vicino: l'app trova da sola l'iride e la pupilla e le disegna sulla foto, ingrandita sull'occhio. Misura solo l'anello colorato, senza pupilla, riflessi, ciglia e palpebra, e corregge la luce con il bianco dell'occhio. Se il cerchio è sbagliato tocchi "Sposta" e poi il centro dell'occhio.
+- Capelli da vicino: misura la ciocca al centro della foto (o dove tocchi), tenendo insieme le ciocche più chiare e più scure dello stesso colore. Con un foglio bianco accanto, toccandolo, correggi la luce.
+- Ogni foto ha la sua correzione della luce. Nell'elenco dei colori vedi da quale foto viene ognuno; ogni foto da vicino si può rifare o togliere, e rifacendo la foto del viso quelle da vicino restano.
+- Avvisi chiari: occhio piccolo (avvicinati o usa lo zoom), foto sfocata, riflesso grande, foto scura, luce troppo calda o fredda.
+- Per ogni foto puoi scegliere selfie, "Fatti fare una foto" (fotocamera dietro, più nitida) o galleria. Nuovo consiglio: niente filtri, modalità bellezza o ritratto della fotocamera.
+- Le foto si analizzano più grandi (1600 pixel), così anche la foto del viso è più precisa. La stagione salvata ricorda con quali foto è stata fatta. Le foto restano solo in memoria mentre usi la schermata.
+
 ## [1.6.0] - 2026-11-12
 
 - Colori dei capi: sono passati da 17 a 35, con quelli simili vicini tra loro.

@@ -10,6 +10,7 @@ import {
   manualProfile,
   measureFace,
   parseColorProfile,
+  photosDescription,
   rankSeasons,
   seasonInfo,
   type FaceFeatures,
@@ -136,6 +137,7 @@ describe('armocromia: le 12 stagioni', () => {
     expect(p).toEqual({
       season: 'softSummer',
       source: 'photo',
+      photos: ['face'],
       date: '2026-11-06T18:00:00.000Z',
       colors: { skin: '#E0B4A0', hair: '#5A3C28', eyes: null, lips: null, brows: '#463228' },
       metrics: { temperature: -0.4, value: 1, chroma: -0.8, contrast: 0 },
@@ -145,11 +147,24 @@ describe('armocromia: le 12 stagioni', () => {
     expect(manualProfile('deepWinter', 'x', false)).toEqual({
       season: 'deepWinter',
       source: 'manual',
+      photos: [],
       date: 'x',
       colors: null,
       metrics: null,
       ranking: [],
       useInGenerator: false,
     });
+  });
+
+  it('ricorda con quali foto è stata fatta l’analisi', () => {
+    const base = { season: 'softSummer', source: 'photo', date: 'x', colors: null, metrics: null, ranking: [] };
+    expect(parseColorProfile({ ...base, photos: ['hair', 'face', 'boh', 'eyes'] })?.photos).toEqual(['face', 'eyes', 'hair']);
+    expect(parseColorProfile({ ...base, photos: ['eyes'] })?.photos).toEqual(['face', 'eyes']);
+    expect(parseColorProfile({ ...base, photos: 'eyes' })?.photos).toEqual(['face']);
+    expect(parseColorProfile({ ...base, source: 'manual', photos: ['face'] })?.photos).toEqual([]);
+    expect(photosDescription(['face'])).toBe('Analisi dalla foto del viso');
+    expect(photosDescription([])).toBe('Analisi dalla foto del viso');
+    expect(photosDescription(['face', 'eyes'])).toBe('Analisi dalle foto di viso e occhi da vicino');
+    expect(photosDescription(['hair', 'face', 'eyes'])).toBe('Analisi dalle foto di viso, occhi da vicino e capelli da vicino');
   });
 });

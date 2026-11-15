@@ -328,10 +328,15 @@ export type SeasonId =
   | 'coolWinter'
   | 'brightWinter';
 
+/** Le foto dell'armocromia: viso, occhi da vicino, capelli da vicino. */
+export type PhotoKind = 'face' | 'eyes' | 'hair';
+
 export interface ColorProfile {
   season: SeasonId;
   /** Dalla foto o scelta a mano. */
   source: 'photo' | 'manual';
+  /** Con quali foto è stata fatta l'analisi (vuoto se scelta a mano). */
+  photos: PhotoKind[];
   /** Data e ora (ISO). */
   date: string;
   /** Colori misurati sul viso (esadecimali), solo dalla foto. */

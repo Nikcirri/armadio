@@ -1,4 +1,6 @@
 import type { ColorId } from '../db/types';
+import type { IrisFit } from '../logic/closeups';
+import type { Point } from '../logic/faceColors';
 import { detectGarmentColors } from '../logic/garmentColors';
 import { floodFillBackground, type Img } from '../logic/imageOps';
 import { MAIN_MAX_SIDE, THUMB_MAX_SIDE, THUMB_QUALITY, WEBP_QUALITY, fitSize } from './constants';
@@ -142,6 +144,20 @@ export async function backgroundMask(img: Img, tolerance: number): Promise<Uint8
     if (worker !== null) throw e;
   }
   return floodFillBackground(img, tolerance);
+}
+
+/** Armocromia: cerca l'iride in una foto da vicino (nel worker, perché prova molti cerchi). */
+export async function findIris(img: Img, seed: Point | null): Promise<IrisFit | null> {
+  try {
+    const buffer = img.data.slice().buffer as ArrayBuffer;
+    const viaWorker = call({ op: 'iris', width: img.width, height: img.height, buffer, seed: seed ? [seed[0], seed[1]] : null }, [buffer]);
+    if (viaWorker) return await viaWorker;
+  } catch (e) {
+    if (worker !== null) throw e;
+  }
+  // Senza worker: sul thread principale (caricato solo qui, non all'avvio dell'app).
+  const { locateIris } = await import('../logic/closeups');
+  return locateIris(img, seed);
 }
 
 /** Disegna un'immagine su un canvas (anteprime e editor). */

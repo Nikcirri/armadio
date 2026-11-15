@@ -47,4 +47,4 @@ I dati della versione web restano nel browser e sono separati da quelli dell'app
 - Le pagine di Altro, l'editor foto, il primo avvio e la libreria dei backup si caricano a richiesta (`src/lib/lazy.ts`, `src/lib/ui/Lazy.svelte`).
 - La versione web si pubblica a mano con `.github/workflows/pages.yml`; il service worker è generato al build da `build/serviceWorker.ts`.
 - Icona e schermata di avvio: sorgenti in `resources/`.
-- Armocromia: il viso si trova sul telefono con ML Kit Face Detection (`FacePlugin.java`, modello incluso nell'app); i colori si misurano in `src/lib/logic/faceColors.ts` e la stagione in `src/lib/logic/armocromia.ts`.
+- Armocromia: il viso si trova sul telefono con ML Kit Face Detection (`FacePlugin.java`, modello incluso nell'app); i colori si misurano in `src/lib/logic/faceColors.ts`, le foto da vicino (iride dell'occhio, ciocca di capelli) in `src/lib/logic/closeups.ts` (la ricerca dell'iride gira nel worker delle immagini) e la stagione in `src/lib/logic/armocromia.ts`.
