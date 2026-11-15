@@ -66,6 +66,7 @@
   let pickingBatch = $state(false);
   let review = $state.raw<string[] | null>(null);
   let openItem = $state<string | null>(null);
+  let fabOpen = $state(false);
   let lightbox = $state.raw<{ photoIds: string[]; index: number; name: string } | null>(null);
   let showFilters = $state(false);
   let showDuplicates = $state(false);
@@ -97,6 +98,17 @@
       nav.itemRequest = null;
       exitSelection();
       openItem = id;
+    });
+  });
+
+  // "Aggiungi capo" da scorciatoia o widget: si apre il menu del + (Scatta foto, Galleria, Multi-foto).
+  $effect(() => {
+    if (!nav.addItemRequest) return;
+    untrack(() => {
+      nav.addItemRequest = false;
+      exitSelection();
+      openItem = null;
+      fabOpen = true;
     });
   });
 
@@ -436,7 +448,7 @@
     <button class="danger" disabled={!selected.length} onclick={bulkDelete}>Elimina</button>
   </div>
 {:else}
-  <Fab {actions} label="Aggiungi capo" />
+  <Fab {actions} label="Aggiungi capo" bind:open={fabOpen} />
 {/if}
 
 {#if bulkPicker === 'status'}

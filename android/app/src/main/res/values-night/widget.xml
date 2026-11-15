@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget e scorciatoie con il tema scuro del telefono. -->
+<resources>
+    <color name="widget_bg">#1E1A16</color>
+    <color name="widget_surface">#2A241F</color>
+    <color name="widget_button">#332C25</color>
+    <color name="widget_text">#F2EAE0</color>
+    <color name="widget_muted">#BDAE9F</color>
+    <color name="widget_accent">#E0BE98</color>
+    <color name="shortcut_bg">#2A241F</color>
+    <color name="shortcut_glyph">#E0BE98</color>
+</resources>

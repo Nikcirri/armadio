@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget "Armadio – Oggi" (SPEC.md, sezione 8.7). L'aggiornamento ogni 6 ore è solo una riserva:
+     i dati arrivano dall'app e a mezzanotte una sveglia non precisa passa al giorno nuovo. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="200dp"
+    android:minResizeHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="21600000"
+    android:initialLayout="@layout/widget_outfit"
+    android:previewLayout="@layout/widget_outfit"
+    android:description="@string/widget_description"
+    android:widgetCategory="home_screen" />

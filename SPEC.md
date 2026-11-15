@@ -226,6 +226,16 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 - Il profilo salvato ricorda con quali foto è stato fatto (viso, occhi da vicino, capelli da vicino) e lo dice. "Conosco già la mia stagione": scelta a mano dalle 12. "Rifai l'analisi", "Elimina" e l'interruttore "Usa in Cosa metto?" (acceso di default).
 - Ogni stagione valuta anche i colori dei capi dell'app (bene, va bene, da evitare vicino al viso); Oro e Argento seguono il metallo consigliato (quello della stagione valorizza, l'altro è da evitare vicino al viso; con "entrambi" vanno bene tutti e due); la fantasia non viene giudicata.
 
+### 8.7 Scorciatoie e widget (solo app Android)
+- Scorciatoie sull'icona: tenendo premuta l'icona di Armadio compaiono "Cosa metto?" (apre la sezione), "Aggiungi capo" (apre l'Armadio con il menu Scatta foto / Dalla galleria / Multi-foto) e "Fine giornata" (apre il foglio Fine giornata; se non c'è niente da chiudere lo dice). Si possono anche trascinare sulla schermata Home. Icone: cerchio color sabbia con il simbolo marrone.
+- Widget "Armadio – Oggi" per la schermata Home (ridimensionabile; chiaro o scuro come il tema del telefono):
+  - in alto "Oggi" e la data;
+  - l'outfit di oggi: prima quello indossato oggi ("Indossato oggi: nome dell'outfit", oppure "Indossato oggi" se sono capi singoli), altrimenti quello in agenda ("In agenda: nome", oppure "In agenda: capi scelti"), altrimenti "Niente in agenda per oggi" con l'invito a toccare "Cosa metto?". Fino a 4 miniature dei capi nell'ordine del collage (capospalla, strato, sopra, abito, sotto, scarpe, accessori), "+N" se sono di più; l'intimo non compare mai;
+  - tre pulsanti con icona e testo: "Cosa metto?", "Aggiungi", "Fine giornata" (come le scorciatoie);
+  - toccando la data, l'outfit o le miniature si apre l'Agenda.
+- Dati del widget: l'app gli passa oggi e i 7 giorni seguenti (outfit o capi in agenda, e per oggi anche quello che risulta indossato), con le miniature dei capi. Lo fa quando si apre, quando cambiano agenda, storico, outfit, capi, categorie o foto, quando torna in primo piano e quando va in background; solo se qualcosa è cambiato. Il widget li conserva nella memoria privata dell'app e dopo mezzanotte passa da solo al giorno nuovo (sveglia non precisa, senza permessi né batteria in più); "Indossato oggi" del giorno nuovo compare dopo aver aperto l'app. Prima del primo passaggio di dati il widget dice "Apri Armadio per vedere l'outfit di oggi". Dopo "Svuota tutto" o un ripristino i dati del widget si rifanno da capo.
+- Scorciatoie e pulsanti del widget aprono l'app nel punto giusto anche se era chiusa o in background; con il blocco dell'app attivo prima si sblocca. Riaprendo l'app dalle app recenti l'azione non si ripete. Il widget mostra l'outfit anche con il blocco attivo: lo aggiungi tu sulla schermata Home.
+
 ## 9. Primo avvio
 Tre schermate: nome; preset Donna, Uomo o Neutro; palette e tema. Poi la scelta tra "Inizia vuoto", "Carica esempio" (8 capi disegnati su canvas, 2 outfit e 1 viaggio, marcati come demo ed eliminabili con un tocco) e "Ripristina un backup".
 

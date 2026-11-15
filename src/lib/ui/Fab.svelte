@@ -10,9 +10,7 @@
   import { registerOverlay } from '../state/ui.svelte';
   import Icon from './Icon.svelte';
 
-  let { actions, label = 'Aggiungi' }: { actions: FabAction[]; label?: string } = $props();
-
-  let open = $state(false);
+  let { actions, label = 'Aggiungi', open = $bindable(false) }: { actions: FabAction[]; label?: string; open?: boolean } = $props();
 
   $effect(() => {
     if (!open) return;

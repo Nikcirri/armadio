@@ -48,3 +48,4 @@ I dati della versione web restano nel browser e sono separati da quelli dell'app
 - La versione web si pubblica a mano con `.github/workflows/pages.yml`; il service worker è generato al build da `build/serviceWorker.ts`.
 - Icona e schermata di avvio: sorgenti in `resources/`.
 - Armocromia: il viso si trova sul telefono con ML Kit Face Detection (`FacePlugin.java`, modello incluso nell'app); i colori si misurano in `src/lib/logic/faceColors.ts`, le foto da vicino (iride dell'occhio, ciocca di capelli) in `src/lib/logic/closeups.ts` (la ricerca dell'iride gira nel worker delle immagini) e la stagione in `src/lib/logic/armocromia.ts`.
+- Scorciatoie e widget (SPEC.md, sezione 8.7): le scorciatoie sono in `android/app/src/main/res/xml/shortcuts.xml`; il widget è `OutfitWidget.java` e riceve i dati dall'app con `HomeWidgetPlugin.java` (lato app: `src/lib/widget.ts` e `src/lib/logic/widget.ts`).

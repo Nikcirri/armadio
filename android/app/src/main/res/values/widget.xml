@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget "Armadio – Oggi" e scorciatoie sull'icona (SPEC.md, sezione 8.7). Tema chiaro: values-night ha quello scuro. -->
+<resources>
+    <color name="widget_bg">#F5EFE6</color>
+    <color name="widget_surface">#FFFFFF</color>
+    <color name="widget_button">#EADFD2</color>
+    <color name="widget_text">#2B2118</color>
+    <color name="widget_muted">#65564A</color>
+    <color name="widget_accent">#7A5C3F</color>
+    <color name="shortcut_bg">#F5EFE6</color>
+    <color name="shortcut_glyph">#7A5C3F</color>
+
+    <string name="widget_name">Armadio – Oggi</string>
+    <string name="widget_description">L\'outfit di oggi e i tasti per Cosa metto?, Aggiungi capo e Fine giornata</string>
+    <string name="widget_today">Oggi</string>
+    <string name="widget_first_open">Apri Armadio per vedere l\'outfit di oggi</string>
+    <string name="widget_nothing_today">Niente in agenda per oggi</string>
+    <string name="widget_nothing_hint">Tocca «Cosa metto?» per un\'idea</string>
+    <string name="widget_no_items">Nessun capo da mostrare</string>
+    <string name="widget_cosa_metto">Cosa metto?</string>
+    <string name="widget_add">Aggiungi</string>
+    <string name="widget_end_of_day">Fine giornata</string>
+
+    <string name="shortcut_cosa_metto_short">Cosa metto?</string>
+    <string name="shortcut_cosa_metto_long">Cosa metto oggi?</string>
+    <string name="shortcut_add_short">Aggiungi capo</string>
+    <string name="shortcut_add_long">Aggiungi un capo</string>
+    <string name="shortcut_end_short">Fine giornata</string>
+    <string name="shortcut_end_long">Fine giornata: cosa va a lavare</string>
+</resources>

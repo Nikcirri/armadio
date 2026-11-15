@@ -28,6 +28,8 @@ export const nav = $state<{
   outfitDetail: string | null;
   /** Capo da aprire nell'Armadio (es. toccato dentro un outfit). */
   itemRequest: string | null;
+  /** "Aggiungi capo" da scorciatoia o widget: l'Armadio apre il menu del +. */
+  addItemRequest: boolean;
 }>({
   history: ['armadio'],
   altroPage: null,
@@ -36,6 +38,7 @@ export const nav = $state<{
   outfitRequest: null,
   outfitDetail: null,
   itemRequest: null,
+  addItemRequest: false,
 });
 
 export function currentTab(): TabId {
@@ -95,6 +98,13 @@ export function requestOpenItem(id: string): void {
   selectTab('armadio');
 }
 
+/** Scorciatoia o widget "Aggiungi capo". */
+export function requestAddItem(): void {
+  nav.laundryOpen = false;
+  nav.addItemRequest = true;
+  selectTab('armadio');
+}
+
 export function resetNavigation(): void {
   nav.history = ['armadio'];
   nav.altroPage = null;
@@ -103,4 +113,5 @@ export function resetNavigation(): void {
   nav.outfitRequest = null;
   nav.outfitDetail = null;
   nav.itemRequest = null;
+  nav.addItemRequest = false;
 }

@@ -34,7 +34,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Scorciatoie tenendo premuta l'icona (SPEC.md, sezione 8.7). -->
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+
         </activity>
+
+        <!-- Widget "Armadio – Oggi" (SPEC.md, sezione 8.7). Ora e fuso orario cambiati: si ridisegna. -->
+        <receiver
+            android:name=".OutfitWidget"
+            android:label="@string/widget_name"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/outfit_widget_info" />
+        </receiver>
 
         <provider
             android:name="androidx.core.content.FileProvider"

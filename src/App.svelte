@@ -5,7 +5,11 @@
   import { isNative, tapFeedback } from './lib/platform';
   import { isAutoBackupDue } from './lib/backup/auto';
   import { reportError } from './lib/errors';
-  import { currentTab, nav, previousTab, requestEndOfDay, selectTab } from './lib/state/nav.svelte';
+  import { currentTab, nav, previousTab, requestAddItem, requestEndOfDay, selectTab } from './lib/state/nav.svelte';
+  import type { ShortcutAction } from './lib/logic/widget';
+  import { todayKey } from './lib/logic/util';
+  import { agendaView } from './lib/state/agendaView.svelte';
+  import { onShortcut, startWidgetSync } from './lib/widget';
   import { END_OF_DAY_ACTION, onNotificationTap, refreshEndOfDayReminder } from './lib/notify';
   import { settings } from './lib/state/settings.svelte';
   import { applyTheme, system } from './lib/state/theme.svelte';
@@ -124,14 +128,41 @@
     }
   }
 
+  /** Scorciatoie sull'icona e pulsanti del widget (SPEC.md, sezione 8.7). */
+  function runShortcut(action: ShortcutAction) {
+    switch (action) {
+      case 'cosa-metto':
+        nav.laundryOpen = false;
+        selectTab('cosa-metto');
+        break;
+      case 'add-item':
+        requestAddItem();
+        break;
+      case 'end-of-day':
+        requestEndOfDay();
+        break;
+      case 'agenda':
+        agendaView.section = 'calendar';
+        agendaView.tripDetail = null;
+        agendaView.selected = todayKey();
+        agendaView.anchor = todayKey();
+        selectTab('agenda');
+        break;
+    }
+  }
+
   onMount(() => {
     if (!isNative()) return;
+    const widget = startWidgetSync();
+    const stopShortcuts = onShortcut(runShortcut);
     const listener = CapApp.addListener('backButton', handleBack);
     const stateListener = CapApp.addListener('appStateChange', ({ isActive }) => {
       if (unlockInProgress()) return;
       if (!isActive) {
         lock.hiddenAt = Date.now();
+        widget.flush();
       } else {
+        widget.restart();
         if (shouldRelock(lock.hiddenAt, Date.now())) lock.unlocked = false;
         lock.hiddenAt = null;
         // Dopo le impostazioni del permesso l'aggiornamento riparte; poi un nuovo controllo (al massimo ogni 10 minuti).
@@ -146,6 +177,8 @@
       void listener.then((l) => l.remove());
       void stateListener.then((l) => l.remove());
       stopTaps();
+      stopShortcuts();
+      widget.stop();
     };
   });
 </script>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icona di una scorciatoia: cerchio color sabbia con il simbolo marrone (SPEC.md, sezione 8.7). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path android:pathData="M24 0a24 24 0 1 1 0 48a24 24 0 1 1 0-48z" android:fillColor="@color/shortcut_bg" />
+    <group android:translateX="12" android:translateY="12">
+        <path android:pathData="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z" android:strokeColor="@color/shortcut_glyph" android:strokeWidth="1.8" android:strokeLineCap="round" android:strokeLineJoin="round" android:fillColor="#00000000" />
+    </group>
+</vector>

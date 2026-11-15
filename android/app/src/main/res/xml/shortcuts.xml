@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Scorciatoie tenendo premuta l'icona (SPEC.md, sezione 8.7). Gli indirizzi sono gli stessi di
+     src/lib/logic/widget.ts (SHORTCUT_URLS) e di OutfitWidget.java. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="cosa_metto"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_cosa_metto"
+        android:shortcutShortLabel="@string/shortcut_cosa_metto_short"
+        android:shortcutLongLabel="@string/shortcut_cosa_metto_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nikcirri.armadio"
+            android:targetClass="com.nikcirri.armadio.MainActivity"
+            android:data="armadio://cosa-metto" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="aggiungi_capo"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_add_short"
+        android:shortcutLongLabel="@string/shortcut_add_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nikcirri.armadio"
+            android:targetClass="com.nikcirri.armadio.MainActivity"
+            android:data="armadio://aggiungi-capo" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="fine_giornata"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_end_of_day"
+        android:shortcutShortLabel="@string/shortcut_end_short"
+        android:shortcutLongLabel="@string/shortcut_end_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.nikcirri.armadio"
+            android:targetClass="com.nikcirri.armadio.MainActivity"
+            android:data="armadio://fine-giornata" />
+    </shortcut>
+</shortcuts>

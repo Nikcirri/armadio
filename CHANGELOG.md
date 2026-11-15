@@ -1,5 +1,12 @@
 # Novità
 
+## [1.8.0] - 2026-11-16
+
+- Scorciatoie sull'icona: tieni premuta l'icona di Armadio e trovi subito "Cosa metto?", "Aggiungi capo" e "Fine giornata". Puoi anche trascinarle sulla schermata Home.
+- Nuovo widget "Armadio – Oggi" per la schermata Home: mostra l'outfit di oggi con le foto dei capi (quello indossato o quello in agenda) e ha i pulsanti Cosa metto?, Aggiungi e Fine giornata. Toccando l'outfit si apre l'Agenda.
+- Il widget si aggiorna da solo quando cambi agenda, outfit o capi, e a mezzanotte passa al giorno nuovo anche ad app chiusa. Segue il tema chiaro o scuro del telefono. L'intimo non compare mai.
+- Scorciatoie e widget aprono l'app nel punto giusto anche se era chiusa; con il blocco attivo prima chiedono lo sblocco.
+
 ## [1.7.0] - 2026-11-15
 
 - Armocromia con più foto: prima la foto del viso, poi una foto di un occhio da vicino (consigliata) e, se vuoi, una di una ciocca di capelli. Da lontano molte fotocamere sbagliano il colore degli occhi e delle parti piccole del viso: da vicino si misura molto meglio.
