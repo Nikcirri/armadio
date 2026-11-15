@@ -464,6 +464,16 @@ def check_assets(apk: zipfile.ZipFile, dist: str | None, rep: Report):
             rep.error(f'manca {required}')
     if not any(n.startswith('assets/models_bundled/') for n in names):
         rep.error('mancano i modelli di ML Kit (assets/models_bundled/) per il riconoscimento del viso')
+    # Modelli inclusi nell'app (SPEC.md, sezioni 6 e 8.1): testo dell'etichetta e categoria dalla foto.
+    for folder, what in (
+        ('assets/mlkit-google-ocr-models/', 'la lettura dell\'etichetta (ML Kit Text Recognition)'),
+        ('assets/mlkit_label_default_model/', 'la categoria suggerita (ML Kit Image Labeling)'),
+    ):
+        files = [n for n in names if n.startswith(folder) and not n.endswith('/')]
+        if not files:
+            rep.error(f'mancano i modelli di ML Kit ({folder}) per {what}')
+        else:
+            rep.info(f'modelli {folder}: {len(files)} file')
     if dist:
         count = 0
         for root, _dirs, files in os.walk(dist):
@@ -549,14 +559,77 @@ def dex_strings(apk: zipfile.ZipFile) -> set[str]:
     return out
 
 
-def check_jni(apk: zipfile.ZipFile, libs: list[tuple[str, bytes]], classes: dict[str, ClassInfo], rep: Report):
+def check_sizes(apk: zipfile.ZipFile, rep: Report):
+    """Quanto pesa ogni parte dell'APK (compressa e non): serve a tenere d'occhio la dimensione."""
+    groups: dict[str, list[int]] = {}
+    for info in apk.infolist():
+        n = info.filename
+        if n.startswith('lib/'):
+            parts = n.split('/')
+            g = f'lib/{parts[1]}' + (f' {parts[2]}' if len(parts) > 2 else '')
+        elif n.startswith('assets/public/'):
+            g = 'app web'
+        elif n.startswith('assets/'):
+            g = '/'.join(n.split('/')[:2])
+        elif re.fullmatch(r'classes\d*\.dex', n):
+            g = 'dex'
+        elif n.startswith('res/') or n == 'resources.arsc':
+            g = 'risorse'
+        else:
+            g = 'altro'
+        acc = groups.setdefault(g, [0, 0])
+        acc[0] += info.compress_size
+        acc[1] += info.file_size
+    biggest = sorted(groups.items(), key=lambda kv: -kv[1][0])[:14]
+    rep.info('peso nell\'APK (compresso/originale, MB): ' + '; '.join(f'{k} {v[0] / 1e6:.1f}/{v[1] / 1e6:.1f}' for k, v in biggest))
+
+
+def load_usage(path: str | None) -> tuple[set[str], dict[str, set[str]]] | None:
+    """usage.txt di R8 (accanto a mapping.txt): classi tolte del tutto e metodi tolti dalle classi rimaste.
+    Serve a distinguere ciò che R8 ha tolto da ciò che non è mai esistito nel codice Java."""
+    if not path or not os.path.exists(path):
+        return None
+    removed_classes: set[str] = set()
+    removed_members: dict[str, set[str]] = {}
+    current: str | None = None
+    has_members = False
+    with open(path, encoding='utf-8') as f:
+        for line in f:
+            if not line.strip():
+                continue
+            if not line[0].isspace():
+                if current and not has_members:
+                    removed_classes.add(current)
+                current = line.strip().rstrip(':')
+                has_members = False
+            elif current:
+                m = re.search(r'([\w$<>]+)\(', line)
+                if m:
+                    removed_members.setdefault(current, set()).add(m.group(1))
+                    has_members = True
+    if current and not has_members:
+        removed_classes.add(current)
+    return removed_classes, removed_members
+
+
+def check_jni(
+    apk: zipfile.ZipFile,
+    libs: list[tuple[str, bytes]],
+    classes: dict[str, ClassInfo],
+    rep: Report,
+    usage: tuple[set[str], dict[str, set[str]]] | None = None,
+):
     """Collegamento tra codice Java e librerie native.
 
     Il caso pericoloso è un metodo nativo Java che non trova più la sua funzione nella libreria
     (classe o metodo rinominati da R8): al primo uso l'app si chiude. Se invece R8 ha tolto del tutto
     una classe mai usata, la funzione nativa resta orfana ma nessuno può chiamarla: va bene, purché
-    nessuno carichi più quella libreria.
+    nessuno carichi più quella libreria. Con usage.txt di R8 si distingue anche il caso innocuo delle
+    funzioni esportate da librerie condivise tra più prodotti (es. ML Kit) per metodi o classi che nel
+    codice Java della libreria non sono mai esistiti.
     """
+    removed_classes, removed_members = usage if usage else (set(), {})
+    never_declared: list[str] = []
     strings = dex_strings(apk)
     native_names = {(k, m.name) for k, ci in classes.items() for m in ci.methods if m.native}
     method_names = {m for _k, m in native_names}
@@ -575,10 +648,14 @@ def check_jni(apk: zipfile.ZipFile, libs: list[tuple[str, bytes]], classes: dict
             if cls:
                 if any(m.native for m in cls.methods_named(method)):
                     linked += 1
+                elif usage is not None and method not in removed_members.get(cls_name, set()):
+                    never_declared.append(f'{cls_name}.{method}')
                 else:
-                    rep.error(f'{lib}: il metodo nativo {cls_name}.{method} non c\'è più (rinominato?)')
+                    rep.error(f'{lib}: il metodo nativo {cls_name}.{method} non c\'è più (rinominato o tolto da R8)')
             elif method in method_names:
                 rep.error(f'{lib}: la classe {cls_name} sembra rinominata (il metodo nativo {method} esiste altrove)')
+            elif usage is not None and cls_name not in removed_classes:
+                never_declared.append(f'{cls_name}.{method}')
             else:
                 unused.append(f'{cls_name}.{method}')
         if unused:
@@ -586,6 +663,8 @@ def check_jni(apk: zipfile.ZipFile, libs: list[tuple[str, bytes]], classes: dict
                 rep.error(f'{lib}: la libreria viene ancora caricata ma mancano le classi di {", ".join(unused)}')
             else:
                 rep.info(f'{lib}: codice Java mai usato dall\'app, tolto da R8 (la libreria non viene caricata): {len(unused)} funzioni')
+    if never_declared:
+        rep.info(f'funzioni esportate dalle librerie native per codice Java mai esistito (normale per le librerie di Google): {len(never_declared)}')
     orphans = sorted(f'{k}.{m}' for k, m in native_names if (k, m) not in symbols)
     if orphans:
         rep.info('metodi nativi senza libreria nell\'APK (forniti da Google Play services o mai usati): ' + ', '.join(orphans))
@@ -749,7 +828,10 @@ def main() -> int:
         check_assets(apk, args.dist, rep)
         sources = scan_plugin_sources(args.android)
         check_plugins(apk, classes, sources, rep)
-        check_jni(apk, libs, classes, rep)
+        usage = load_usage(os.path.join(os.path.dirname(args.mapping), 'usage.txt') if args.mapping else None)
+        rep.info('usage.txt di R8: ' + ('letto' if usage is not None else 'non trovato'))
+        check_jni(apk, libs, classes, rep, usage)
+        check_sizes(apk, rep)
         check_manifest(apk, classes, rep)
         check_dynamite(classes, rep)
     if args.compare:

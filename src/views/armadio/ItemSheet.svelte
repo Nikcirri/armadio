@@ -2,6 +2,7 @@
   import { Clipboard } from '@capacitor/clipboard';
   import { db } from '../../lib/db';
   import {
+    addPhotoToItem,
     addWear,
     duplicateItem,
     getWearDates,
@@ -35,11 +36,13 @@
   import { garmentsFor } from '../../lib/logic/underwear';
   import { INTIMATE_SUGGESTIONS } from '../../lib/logic/presets';
   import { formatDateIt, todayKey } from '../../lib/logic/util';
+  import { storePhoto } from '../../lib/media/photos';
+  import { visionSupported } from '../../lib/media/vision';
   import { tapFeedback } from '../../lib/platform';
   import { requestNewOutfit, requestOpenOutfit } from '../../lib/state/nav.svelte';
   import { live } from '../../lib/state/live.svelte';
   import { settings } from '../../lib/state/settings.svelte';
-  import { confirmDialog, showToast, showUndoToast } from '../../lib/state/ui.svelte';
+  import { confirmDialog, showToast, showUndoToast, withBusy } from '../../lib/state/ui.svelte';
   import { reportError } from '../../lib/errors';
   import CategorySelect from '../../lib/ui/CategorySelect.svelte';
   import ChipGroup from '../../lib/ui/ChipGroup.svelte';
@@ -49,6 +52,7 @@
   import Sheet from '../../lib/ui/Sheet.svelte';
   import Switch from '../../lib/ui/Switch.svelte';
   import ItemPickerSheet from '../outfit/ItemPickerSheet.svelte';
+  import LabelReadSheet, { type LabelChoice } from './LabelReadSheet.svelte';
   import PieceThumb from './PieceThumb.svelte';
 
   let {
@@ -84,6 +88,7 @@
   let fabricText = $state('');
   let menuFor = $state<string | null>(null);
   let saving = $state(false);
+  let readingLabel = $state(false);
   // Intimo: per un capo Intimo, i capi sotto cui va ("Va sotto a"); si salva con "Salva".
   let underFor = $state<string[] | null>(null);
   let underForOriginal = '[]';
@@ -184,6 +189,35 @@
 
   function setStatus(s: ItemStatus) {
     if (draft) draft.status = s;
+  }
+
+  /** Le marche già usate (capi e taglie per brand): l'etichetta le riconosce per prime. */
+  const ownBrands = $derived([
+    ...new Set([...allItems.value.map((i) => i.brand.trim()), ...(settings.value.profile?.brandSizes ?? []).map((b) => b.brand.trim())].filter(Boolean)),
+  ]);
+
+  /** "Leggi l'etichetta": riempie i campi della scheda (da salvare); la foto, se scelta, si salva subito. */
+  async function applyLabel(choice: LabelChoice) {
+    readingLabel = false;
+    const dr = draft;
+    if (!dr) return;
+    if (choice.brand) dr.brand = choice.brand;
+    if (choice.size) dr.size = choice.size;
+    for (const f of choice.fabrics) if (!dr.fabrics.some((x) => x.toLowerCase() === f.toLowerCase())) dr.fabrics = [...dr.fabrics, f];
+    if (choice.composition) {
+      const line = `Composizione: ${choice.composition}`;
+      if (!dr.notes.includes(line)) dr.notes = dr.notes.trim() ? `${dr.notes.trim()}\n${line}` : line;
+    }
+    if (choice.washTags.length) dr.washTags = [...new Set([...dr.washTags, ...choice.washTags])];
+    const photo = choice.photo;
+    if (photo) {
+      try {
+        await withBusy('Salvo la foto dell’etichetta…', async () => addPhotoToItem(db, itemId, await storePhoto(photo)));
+      } catch (e) {
+        reportError(e, 'Non sono riuscito a salvare la foto dell’etichetta.');
+      }
+    }
+    showToast('Dati dell’etichetta inseriti: ricordati di salvare');
   }
 
   function addFabric() {
@@ -310,6 +344,12 @@
         <button class="fav" aria-pressed={d.favorite} onclick={() => (d.favorite = !d.favorite)}>
           {d.favorite ? '❤️ Tra i preferiti' : '🤍 Aggiungi ai preferiti'}
         </button>
+        {#if visionSupported()}
+          <button class="btn btn-block label-btn" onclick={() => (readingLabel = true)}>
+            <Icon name="tag" size={20} /> Leggi l’etichetta
+          </button>
+          <p class="note center">Marca, taglia, tessuto e lavaggio dalla foto dell’etichetta interna.</p>
+        {/if}
       </section>
 
       <!-- Stato -->
@@ -653,6 +693,16 @@
     />
   {/if}
 
+  {#if readingLabel}
+    <LabelReadSheet
+      {ownBrands}
+      fabricList={kind('fabric').map((l) => l.name)}
+      canAddPhoto={it.photoIds.length < MAX_ITEM_PHOTOS}
+      onapply={applyLabel}
+      onclose={() => (readingLabel = false)}
+    />
+  {/if}
+
   {#if menuFor}
     {@const pid = menuFor}
     <Sheet title="Foto" onclose={() => (menuFor = null)}>
@@ -746,6 +796,13 @@
     background: var(--surface-2);
     font-size: 0.75rem;
     cursor: pointer;
+  }
+  .label-btn {
+    margin-top: 12px;
+  }
+  .note.center {
+    text-align: center;
+    margin: 6px 0 0;
   }
   .fav {
     margin-top: 10px;

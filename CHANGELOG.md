@@ -1,5 +1,13 @@
 # Novità
 
+## [1.9.0] - 2026-11-16
+
+- Leggi l'etichetta: nella scheda di un capo fotografa l'etichetta interna e l'app compila marca, taglia, tessuto e lavaggio. Prima ti mostra cosa ha trovato, con una spunta per ogni voce, e poi salvi tu.
+- Riconosce le marche che hai già usato e quelle più diffuse, le taglie (M, IT 42, EU 40, W32 L34…), le percentuali dei tessuti in più lingue (senza la fodera) e le istruzioni di lavaggio scritte (a mano, 30°, 40°, delicati, niente asciugatrice, stiro delicato, lavaggio a secco). I simboli disegnati invece si toccano a mano come prima.
+- La composizione completa (es. "95% cotone, 5% elastan") finisce nelle note, e la foto dell'etichetta può andare tra le foto del capo per rivedere i simboli.
+- Categoria suggerita: quando aggiungi un capo, l'app guarda la foto e propone per esempio "Sembra una giacca – Usa Giacche". È solo un consiglio: decidi sempre tu. Riconosce giacche, blazer, jeans, shorts, abiti, polo, scarpe, sneakers, borse, cappelli, sciarpe, cravatte, occhiali e gioielli.
+- Tutto funziona sul telefono, senza internet: i modelli sono dentro l'app, che ora pesa circa 34 MB.
+
 ## [1.8.0] - 2026-11-16
 
 - Scorciatoie sull'icona: tieni premuta l'icona di Armadio e trovi subito "Cosa metto?", "Aggiungi capo" e "Fine giornata". Puoi anche trascinarle sulla schermata Home.
