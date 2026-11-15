@@ -17,6 +17,13 @@
 # e firme generiche (servono a Gson per i TypeToken).
 -keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
+# Codice JNI delle librerie native (es. ML Kit per l'etichetta): restano le classi con metodi nativi e
+# tutti i loro metodi nativi, anche quelli che il codice Java non chiama, così ogni funzione esportata
+# dalle librerie .so ha la sua classe e il suo metodo (scripts/check_apk.py lo controlla).
+-keepclasseswithmembers,includedescriptorclasses class * {
+    native <methods>;
+}
+
 # Ponte tra JavaScript e Android nella WebView.
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;

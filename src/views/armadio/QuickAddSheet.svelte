@@ -3,9 +3,12 @@
   import { db } from '../../lib/db';
   import { addItem, deleteItemsHard } from '../../lib/db/items';
   import type { CategoryRecord, ColorId } from '../../lib/db/types';
+  import { guessCategory, type CategoryGuess } from '../../lib/logic/categoryGuess';
   import type { Img } from '../../lib/logic/imageOps';
   import { colorsOf } from '../../lib/media/pipeline';
   import { storePhoto } from '../../lib/media/photos';
+  import { imageLabels, visionSupported } from '../../lib/media/vision';
+  import Icon from '../../lib/ui/Icon.svelte';
   import { showUndoToast, withBusy } from '../../lib/state/ui.svelte';
   import { reportError } from '../../lib/errors';
   import { tapFeedback } from '../../lib/platform';
@@ -30,6 +33,9 @@
   let colors = $state<ColorId[]>([]);
   let detected = $state<ColorId[]>([]);
   let touched = false;
+  /** Categoria suggerita dalla foto (SPEC.md, sezione 6): solo una proposta, decide l'utente. */
+  let guess = $state<CategoryGuess | null>(null);
+  const guessName = $derived(guess ? (categories.find((c) => c.id === guess!.categoryId)?.name ?? null) : null);
 
   onMount(() => {
     colorsOf(img)
@@ -38,6 +44,12 @@
         if (!touched) colors = c;
       })
       .catch(() => undefined);
+    if (visionSupported()) {
+      // Se il modello non risponde, semplicemente non c'è il suggerimento.
+      imageLabels(img)
+        .then((labels) => (guess = guessCategory(labels, categories)))
+        .catch(() => undefined);
+    }
   });
 
   async function save() {
@@ -68,6 +80,14 @@
     </label>
 
     <CategorySelect {categories} value={categoryId} onchange={(id) => (categoryId = id)} />
+    {#if guess && guessName && guess.categoryId !== categoryId}
+      {@const g = guess}
+      <div class="guess" role="status">
+        <Icon name="sparkles" size={20} />
+        <span class="grow">Sembra {g.phrase}</span>
+        <button class="btn mini" onclick={() => (categoryId = g.categoryId)}>Usa {guessName}</button>
+      </div>
+    {/if}
 
     <div class="field">
       <span>Colori {detected.length ? '(rilevati dalla foto, puoi cambiarli)' : ''}</span>
@@ -111,5 +131,25 @@
   .center {
     text-align: center;
     margin-top: -8px;
+  }
+  .guess {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: -6px;
+    padding: 8px 8px 8px 12px;
+    border-radius: var(--radius);
+    background: var(--surface-2);
+    font-weight: 600;
+  }
+  .guess .grow {
+    flex: 1;
+    min-width: 0;
+  }
+  .mini {
+    min-height: 40px;
+    padding: 0 14px;
+    font-size: 0.875rem;
+    flex: none;
   }
 </style>

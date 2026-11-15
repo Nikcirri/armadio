@@ -464,13 +464,16 @@ def check_assets(apk: zipfile.ZipFile, dist: str | None, rep: Report):
             rep.error(f'manca {required}')
     if not any(n.startswith('assets/models_bundled/') for n in names):
         rep.error('mancano i modelli di ML Kit (assets/models_bundled/) per il riconoscimento del viso')
-    # Modelli e cartelle fuori dall'app web (per vedere cosa portano le librerie di ML Kit).
-    model_files: dict[str, int] = {}
-    for n in names:
-        if n.startswith('assets/') and not n.startswith('assets/public/') and not n.endswith('/'):
-            top = '/'.join(n.split('/')[:3]) if n.count('/') >= 2 else n
-            model_files[top] = model_files.get(top, 0) + 1
-    rep.info('altri asset: ' + ', '.join(f'{k} ({v})' for k, v in sorted(model_files.items())))
+    # Modelli inclusi nell'app (SPEC.md, sezioni 6 e 8.1): testo dell'etichetta e categoria dalla foto.
+    for folder, what in (
+        ('assets/mlkit-google-ocr-models/', 'la lettura dell\'etichetta (ML Kit Text Recognition)'),
+        ('assets/mlkit_label_default_model/', 'la categoria suggerita (ML Kit Image Labeling)'),
+    ):
+        files = [n for n in names if n.startswith(folder) and not n.endswith('/')]
+        if not files:
+            rep.error(f'mancano i modelli di ML Kit ({folder}) per {what}')
+        else:
+            rep.info(f'modelli {folder}: {len(files)} file')
     if dist:
         count = 0
         for root, _dirs, files in os.walk(dist):
