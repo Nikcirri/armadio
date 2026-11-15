@@ -66,6 +66,10 @@ dependencies {
     implementation "com.google.android.gms:play-services-mlkit-subject-segmentation:16.0.0-beta1"
     // Armocromia (FacePlugin.java): rilevamento volti con il modello incluso nell'app (funziona offline).
     implementation "com.google.mlkit:face-detection:16.1.7"
+    // Scheda capo e nuovo capo (VisionPlugin.java): lettura dell'etichetta e categoria suggerita,
+    // con i modelli inclusi nell'app (funzionano offline; scelta dell'utente, l'APK cresce di circa 10 MB).
+    implementation "com.google.mlkit:text-recognition:16.0.1"
+    implementation "com.google.mlkit:image-labeling:17.0.9"
     // Blocco dell'app (AppLockPlugin.java): impronta, volto o PIN del telefono.
     implementation "androidx.biometric:biometric:1.1.0"
     testImplementation "junit:junit:$junitVersion"

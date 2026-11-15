@@ -19,13 +19,15 @@ public class MainActivity extends BridgeActivity {
             setIntent(new Intent(intent).setAction(Intent.ACTION_MAIN).setData(null));
         }
         // Plugin dell'app (non da npm): scontorno AI, salvataggio in galleria, blocco con impronta o PIN,
-        // riconoscimento del viso per l'armocromia, aggiornamento dall'app, widget della schermata Home.
+        // riconoscimento del viso per l'armocromia, aggiornamento dall'app, widget della schermata Home,
+        // lettura dell'etichetta e categoria suggerita.
         registerPlugin(AppUpdaterPlugin.class);
         registerPlugin(CutoutPlugin.class);
         registerPlugin(FacePlugin.class);
         registerPlugin(GalleryPlugin.class);
         registerPlugin(AppLockPlugin.class);
         registerPlugin(HomeWidgetPlugin.class);
+        registerPlugin(VisionPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }
