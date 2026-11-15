@@ -22,6 +22,13 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Librerie native compresse nell'APK: il file da scaricare è molto più piccolo (Android le
+    // estrae all'installazione).
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
     // La chiave di firma NON è nel repository: GitHub Actions la ricrea dai Secrets.
     signingConfigs {
         release {
