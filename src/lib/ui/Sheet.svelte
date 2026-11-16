@@ -79,7 +79,7 @@
     display: flex;
     flex-direction: column;
     background: var(--surface);
-    border-radius: 20px 20px 0 0;
+    border-radius: 28px 28px 0 0;
     z-index: 41;
     padding-bottom: var(--safe-bottom);
     animation: up 200ms ease-out;
@@ -104,7 +104,8 @@
   }
   h2 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: calc(1.375rem * var(--display-scale));
+    line-height: 1.15;
   }
   .body {
     flex: 1;

@@ -35,7 +35,7 @@
   import { blockReason } from '../../lib/logic/outfits';
   import { garmentsFor } from '../../lib/logic/underwear';
   import { INTIMATE_SUGGESTIONS } from '../../lib/logic/presets';
-  import { formatDateIt, todayKey } from '../../lib/logic/util';
+  import { formatDateIt, formatDateShortIt, todayKey } from '../../lib/logic/util';
   import { storePhoto } from '../../lib/media/photos';
   import { visionSupported } from '../../lib/media/vision';
   import { tapFeedback } from '../../lib/platform';
@@ -324,8 +324,35 @@
     <div class="form">
       <!-- Foto -->
       <section>
+        {#if it.photoIds.length}
+          {@const cover = it.photoIds[0]!}
+          <div class="hero">
+            <button class="heropic" aria-label="Apri la copertina" onclick={() => onopenphoto(it.photoIds, 0, it.name)}>
+              <PhotoThumb photoId={cover} alt="{it.name}, copertina" kind="main" />
+            </button>
+            <button class="more heromore" aria-label="Azioni della copertina" onclick={() => (menuFor = cover)}>
+              <Icon name="more" size={20} />
+            </button>
+            <button
+              class="herofav"
+              aria-label={d.favorite ? 'Togli dai preferiti' : 'Aggiungi ai preferiti'}
+              aria-pressed={d.favorite}
+              onclick={() => (d.favorite = !d.favorite)}
+            >
+              <Icon name={d.favorite ? 'heartFilled' : 'heart'} size={22} />
+            </button>
+          </div>
+          <div class="stats" aria-label="Utilizzi in breve">
+            <div><strong>{it.wearCount}</strong><span>{it.wearCount === 1 ? 'utilizzo' : 'utilizzi'}</span></div>
+            <div><strong>{cpw !== null ? formatEuro(cpw) : '—'}</strong><span>a utilizzo</span></div>
+            <div>
+              <strong>{it.lastWornDate ? formatDateShortIt(it.lastWornDate) : 'mai'}</strong><span>ultima volta</span>
+            </div>
+          </div>
+        {/if}
         <div class="photos">
           {#each it.photoIds as pid, i (pid)}
+            {#if i > 0}
             <div class="slot">
               <button class="pic" aria-label="Apri foto {i + 1}" onclick={() => onopenphoto(it.photoIds, i, it.name)}>
                 <PhotoThumb photoId={pid} alt="{it.name}, foto {i + 1}" />
@@ -335,6 +362,7 @@
                 <Icon name="more" size={18} />
               </button>
             </div>
+            {/if}
           {/each}
           {#if it.photoIds.length < MAX_ITEM_PHOTOS}
             <div class="slot add">
@@ -343,9 +371,12 @@
             </div>
           {/if}
         </div>
-        <button class="fav" aria-pressed={d.favorite} onclick={() => (d.favorite = !d.favorite)}>
-          {d.favorite ? '❤️ Tra i preferiti' : '🤍 Aggiungi ai preferiti'}
-        </button>
+        {#if !it.photoIds.length}
+          <button class="fav" aria-pressed={d.favorite} onclick={() => (d.favorite = !d.favorite)}>
+            <Icon name={d.favorite ? 'heartFilled' : 'heart'} size={20} />
+            {d.favorite ? 'Tra i preferiti' : 'Aggiungi ai preferiti'}
+          </button>
+        {/if}
         {#if visionSupported()}
           <button class="btn btn-block label-btn" onclick={() => (readingLabel = true)}>
             <Icon name="tag" size={20} /> Leggi l’etichetta
@@ -755,6 +786,78 @@
   .tight {
     margin-top: -6px;
   }
+  /* Copertina grande su tessera, come una scheda da catalogo (SPEC.md, sezione 7). */
+  .hero {
+    position: relative;
+    width: min(100%, 280px);
+    margin: 0 auto;
+  }
+  .heropic {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    padding: 0;
+    border: 0;
+    border-radius: 26px;
+    overflow: hidden;
+    background: var(--surface-2);
+    cursor: pointer;
+  }
+  .heromore {
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+  }
+  .herofav {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--surface);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.15);
+    cursor: pointer;
+  }
+  .stats {
+    margin: 14px 0 12px;
+    padding: 12px 4px;
+    border-radius: 20px;
+    background: var(--surface-2);
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .stats > div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 0 4px;
+  }
+  .stats > div + div {
+    border-left: 1px solid var(--border);
+  }
+  .stats strong {
+    font-variant-numeric: lining-nums;
+    font-family: var(--font-serif);
+    font-weight: var(--display-weight);
+    font-size: calc(1.5rem * var(--display-scale));
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .stats span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
   .photos {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -769,8 +872,9 @@
   .pic {
     aspect-ratio: 3 / 4;
     padding: 0;
-    border: 1px solid var(--border);
-    border-radius: 12px;
+    border: 0;
+    background: var(--surface-2);
+    border-radius: 14px;
     overflow: hidden;
     cursor: pointer;
   }
@@ -796,7 +900,7 @@
   .add {
     aspect-ratio: 3 / 4;
     border: 2px dashed var(--border);
-    border-radius: 12px;
+    border-radius: 14px;
     justify-content: center;
     padding: 4px;
   }
@@ -825,6 +929,10 @@
     border-radius: 999px;
     background: var(--surface);
     padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
     cursor: pointer;
   }
   .status {

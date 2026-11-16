@@ -14,9 +14,22 @@
   import type { CategoryRecord, ItemRecord, ItemStatus, ListRecord, OutfitRecord, TripRecord, WishlistRecord } from '../lib/db/types';
   import type { Img } from '../lib/logic/imageOps';
   import { draftNames } from '../lib/logic/itemPhotos';
-  import { SORTS, activeFilterCount, filterItems, findDuplicates, needsWash, sortItems, type ItemSort } from '../lib/logic/items';
+  import {
+    SLOT_GROUPS,
+    SORTS,
+    activeFilterCount,
+    filterItems,
+    findDuplicates,
+    needsWash,
+    slotGroupsPresent,
+    sortItems,
+    type ItemSort,
+    type SlotGroupId,
+  } from '../lib/logic/items';
   import { STATUSES, statusInfo } from '../lib/logic/labels';
+  import { greeting } from '../lib/logic/theme';
   import { formatDateIt } from '../lib/logic/util';
+  import { settings } from '../lib/state/settings.svelte';
   import { MAX_BATCH, chooseFromGallery, takePhoto } from '../lib/media/acquire';
   import { bumpPhoto } from '../lib/media/photoCache.svelte';
   import { loadPhotoImg, replacePhoto, storePhoto } from '../lib/media/photos';
@@ -84,6 +97,18 @@
       : 0,
   );
   const filterCount = $derived(activeFilterCount(filters));
+  // Saluto in alto: l'ora si legge quando si apre la sezione.
+  const hello = $derived(greeting(new Date().getHours(), settings.value.profile?.userName ?? ''));
+  const groups = $derived(slotGroupsPresent(items.value, filters.slotGroup));
+  const anyFilter = $derived(filterCount > 0 || !!filters.query || filters.slotGroup !== null);
+
+  function pickGroup(id: SlotGroupId | null) {
+    wardrobeView.filters = { ...filters, slotGroup: id };
+  }
+  function clearAll() {
+    resetWardrobeFilters();
+    wardrobeView.filters = { ...wardrobeView.filters, query: '' };
+  }
   const catById = $derived(new Map(categories.value.map((c) => [c.id, c])));
   const duplicates = $derived(findDuplicates(items.value, wishlist.value));
   const inLaundry = $derived(
@@ -350,21 +375,43 @@
         </button>
       </div>
     {:else}
+      <header class="hello">
+        <p class="eyebrow">{hello}</p>
+        <h1>Il tuo <em>armadio</em></h1>
+      </header>
       <div class="toolbar">
-        <label class="search">
-          <span class="visually-hidden">Cerca</span>
-          <input
-            class="input"
-            type="search"
-            placeholder="Cerca per nome, brand, tessuto…"
-            value={filters.query}
-            oninput={(e) => (wardrobeView.filters = { ...filters, query: e.currentTarget.value })}
-          />
-        </label>
-        <div class="tools">
-          <button class="tool" class:active={filterCount > 0} onclick={() => (showFilters = true)}>
-            Filtri{filterCount ? ` (${filterCount})` : ''}
+        <div class="searchrow">
+          <label class="search">
+            <span class="visually-hidden">Cerca</span>
+            <input
+              class="input"
+              type="search"
+              placeholder="Cerca per nome, brand, tessuto…"
+              value={filters.query}
+              oninput={(e) => (wardrobeView.filters = { ...filters, query: e.currentTarget.value })}
+            />
+          </label>
+          <button
+            class="filterbtn"
+            class:active={filterCount > 0}
+            aria-label={filterCount ? `Filtri (${filterCount} attivi)` : 'Filtri'}
+            onclick={() => (showFilters = true)}
+          >
+            <Icon name="sliders" size={22} />
+            {#if filterCount}<span class="count" aria-hidden="true">{filterCount}</span>{/if}
           </button>
+        </div>
+        {#if groups.length > 1 || filters.slotGroup}
+          <div class="chiprow" role="group" aria-label="Tipo di capo">
+            <button class="chip" aria-pressed={filters.slotGroup === null} onclick={() => pickGroup(null)}>Tutti</button>
+            {#each SLOT_GROUPS.filter((g) => groups.includes(g.id)) as g (g.id)}
+              <button class="chip" aria-pressed={filters.slotGroup === g.id} onclick={() => pickGroup(filters.slotGroup === g.id ? null : g.id)}>
+                {g.label}
+              </button>
+            {/each}
+          </div>
+        {/if}
+        <div class="tools">
           <label class="tool sort">
             <span class="visually-hidden">Ordina</span>
             <select
@@ -390,11 +437,9 @@
     {/if}
 
     <div class="summary">
-      <span>{visible.length} di {items.value.length} {items.value.length === 1 ? 'capo' : 'capi'}</span>
-      {#if filterCount > 0 || filters.query}
-        <button class="link" onclick={() => { resetWardrobeFilters(); wardrobeView.filters = { ...wardrobeView.filters, query: '' }; }}>
-          Azzera filtri
-        </button>
+      <span class="eyebrow">{visible.length === items.value.length ? `I tuoi capi · ${items.value.length}` : `${visible.length} di ${items.value.length} capi`}</span>
+      {#if anyFilter}
+        <button class="link" onclick={clearAll}>Azzera filtri</button>
       {/if}
     </div>
     {#if hiddenInBox > 0}
@@ -407,10 +452,10 @@
     {#if visible.length === 0}
       <div class="nothing">
         <p>Nessun capo con questi filtri.</p>
-        <button class="btn" onclick={() => { resetWardrobeFilters(); wardrobeView.filters = { ...wardrobeView.filters, query: '' }; }}>Azzera filtri</button>
+        <button class="btn" onclick={clearAll}>Azzera filtri</button>
       </div>
     {:else}
-      <VirtualGrid items={visible} label="Capi">
+      <VirtualGrid items={visible} label="Capi" minCol={140} gap={14}>
         {#snippet tile(item: ItemRecord)}
           {@const b = badge(item)}
           {@const isSel = selected.includes(item.id)}
@@ -423,8 +468,8 @@
           >
             <span class="pic">
               <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
-              {#if item.favorite}<span class="fav" role="img" aria-label="Preferito">❤️</span>{/if}
-              {#if item.hasStain}<span class="stain" role="img" aria-label="Macchia">🧪</span>{/if}
+              {#if item.favorite}<span class="dotbadge fav" role="img" aria-label="Preferito"><Icon name="heartFilled" size={16} /></span>{/if}
+              {#if item.hasStain}<span class="dotbadge stain" role="img" aria-label="Macchia da pre-trattare"><Icon name="droplet" size={16} /></span>{/if}
               {#if b}<span class="state">{b}</span>{/if}
               {#if selecting}<span class="check" class:on={isSel} aria-hidden="true">{#if isSel}<Icon name="check" size={18} />{/if}</span>{/if}
             </span>
@@ -576,38 +621,93 @@
 
 <style>
   .armadio {
-    padding: 12px 16px 120px;
+    padding: 8px 18px 120px;
+  }
+  .hello {
+    padding: 6px 2px 14px;
+  }
+  .hello .eyebrow {
+    margin: 0 0 2px;
+  }
+  .hello h1 {
+    margin: 0;
+    font-size: calc(2.125rem * var(--display-scale));
+    line-height: 1.05;
   }
   .toolbar {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
   }
-  .search .input {
-    min-height: 44px;
+  .searchrow {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .search {
+    flex: 1;
+    min-width: 0;
+  }
+  .filterbtn {
+    position: relative;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .filterbtn.active {
+    background: var(--primary);
+    color: var(--on-primary);
+  }
+  .count {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 18px;
+  }
+  .chiprow {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin: 0 -18px;
+    padding: 0 18px 2px;
+    scrollbar-width: none;
   }
   .tools {
     display: flex;
     gap: 6px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    margin: 0 -18px;
+    padding: 0 18px 2px;
+    scrollbar-width: none;
   }
   .tool {
     flex: none;
-    min-height: 38px;
+    min-height: 36px;
     padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 0.875rem;
+    border: 0;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.8125rem;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
-  }
-  .tool.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    font-weight: 600;
   }
   .sort {
     position: relative;
@@ -661,9 +761,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 10px 4px 0;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    min-height: 40px;
+    margin: 14px 2px 6px;
   }
   .link {
     border: 0;
@@ -685,7 +784,7 @@
     text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
     /* Tenendo premuto: niente selezione del testo né menu dell'immagine. */
     user-select: none;
@@ -696,35 +795,40 @@
     position: relative;
     display: block;
     aspect-ratio: 3 / 4;
-    border-radius: 14px;
+    border-radius: var(--radius-tile);
     overflow: hidden;
-    border: 1px solid var(--border);
+    background: var(--surface-2);
   }
   .tile.sel .pic {
     outline: 3px solid var(--accent);
     outline-offset: -1px;
   }
-  .fav,
-  .stain {
+  .dotbadge {
     position: absolute;
-    top: 4px;
-    font-size: 0.9rem;
-    line-height: 1;
-    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.3));
+    top: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
   }
   .fav {
-    right: 6px;
+    right: 8px;
+    color: var(--accent);
   }
   .stain {
-    left: 6px;
+    left: 8px;
+    color: var(--danger);
   }
   .state {
     position: absolute;
-    left: 4px;
-    right: 4px;
-    bottom: 4px;
-    padding: 3px 6px;
-    border-radius: 8px;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
     background: rgb(0 0 0 / 0.6);
     color: #fff;
     font-size: 0.6875rem;
@@ -734,8 +838,8 @@
   }
   .check {
     position: absolute;
-    top: 6px;
-    left: 6px;
+    top: 8px;
+    left: 8px;
     width: 26px;
     height: 26px;
     border-radius: 50%;
@@ -751,16 +855,18 @@
     color: var(--accent-contrast);
   }
   .name {
-    font-size: 0.875rem;
-    font-weight: 600;
+    padding: 0 4px;
+    font-size: 0.9375rem;
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .cat {
+    padding: 0 4px;
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: -2px;
+    margin-top: -4px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -779,7 +885,7 @@
     grid-template-columns: repeat(5, 1fr);
     gap: 4px;
     padding: 6px;
-    border-radius: 18px;
+    border-radius: 22px;
     background: var(--text);
     box-shadow: 0 6px 24px rgb(0 0 0 / 0.25);
     z-index: 21;
@@ -810,9 +916,9 @@
     gap: 10px;
     padding: 24px 12px;
   }
-  h1 {
+  .empty h1 {
     margin: 0;
-    font-size: 1.75rem;
+    font-size: calc(1.875rem * var(--display-scale));
   }
   .badge-big {
     width: 80px;

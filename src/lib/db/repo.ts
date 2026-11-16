@@ -2,6 +2,7 @@ import type { ArmadioDB } from './schema';
 import type {
   CategoryRecord,
   ErrorLogEntry,
+  FontId,
   ItemRecord,
   OutfitRecord,
   PaletteId,
@@ -17,6 +18,7 @@ import type {
 import { buildDefaultLists, buildOccasionMatrix, buildPresetCategories, defaultSettings } from '../logic/presets';
 import { removeItemFromOutfit, swapWithinGroup, removeItemFromPlanner, removeItemFromTrip } from '../logic/integrity';
 import { slotInfo } from '../logic/slots';
+import { DEFAULT_FONT } from '../logic/theme';
 import { newId, nowIso } from '../logic/util';
 
 // ---------- Impostazioni ----------
@@ -69,6 +71,8 @@ export interface SetupInput {
   userName: string;
   palette: PaletteId;
   mode: ThemeMode;
+  /** Caratteri scelti (predefinito Classico). */
+  font?: FontId;
 }
 
 /**
@@ -88,7 +92,7 @@ export async function setupNewWardrobe(db: ArmadioDB, input: SetupInput): Promis
   const lists = buildDefaultLists(now);
   const settings = {
     ...defaultSettings({ preset: input.preset, userName: input.userName.trim(), now }),
-    theme: { palette: input.palette, mode: input.mode },
+    theme: { palette: input.palette, mode: input.mode, font: input.font ?? DEFAULT_FONT },
     occasionMatrix: buildOccasionMatrix(lists),
   } satisfies Omit<SettingsMap, 'lastVersion'>;
   await db.transaction('rw', db.tables, async () => {

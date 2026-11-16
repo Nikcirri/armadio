@@ -77,7 +77,21 @@ export type ColorId =
   | 'pattern';
 
 export type Preset = 'donna' | 'uomo' | 'neutro';
-export type PaletteId = 'sabbia' | 'cipria' | 'salvia' | 'lavanda';
+export type PaletteId =
+  | 'salvia'
+  | 'oliva'
+  | 'smeraldo'
+  | 'oceano'
+  | 'petrolio'
+  | 'notte'
+  | 'cipria'
+  | 'argilla'
+  | 'prugna'
+  | 'sabbia'
+  | 'pietra'
+  | 'grafite';
+/** Caratteri dell'interfaccia (SPEC.md, sezione 7). */
+export type FontId = 'classico' | 'rivista' | 'elegante';
 export type ThemeMode = 'system' | 'light' | 'dark';
 
 interface Timestamps {
@@ -289,7 +303,8 @@ export interface SettingsMap {
     measurements: Record<string, number | null>;
     brandSizes: { brand: string; size: string }[];
   };
-  theme: { palette: PaletteId; mode: ThemeMode };
+  /** Senza font (versioni fino alla 1.11) valgono i caratteri Classico. */
+  theme: { palette: PaletteId; mode: ThemeMode; font?: FontId };
   preset: Preset;
   backup: {
     lastBackupDate: string | null;

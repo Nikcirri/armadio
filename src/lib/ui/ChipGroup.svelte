@@ -50,18 +50,18 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 14px;
+    padding: 4px 16px;
     border-radius: 999px;
     border: 1px solid var(--border);
-    background: var(--surface);
+    background: transparent;
     font-size: 0.875rem;
     cursor: pointer;
   }
   .chip.on {
     border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-    color: var(--text);
-    font-weight: 600;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 500;
   }
   .dot {
     width: 18px;

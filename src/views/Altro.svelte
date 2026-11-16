@@ -88,13 +88,14 @@
 </script>
 
 <div class="altro">
-  <h1>Altro</h1>
+  <p class="eyebrow">Il tuo spazio</p>
+  <h1>Tutto il <em>resto</em></h1>
   {#each GROUPS as g (g.title)}
     <h2 class="section-title">{g.title}</h2>
     <div class="list">
       {#each g.entries as e (e.page)}
         <button class="row" onclick={() => (nav.altroPage = e.page)}>
-          <span class="ic"><Icon name={e.icon} /></span>
+          <span class="ic"><Icon name={e.icon} size={20} /></span>
           <span class="grow">{e.label}<span class="sub">{e.sub}</span></span>
           <Icon name="chevron" size={18} />
         </button>
@@ -138,14 +139,24 @@
 
 <style>
   .altro {
-    padding: 16px 16px 40px;
+    padding: 14px 18px 40px;
+  }
+  .eyebrow {
+    margin: 0 2px 2px;
   }
   h1 {
-    margin: 8px 4px 0;
-    font-size: 1.75rem;
+    margin: 0 2px;
+    font-size: calc(2.125rem * var(--display-scale));
+    line-height: 1.05;
   }
   .ic {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface-2);
     color: var(--accent);
-    display: inline-flex;
+    display: grid;
+    place-items: center;
   }
 </style>

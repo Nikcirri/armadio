@@ -45,6 +45,15 @@ export function formatDateIt(isoOrKey: string): string {
   return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+const SHORT_MONTHS = ['gen', 'feb', 'mar', 'apr', 'mag', 'giu', 'lug', 'ago', 'set', 'ott', 'nov', 'dic'];
+
+/** Data breve, es. "5 nov" (con l'anno solo se non è quello di `today`, es. "5 nov 2025"). */
+export function formatDateShortIt(isoOrKey: string, today: string = toDateKey(new Date())): string {
+  const d = isoOrKey.length === 10 ? fromDateKey(isoOrKey) : new Date(isoOrKey);
+  const base = `${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`;
+  return String(d.getFullYear()) === today.slice(0, 4) ? base : `${base} ${d.getFullYear()}`;
+}
+
 /** Nome file sicuro con data e ora locali, es. "2026-11-05-2158". */
 export function fileStamp(now: Date = new Date()): string {
   return `${toDateKey(now)}-${pad(now.getHours())}${pad(now.getMinutes())}`;

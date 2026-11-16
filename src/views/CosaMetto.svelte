@@ -286,6 +286,10 @@
       <button class="btn btn-primary" onclick={() => selectTab('armadio')}>Vai all’Armadio</button>
     </section>
   {:else}
+    <header class="hello">
+      <p class="eyebrow">Cosa metto?</p>
+      <h1>Il tuo look di <em>oggi</em></h1>
+    </header>
     <div class="segmented temp" role="group" aria-label="Temperatura">
       {#each TEMPERATURES as t (t.id)}
         <button aria-pressed={o.temperature === t.id} onclick={() => setOption('temperature', t.id)}>
@@ -294,9 +298,9 @@
       {/each}
     </div>
     <div class="quick">
-      <button class="tool" class:active={o.rain} aria-pressed={o.rain} onclick={() => setOption('rain', !o.rain)}>🌧️ Pioggia</button>
-      <button class="tool" class:active={o.layers} aria-pressed={o.layers} onclick={() => setOption('layers', !o.layers)}>🧅 A cipolla</button>
-      <button class="tool" class:active={summary.length > 0} onclick={() => (showOptions = true)}>
+      <button class="chip" aria-pressed={o.rain} onclick={() => setOption('rain', !o.rain)}><span aria-hidden="true">🌧️</span> Pioggia</button>
+      <button class="chip" aria-pressed={o.layers} onclick={() => setOption('layers', !o.layers)}><span aria-hidden="true">🧅</span> A cipolla</button>
+      <button class="chip" class:on={summary.length > 0} onclick={() => (showOptions = true)}>
         Altre opzioni{summary.length ? ` (${summary.length})` : ''}
       </button>
     </div>
@@ -525,7 +529,18 @@
 
 <style>
   .cosa {
-    padding: 12px 16px 120px;
+    padding: 8px 18px 120px;
+  }
+  .hello {
+    padding: 6px 2px 14px;
+  }
+  .hello .eyebrow {
+    margin: 0 0 2px;
+  }
+  .hello h1 {
+    margin: 0;
+    font-size: calc(2.125rem * var(--display-scale));
+    line-height: 1.05;
   }
   .modes {
     margin-top: 12px;
@@ -536,25 +551,11 @@
   }
   .quick {
     display: flex;
-    gap: 6px;
-    margin-top: 10px;
+    gap: 8px;
+    margin: 12px -18px 0;
+    padding: 0 18px 2px;
     overflow-x: auto;
-    padding-bottom: 2px;
-  }
-  .tool {
-    flex: none;
-    min-height: 40px;
-    padding: 0 14px;
-    border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 0.875rem;
-    cursor: pointer;
-  }
-  .tool.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    font-weight: 600;
+    scrollbar-width: none;
   }
   .summary {
     margin-top: 6px;
@@ -572,12 +573,13 @@
   .reels {
     list-style: none;
     margin: 14px 0 0;
-    padding: 0;
+    padding: 4px 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
     background: var(--surface);
+    box-shadow: var(--shadow-soft);
     overflow: hidden;
   }
   .reel {
@@ -607,10 +609,11 @@
   }
   .thumb {
     flex: none;
-    width: 42px;
-    height: 54px;
-    border-radius: 8px;
+    width: 46px;
+    height: 58px;
+    border-radius: 12px;
     overflow: hidden;
+    background: var(--surface-2);
   }
   .thumb.blank {
     border: 1.5px dashed var(--border);

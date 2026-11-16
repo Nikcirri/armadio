@@ -89,23 +89,33 @@
   .topbar {
     flex: none;
     height: calc(var(--topbar-h) + var(--safe-top));
-    padding: var(--safe-top) calc(4px + var(--safe-right)) 0 calc(16px + var(--safe-left));
+    padding: var(--safe-top) calc(4px + var(--safe-right)) 0 calc(20px + var(--safe-left));
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     background: var(--bg);
-    border-bottom: 1px solid var(--border);
   }
+  /* Il nome dell'app in maiuscolo con le lettere spaziate e una lineetta sotto (SPEC.md, sezione 7). */
   .title {
+    min-width: 0;
     margin: 0;
     font-family: var(--font-serif);
-    font-size: 1.375rem;
-    font-weight: 400;
-    letter-spacing: 0.02em;
+    font-size: calc(1.125rem * var(--display-scale));
+    font-weight: var(--display-weight);
+    letter-spacing: 0.36em;
+    text-transform: uppercase;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .title::after {
+    content: '';
+    display: block;
+    width: 26px;
+    height: 1px;
+    margin-top: 5px;
+    background: var(--accent);
   }
   .right {
     display: flex;
@@ -121,10 +131,11 @@
   .pill,
   .badge {
     font-size: 0.8125rem;
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 999px;
     background: var(--surface-2);
-    color: var(--text-muted);
+    color: var(--text);
+    font-weight: 500;
     white-space: nowrap;
   }
   .badge {
@@ -133,8 +144,8 @@
     align-items: center;
     gap: 6px;
     min-height: 36px;
-    background: var(--accent);
-    color: var(--accent-contrast);
+    background: var(--primary);
+    color: var(--on-primary);
     font-weight: 600;
     cursor: pointer;
   }

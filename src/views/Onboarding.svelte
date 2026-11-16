@@ -1,8 +1,9 @@
 <script lang="ts">
   import { db, tracker } from '../lib/db';
   import { completeOnboarding, setupNewWardrobe } from '../lib/db/repo';
-  import type { PaletteId, Preset, ThemeMode } from '../lib/db/types';
+  import type { FontId, PaletteId, Preset, ThemeMode } from '../lib/db/types';
   import { PRESETS } from '../lib/logic/presets';
+  import { DEFAULT_FONT, DEFAULT_PALETTE } from '../lib/logic/theme';
   import { applyTheme, system } from '../lib/state/theme.svelte';
   import { registerOverlay, withBusy } from '../lib/state/ui.svelte';
   import { loadDemoData } from '../lib/demo';
@@ -16,8 +17,9 @@
   let step = $state(0);
   let userName = $state('');
   let preset = $state<Preset>('neutro');
-  let palette = $state<PaletteId>('sabbia');
+  let palette = $state<PaletteId>(DEFAULT_PALETTE);
   let mode = $state<ThemeMode>('system');
+  let font = $state<FontId>(DEFAULT_FONT);
   // $state.raw: i dati del backup vanno nel database così come sono (niente proxy reattivi).
   let restoring = $state.raw<PreparedRestore | null>(null);
 
@@ -25,7 +27,7 @@
 
   $effect(() => {
     void system.prefersDark;
-    applyTheme(palette, mode);
+    applyTheme(palette, mode, font);
   });
 
   $effect(() => {
@@ -34,7 +36,7 @@
   });
 
   // Il primo avvio non conta come "modifiche" per il promemoria backup.
-  const setup = () => tracker.withoutTracking(() => setupNewWardrobe(db, { preset, userName, palette, mode }));
+  const setup = () => tracker.withoutTracking(() => setupNewWardrobe(db, { preset, userName, palette, mode, font }));
 
   async function startEmpty() {
     try {
@@ -83,7 +85,8 @@
 
   {#if step === 0}
     <section>
-      <h1>Benvenuto in Armadio</h1>
+      <p class="brand" aria-hidden="true">ARMADIO</p>
+      <h1>Ciao, questo è il tuo <em>armadio</em></h1>
       <p class="lead">Il tuo armadio sempre in tasca: capi, outfit, lavatrice e valigia. Tutto resta sul tuo telefono, anche senza internet.</p>
       <label class="field">
         <span>Come ti chiami? (facoltativo)</span>
@@ -105,14 +108,16 @@
     </section>
   {:else if step === 2}
     <section>
-      <h1>Scegli i colori</h1>
-      <p class="lead">Puoi cambiarli quando vuoi da Altro → Impostazioni.</p>
+      <h1>Scegli il tuo <em>stile</em></h1>
+      <p class="lead">Colori e caratteri cambiano subito, così vedi come stanno. Puoi cambiarli quando vuoi da Altro → Impostazioni.</p>
       <ThemePicker
         {palette}
         {mode}
-        onchange={(p, m) => {
+        {font}
+        onchange={(p, m, f) => {
           palette = p;
           mode = m;
+          font = f;
         }}
       />
     </section>
@@ -174,7 +179,7 @@
     background: var(--border);
   }
   .dots span.on {
-    background: var(--accent);
+    background: var(--strong);
   }
   section {
     flex: 1;
@@ -187,8 +192,25 @@
     margin: 0 auto;
   }
   h1 {
-    font-size: 2rem;
+    font-size: calc(2.25rem * var(--display-scale));
+    line-height: 1.08;
     margin: 0;
+  }
+  .brand {
+    margin: 0 0 4px;
+    font-family: var(--font-serif);
+    font-weight: var(--display-weight);
+    font-size: 1.25rem;
+    letter-spacing: 0.42em;
+    color: var(--accent);
+  }
+  .brand::after {
+    content: '';
+    display: block;
+    width: 28px;
+    height: 1px;
+    margin-top: 8px;
+    background: var(--accent);
   }
   .lead {
     margin: 0 0 12px;
@@ -204,10 +226,12 @@
   .preset,
   .choice {
     text-align: left;
-    padding: 16px;
+    padding: 16px 18px;
     border-radius: var(--radius);
-    border: 2px solid var(--border);
+    border: 2px solid transparent;
     background: var(--surface);
+    box-shadow: var(--shadow-soft);
+    outline: 1px solid var(--card-border);
     display: flex;
     flex-direction: column;
     gap: 4px;

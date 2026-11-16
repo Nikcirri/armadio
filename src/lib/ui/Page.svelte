@@ -34,7 +34,7 @@
     bottom: calc(var(--navbar-h) + var(--safe-bottom));
     display: flex;
     flex-direction: column;
-    background: var(--surface);
+    background: var(--bg);
     z-index: 25;
     animation: slide 180ms ease-out;
   }
@@ -43,14 +43,14 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
-    border-bottom: 1px solid var(--border);
+    padding: 6px 8px 4px;
   }
   h1 {
     flex: 1;
     min-width: 0;
     margin: 0;
-    font-size: 1.25rem;
+    font-size: calc(1.5rem * var(--display-scale));
+    line-height: 1.2;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

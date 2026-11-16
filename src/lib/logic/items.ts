@@ -1,4 +1,4 @@
-import type { ColorId, ItemRecord, ItemStatus, WishlistRecord } from '../db/types';
+import type { ColorId, ItemRecord, ItemStatus, SlotType, WishlistRecord } from '../db/types';
 
 // Regole sui capi: stati, disponibilità, costo per utilizzo, ricerca, filtri, ordinamento, doppioni.
 
@@ -58,6 +58,32 @@ export interface ItemFilters {
   cuts: ItemRecord['cutStyle'][];
   occasionIds: string[];
   favoritesOnly: boolean;
+  /** Filtro veloce per tipo di capo (i pulsanti sotto la ricerca); null = Tutti. */
+  slotGroup: SlotGroupId | null;
+}
+
+/** Tipi di capo dei filtri veloci dell'Armadio (SPEC.md, sezione 7). */
+export type SlotGroupId = 'top' | 'bottom' | 'dress' | 'outerwear' | 'shoes' | 'accessory' | 'underwear';
+
+export const SLOT_GROUPS: readonly { id: SlotGroupId; label: string; slots: readonly SlotType[] }[] = [
+  { id: 'top', label: 'Sopra', slots: ['top_base', 'top_layer'] },
+  { id: 'bottom', label: 'Sotto', slots: ['bottom'] },
+  { id: 'dress', label: 'Abiti', slots: ['full_body'] },
+  { id: 'outerwear', label: 'Capispalla', slots: ['outerwear'] },
+  { id: 'shoes', label: 'Scarpe', slots: ['shoes'] },
+  { id: 'accessory', label: 'Accessori', slots: ['accessory'] },
+  { id: 'underwear', label: 'Intimo', slots: ['underwear'] },
+];
+
+/** I filtri veloci da mostrare: solo i tipi di cui c'è almeno un capo, nell'ordine fisso (più quello scelto). */
+export function slotGroupsPresent(items: readonly Pick<ItemRecord, 'slotType'>[], selected: SlotGroupId | null = null): SlotGroupId[] {
+  const slots = new Set(items.map((i) => i.slotType));
+  return SLOT_GROUPS.filter((g) => g.id === selected || g.slots.some((s) => slots.has(s))).map((g) => g.id);
+}
+
+function inSlotGroup(group: SlotGroupId | null, slot: SlotType): boolean {
+  if (!group) return true;
+  return SLOT_GROUPS.find((g) => g.id === group)?.slots.includes(slot) ?? true;
 }
 
 export function emptyFilters(): ItemFilters {
@@ -74,10 +100,11 @@ export function emptyFilters(): ItemFilters {
     cuts: [],
     occasionIds: [],
     favoritesOnly: false,
+    slotGroup: null,
   };
 }
 
-/** Quanti filtri sono attivi (la ricerca e "nascondi scatola" non contano). */
+/** Quanti filtri sono attivi (la ricerca, il tipo di capo veloce e "nascondi scatola" non contano). */
 export function activeFilterCount(f: ItemFilters): number {
   return (
     f.categoryIds.length +
@@ -125,7 +152,8 @@ export function filterItems(items: readonly ItemRecord[], f: ItemFilters, season
       anyOf(f.warmths, i.warmth) &&
       anyOf(f.cuts, i.cutStyle) &&
       intersects(f.occasionIds, i.occasions) &&
-      (!f.favoritesOnly || i.favorite),
+      (!f.favoritesOnly || i.favorite) &&
+      inSlotGroup(f.slotGroup, i.slotType),
   );
 }
 

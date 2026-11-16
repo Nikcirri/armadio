@@ -2,7 +2,8 @@
   import { Share } from '@capacitor/share';
   import { db } from '../../lib/db';
   import { setSetting, updateSetting } from '../../lib/db/repo';
-  import type { ListRecord, PaletteId, Preset, ThemeMode } from '../../lib/db/types';
+  import type { FontId, ListRecord, PaletteId, Preset, ThemeMode } from '../../lib/db/types';
+  import { DEFAULT_PALETTE, fontInfo, paletteInfo } from '../../lib/logic/theme';
   import { allPairs, hasPair, togglePair } from '../../lib/logic/lists';
   import { live } from '../../lib/state/live.svelte';
   import { PRESETS } from '../../lib/logic/presets';
@@ -51,8 +52,8 @@
   function saveAppName(value: string) {
     void save(() => updateSetting(db, 'app', { appName: value.trim() || 'Armadio' }));
   }
-  function saveTheme(palette: PaletteId, mode: ThemeMode) {
-    void save(() => setSetting(db, 'theme', { palette, mode }));
+  function saveTheme(palette: PaletteId, mode: ThemeMode, font: FontId) {
+    void save(() => setSetting(db, 'theme', { palette, mode, font }));
   }
   function savePreset(preset: Preset) {
     void save(() => setSetting(db, 'preset', preset));
@@ -135,7 +136,12 @@
 
   <h2 class="section-title">Aspetto</h2>
   <div class="card">
-    <ThemePicker palette={s.theme?.palette ?? 'sabbia'} mode={s.theme?.mode ?? 'system'} onchange={saveTheme} />
+    <ThemePicker
+      palette={paletteInfo(s.theme?.palette ?? DEFAULT_PALETTE).id}
+      mode={s.theme?.mode ?? 'system'}
+      font={fontInfo(s.theme?.font).id}
+      onchange={saveTheme}
+    />
   </div>
 
   <h2 class="section-title">Tipo di armadio</h2>

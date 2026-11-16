@@ -13,6 +13,7 @@
   import { END_OF_DAY_ACTION, onNotificationTap, refreshEndOfDayReminder } from './lib/notify';
   import { settings } from './lib/state/settings.svelte';
   import { applyTheme, system } from './lib/state/theme.svelte';
+  import { DEFAULT_PALETTE } from './lib/logic/theme';
   import { closeTopOverlay, showToast } from './lib/state/ui.svelte';
   import BusyOverlay from './lib/ui/BusyOverlay.svelte';
   import DialogHost from './lib/ui/DialogHost.svelte';
@@ -49,7 +50,7 @@
   $effect(() => {
     if (!onboarded) return;
     void system.prefersDark;
-    applyTheme(settings.value.theme?.palette ?? 'sabbia', settings.value.theme?.mode ?? 'system');
+    applyTheme(settings.value.theme?.palette ?? DEFAULT_PALETTE, settings.value.theme?.mode ?? 'system', settings.value.theme?.font);
   });
 
   // Backup automatico settimanale: una volta per avvio.
@@ -186,7 +187,7 @@
 {#if !settings.loaded}
   <div class="loading" aria-busy="true"></div>
 {:else if !onboarded}
-  <Lazy loader={onboarding} variant="full" title="Benvenuto in Armadio" props={{}} />
+  <Lazy loader={onboarding} variant="full" title="Armadio" props={{}} />
 {:else}
   <div class="shell">
     <TopBar />
@@ -214,8 +215,8 @@
           aria-current={tab.id === activeId ? 'page' : undefined}
           onclick={() => onTab(tab.id)}
         >
-          <TabIcon tab={tab.id} />
-          <span>{tab.label}</span>
+          <span class="ic"><TabIcon tab={tab.id} size={22} /></span>
+          <span class="lbl">{tab.label}</span>
         </button>
       {/each}
     </nav>
@@ -241,16 +242,17 @@
     flex: 1;
     position: relative;
     overflow-y: auto;
-    background: var(--surface);
+    background: var(--bg);
   }
+  /* Barra delle sezioni scura, con la sezione scelta in una pillola (SPEC.md, sezione 7). */
   .navbar {
     flex: none;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     height: calc(var(--navbar-h) + var(--safe-bottom));
-    padding: 0 var(--safe-right) var(--safe-bottom) var(--safe-left);
-    background: var(--bg);
-    border-top: 1px solid var(--border);
+    padding: 6px calc(6px + var(--safe-right)) var(--safe-bottom) calc(6px + var(--safe-left));
+    background: var(--strong);
+    border-radius: 24px 24px 0 0;
   }
   .navitem {
     min-height: 48px;
@@ -262,17 +264,29 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 3px;
+    gap: 4px;
     font-size: 0.6875rem;
-    color: var(--text-muted);
+    color: var(--nav-muted);
     cursor: pointer;
     transition: color 150ms ease;
   }
+  .ic {
+    width: 52px;
+    height: 30px;
+    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    transition: background-color 150ms ease;
+  }
   .navitem.active {
-    color: var(--accent);
+    color: var(--on-strong);
     font-weight: 600;
   }
-  .navitem span {
+  .navitem.active .ic {
+    background: var(--nav-pill);
+    color: var(--nav-pill-fg);
+  }
+  .lbl {
     white-space: nowrap;
   }
 </style>

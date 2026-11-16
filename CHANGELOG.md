@@ -1,5 +1,16 @@
 # Novità
 
+## [1.12.0] - 2026-11-16
+
+- Nuova grafica, ispirata alle tue foto: sfondo chiaro e caldo, capi su tessere con gli angoli morbidi, pulsanti e filtri a pillola, titoli eleganti e il nome "ARMADIO" in alto con le lettere spaziate.
+- Barra in basso scura: la sezione in cui sei ha l'icona dentro una pillola.
+- Colori in 4 famiglie con 3 tonalità ciascuna: Verdi (Salvia, Oliva, Smeraldo), Blu (Oceano, Petrolio, Notte), Rossi (Cipria, Argilla, Prugna), Neutri (Sabbia, Pietra, Grafite). Ognuna in chiaro e in scuro. Chi aveva Lavanda passa a Notte.
+- 3 caratteri da provare: Classico (il più leggibile), Rivista ed Elegante. Sono dentro l'app, quindi funzionano anche senza internet.
+- Colori, caratteri e chiaro o scuro si scelgono al primo avvio e in Altro → Impostazioni → Aspetto, e cambiano subito.
+- Armadio: in alto un saluto e "Il tuo armadio", la ricerca con il pulsante dei filtri accanto e, sotto, i tipi di capo per filtrare al volo (Sopra, Sotto, Scarpe…). I capi ora sono su due colonne, più grandi.
+- Scheda del capo: la foto di copertina è grande, con il cuore dei preferiti, e sotto c'è il riassunto di utilizzi, costo per utilizzo e ultima volta.
+- Anche "Cosa metto?", gli outfit, la sezione Altro e tutte le pagine hanno il nuovo stile.
+
 ## [1.11.0] - 2026-11-16
 
 - Nuova "Modalità negozio" (in Altro e in cima alla Wishlist): in negozio fotografi un capo e vedi subito se vale la pena comprarlo.

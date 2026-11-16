@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, daysBetween, fileStamp, fromDateKey, newId, toDateKey } from './util';
+import { addDays, daysBetween, fileStamp, formatDateShortIt, fromDateKey, newId, toDateKey } from './util';
 
 describe('date', () => {
+  it('data breve con l’anno solo se diverso da quello di oggi', () => {
+    expect(formatDateShortIt('2026-11-14', '2026-11-16')).toBe('14 nov');
+    expect(formatDateShortIt('2026-01-05', '2026-11-16')).toBe('5 gen');
+    expect(formatDateShortIt('2025-12-31', '2026-11-16')).toBe('31 dic 2025');
+  });
+
   it('converte avanti e indietro senza spostare il giorno', () => {
     expect(toDateKey(fromDateKey('2026-03-29'))).toBe('2026-03-29');
   });

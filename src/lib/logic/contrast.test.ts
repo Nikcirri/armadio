@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { PALETTES, contrastRatio } from './theme';
 
 // Contrasto AA (SPEC.md, sezione 7) per tutte le palette, lette direttamente da app.css.
+// Ogni palette deve avere tutti i colori: un colore mancante fa fallire il test.
 const css = readFileSync(new URL('../../app.css', import.meta.url), 'utf8');
 
 function block(selector: string): Record<string, string> {
@@ -34,6 +35,15 @@ const PAIRS: [string, string, number][] = [
   ['danger', 'surface', 4.5],
   ['danger', 'bg', 4.5],
   ['warning-text', 'warning-bg', 4.5],
+  // Barra in basso: etichette e icone sul tono profondo, icona della sezione scelta nella pillola.
+  ['on-strong', 'strong', 4.5],
+  ['nav-muted', 'strong', 4.5],
+  ['nav-pill-fg', 'nav-pill', 4.5],
+  // Pulsante principale e "+" fluttuante.
+  ['on-primary', 'primary', 4.5],
+  // Corsivi dei titoli (testo grande).
+  ['accent-2', 'bg', 3],
+  ['accent-2', 'surface', 3],
 ];
 
 describe('contrasto dei colori (WCAG AA)', () => {

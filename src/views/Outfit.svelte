@@ -168,7 +168,7 @@
       </div>
     </div>
     <div class="summary">
-      <span>{visible.length} di {outfits.value.length} outfit</span>
+      <span class="eyebrow">{visible.length === outfits.value.length ? `I tuoi outfit · ${outfits.value.length}` : `${visible.length} di ${outfits.value.length} outfit`}</span>
       {#if filterCount > 0 || filters.query}
         <button class="link" onclick={() => { clearFilters(); outfitsView.filters = { ...outfitsView.filters, query: '' }; }}>Azzera filtri</button>
       {/if}
@@ -187,7 +187,7 @@
             <button class="tile" onclick={() => (nav.outfitDetail = o.id)}>
               <span class="pic">
                 <OutfitCollage pieces={c.pieces} layout={c.layout} label="Collage di {o.name}" />
-                {#if o.favorite}<span class="fav" role="img" aria-label="Preferito">❤️</span>{/if}
+                {#if o.favorite}<span class="fav" role="img" aria-label="Preferito"><Icon name="heartFilled" size={16} /></span>{/if}
                 <span class="light" class:ok={c.light.ok} title={c.light.ok ? 'Tutto disponibile' : 'Qualche capo non è disponibile'}>
                   <span class="visually-hidden">{c.light.ok ? 'Tutto disponibile' : 'Qualche capo non è disponibile'}</span>
                 </span>
@@ -320,23 +320,26 @@
     display: flex;
     gap: 6px;
     overflow-x: auto;
-    padding-bottom: 2px;
+    margin: 0 -16px;
+    padding: 0 16px 2px;
+    scrollbar-width: none;
   }
   .tool {
     flex: none;
-    min-height: 38px;
+    min-height: 36px;
     padding: 0 14px;
     border-radius: 999px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    font-size: 0.875rem;
+    border: 0;
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 0.8125rem;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
   }
   .tool.active {
-    border-color: var(--accent);
-    color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-contrast);
     font-weight: 600;
   }
   .sort {
@@ -378,9 +381,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 10px 4px 0;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    min-height: 40px;
+    margin: 12px 2px 4px;
   }
   .link {
     border: 0;
@@ -413,24 +415,29 @@
   .pic {
     position: relative;
     display: block;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
+    border-radius: var(--radius-tile);
     overflow: hidden;
     /* I segni sopra il collage restano dentro la scheda (non sopra le pagine aperte). */
     isolation: isolate;
   }
   .fav {
     position: absolute;
-    top: 6px;
+    top: 8px;
     right: 8px;
-    font-size: 0.95rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface);
+    color: var(--accent);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.15);
     z-index: 1;
-    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.3));
   }
   .light {
     position: absolute;
-    top: 8px;
-    left: 8px;
+    top: 12px;
+    left: 12px;
     width: 12px;
     height: 12px;
     border-radius: 50%;
@@ -442,13 +449,15 @@
     background: #2e7d32;
   }
   .name {
+    padding: 0 4px;
     font-size: 0.9375rem;
-    font-weight: 600;
+    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
   .sub {
+    padding: 0 4px;
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: -2px;

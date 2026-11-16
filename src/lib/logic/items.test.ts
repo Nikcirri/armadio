@@ -5,6 +5,8 @@ import {
   activeFilterCount,
   costPerWear,
   emptyFilters,
+  SLOT_GROUPS,
+  slotGroupsPresent,
   filterItems,
   findDuplicates,
   isAvailable,
@@ -85,6 +87,25 @@ describe('ricerca e filtri', () => {
     ).toEqual(['Maglione']);
     expect(filterItems(items, { ...emptyFilters(), favoritesOnly: true }, null)).toHaveLength(1);
     expect(activeFilterCount({ ...emptyFilters(), colors: ['red'], favoritesOnly: true, query: 'x' })).toBe(2);
+  });
+
+  it('filtro veloce per tipo di capo: si somma agli altri e non conta tra i filtri', () => {
+    const list = [
+      item({ name: 'Jeans', slotType: 'bottom', colors: ['denim'] }),
+      item({ name: 'Maglia', slotType: 'top_base', colors: ['denim'] }),
+      item({ name: 'Cardigan', slotType: 'top_layer', colors: ['cream'] }),
+      item({ name: 'Borsa', slotType: 'accessory' }),
+    ];
+    const top = { ...emptyFilters(), slotGroup: 'top' as const };
+    expect(filterItems(list, top, null).map((i) => i.name)).toEqual(['Maglia', 'Cardigan']);
+    expect(filterItems(list, { ...top, colors: ['denim'] }, null).map((i) => i.name)).toEqual(['Maglia']);
+    expect(filterItems(list, emptyFilters(), null)).toHaveLength(4);
+    expect(activeFilterCount(top)).toBe(0);
+    expect(SLOT_GROUPS.map((g) => g.label)).toEqual(['Sopra', 'Sotto', 'Abiti', 'Capispalla', 'Scarpe', 'Accessori', 'Intimo']);
+    expect(slotGroupsPresent(list)).toEqual(['top', 'bottom', 'accessory']);
+    // Il tipo scelto resta visibile anche se non ci sono più capi di quel tipo.
+    expect(slotGroupsPresent(list, 'shoes')).toEqual(['top', 'bottom', 'shoes', 'accessory']);
+    expect(slotGroupsPresent([])).toEqual([]);
   });
 });
 

@@ -52,13 +52,13 @@
     bottom: calc(var(--navbar-h) + var(--safe-bottom) + 16px);
     width: 60px;
     height: 60px;
-    border-radius: 20px;
+    border-radius: 50%;
     border: 0;
-    background: var(--accent);
-    color: var(--accent-contrast);
+    background: var(--primary);
+    color: var(--on-primary);
     display: grid;
     place-items: center;
-    box-shadow: 0 6px 20px rgb(0 0 0 / 0.22);
+    box-shadow: 0 8px 22px rgb(0 0 0 / 0.26);
     z-index: 21;
     cursor: pointer;
     transition: transform 160ms ease;
@@ -84,9 +84,9 @@
   }
   .action {
     min-height: 52px;
-    padding: 8px 18px;
+    padding: 8px 20px;
     border: 0;
-    border-radius: 16px;
+    border-radius: 18px;
     background: var(--surface);
     color: var(--text);
     box-shadow: 0 4px 16px rgb(0 0 0 / 0.18);

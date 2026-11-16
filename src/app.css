@@ -1,14 +1,185 @@
-/* Palette (SPEC.md, sezione 7): 4 palette × chiaro / scuro OLED.
-   Gli attributi data-palette e data-mode sono impostati su <html> da theme.svelte.ts. */
+/* Aspetto (SPEC.md, sezione 7): 4 famiglie × 3 tonalità (12 palette) × chiaro / scuro e 3 caratteri.
+   Gli attributi data-palette, data-mode e data-font sono impostati su <html> da theme.svelte.ts.
+   --strong è il tono profondo (barra in basso), --primary il pulsante principale, --accent-2 i corsivi dei titoli. */
+
+/* ---------- Caratteri inclusi nell'app (solo alfabeto latino, licenza OFL: assets/fonts/OFL.txt) ---------- */
+
+@font-face {
+  font-family: 'Jost';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('./assets/fonts/jost-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/cormorant-garamond-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('./assets/fonts/cormorant-garamond-latin-wght-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./assets/fonts/playfair-display-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Playfair Display';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./assets/fonts/playfair-display-latin-wght-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'DM Sans';
+  font-style: normal;
+  font-weight: 100 1000;
+  font-display: swap;
+  src: url('./assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./assets/fonts/bodoni-moda-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('./assets/fonts/bodoni-moda-latin-wght-italic.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url('./assets/fonts/manrope-latin-wght-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- Palette chiare (Verdi, Blu, Rossi, Neutri) ---------- */
+[data-palette='salvia'] {
+  --bg: #eef1ea;
+  --surface: #f8faf6;
+  --surface-2: #dde4d6;
+  --text: #222a22;
+  --text-muted: #5a6657;
+  --accent: #4d6449;
+  --accent-2: #4d6449;
+  --border: #cfd8c8;
+  --strong: #2f3f2c;
+  --on-strong: #eef1ea;
+  --nav-muted: #b9c8b4;
+  --nav-pill: #4d6449;
+  --nav-pill-fg: #eef1ea;
+  --primary: #2f3f2c;
+  --on-primary: #eef1ea;
+}
 :root,
-[data-palette='sabbia'] {
-  --bg: #f5efe6;
+[data-palette='oliva'] {
+  --bg: #f3eee6;
   --surface: #fbf8f3;
-  --surface-2: #ebe2d4;
-  --text: #2b2520;
-  --text-muted: #6f6357;
-  --accent: #7a5c3f;
-  --border: #ddd2c2;
+  --surface-2: #e4d9c6;
+  --text: #2a2822;
+  --text-muted: #5f5a4b;
+  --accent: #565c3f;
+  --accent-2: #565c3f;
+  --border: #ddd3c2;
+  --strong: #3e4230;
+  --on-strong: #f3eee6;
+  --nav-muted: #c9ccb8;
+  --nav-pill: #5f6645;
+  --nav-pill-fg: #f3eee6;
+  --primary: #3e4230;
+  --on-primary: #f3eee6;
+}
+[data-palette='smeraldo'] {
+  --bg: #f4f0e8;
+  --surface: #fcfaf6;
+  --surface-2: #e7e0d2;
+  --text: #1f1d1a;
+  --text-muted: #5f584e;
+  --accent: #154230;
+  --accent-2: #8a6a2c;
+  --border: #ddd5c6;
+  --strong: #154230;
+  --on-strong: #f4f0e8;
+  --nav-muted: #b5cbbd;
+  --nav-pill: #2a6149;
+  --nav-pill-fg: #f4f0e8;
+  --primary: #154230;
+  --on-primary: #f4f0e8;
+}
+[data-palette='oceano'] {
+  --bg: #eef2f3;
+  --surface: #f9fbfb;
+  --surface-2: #dce5e8;
+  --text: #1f2a2e;
+  --text-muted: #52636a;
+  --accent: #3d6270;
+  --accent-2: #3d6270;
+  --border: #cbd7db;
+  --strong: #29454f;
+  --on-strong: #eef2f3;
+  --nav-muted: #bad0d7;
+  --nav-pill: #4a7482;
+  --nav-pill-fg: #eef2f3;
+  --primary: #29454f;
+  --on-primary: #eef2f3;
+}
+[data-palette='petrolio'] {
+  --bg: #f5f1ea;
+  --surface: #fffdf9;
+  --surface-2: #e9e2d6;
+  --text: #2b2622;
+  --text-muted: #615b55;
+  --accent: #1f4b5a;
+  --accent-2: #a65a35;
+  --border: #e2dacb;
+  --strong: #163844;
+  --on-strong: #f5f1ea;
+  --nav-muted: #b8cdd3;
+  --nav-pill: #2c6072;
+  --nav-pill-fg: #f5f1ea;
+  --primary: #163844;
+  --on-primary: #f5f1ea;
+}
+[data-palette='notte'] {
+  --bg: #f0f1f5;
+  --surface: #fafbfd;
+  --surface-2: #dfe2ec;
+  --text: #1d2130;
+  --text-muted: #555b70;
+  --accent: #2f3f73;
+  --accent-2: #2f3f73;
+  --border: #d0d4e2;
+  --strong: #1e2a4f;
+  --on-strong: #f0f1f5;
+  --nav-muted: #bdc5df;
+  --nav-pill: #3a4c86;
+  --nav-pill-fg: #f0f1f5;
+  --primary: #1e2a4f;
+  --on-primary: #f0f1f5;
 }
 [data-palette='cipria'] {
   --bg: #f8eeee;
@@ -17,35 +188,205 @@
   --text: #2e2224;
   --text-muted: #755e5d;
   --accent: #8c4a55;
+  --accent-2: #8c4a55;
   --border: #e6d0cf;
+  --strong: #56272f;
+  --on-strong: #f8eeee;
+  --nav-muted: #dcbcbf;
+  --nav-pill: #8c4a55;
+  --nav-pill-fg: #f8eeee;
+  --primary: #56272f;
+  --on-primary: #f8eeee;
 }
-[data-palette='salvia'] {
-  --bg: #eef1ea;
-  --surface: #f8faf6;
-  --surface-2: #dde4d6;
-  --text: #222a22;
-  --text-muted: #5a6657;
-  --accent: #4d6449;
-  --border: #cfd8c8;
+[data-palette='argilla'] {
+  --bg: #f6efe9;
+  --surface: #fdf9f6;
+  --surface-2: #ecdccf;
+  --text: #2d221c;
+  --text-muted: #6a5649;
+  --accent: #934b2a;
+  --accent-2: #934b2a;
+  --border: #e3d2c4;
+  --strong: #5c2e19;
+  --on-strong: #f6efe9;
+  --nav-muted: #e3c6b5;
+  --nav-pill: #8a4726;
+  --nav-pill-fg: #f6efe9;
+  --primary: #5c2e19;
+  --on-primary: #f6efe9;
 }
-[data-palette='lavanda'] {
-  --bg: #f1eff7;
-  --surface: #faf9fd;
-  --surface-2: #e2deef;
-  --text: #26232f;
-  --text-muted: #645f76;
-  --accent: #62559a;
-  --border: #d6d1e8;
+[data-palette='prugna'] {
+  --bg: #f5eff0;
+  --surface: #fcf9f9;
+  --surface-2: #e8dadd;
+  --text: #2a1f22;
+  --text-muted: #68575b;
+  --accent: #6e3242;
+  --accent-2: #6e3242;
+  --border: #ddcdd1;
+  --strong: #4a1f2b;
+  --on-strong: #f5eff0;
+  --nav-muted: #dbbcc4;
+  --nav-pill: #7a3a4b;
+  --nav-pill-fg: #f5eff0;
+  --primary: #4a1f2b;
+  --on-primary: #f5eff0;
 }
-[data-mode='dark'][data-palette='sabbia'],
+[data-palette='sabbia'] {
+  --bg: #f5efe6;
+  --surface: #fbf8f3;
+  --surface-2: #ebe2d4;
+  --text: #2b2520;
+  --text-muted: #6f6357;
+  --accent: #7a5c3f;
+  --accent-2: #7a5c3f;
+  --border: #ddd2c2;
+  --strong: #4a3726;
+  --on-strong: #f5efe6;
+  --nav-muted: #cbbba8;
+  --nav-pill: #7a5c3f;
+  --nav-pill-fg: #f5efe6;
+  --primary: #4a3726;
+  --on-primary: #f5efe6;
+}
+[data-palette='pietra'] {
+  --bg: #f2f0ec;
+  --surface: #fbfaf8;
+  --surface-2: #e3dfd8;
+  --text: #262421;
+  --text-muted: #5f5a53;
+  --accent: #5a534a;
+  --accent-2: #5a534a;
+  --border: #d8d3cb;
+  --strong: #2b2724;
+  --on-strong: #f2f0ec;
+  --nav-muted: #cbc4ba;
+  --nav-pill: #4f4840;
+  --nav-pill-fg: #f2f0ec;
+  --primary: #2b2724;
+  --on-primary: #f2f0ec;
+}
+[data-palette='grafite'] {
+  --bg: #f1f1f1;
+  --surface: #fbfbfb;
+  --surface-2: #e2e2e2;
+  --text: #1e1e1f;
+  --text-muted: #5a5a5d;
+  --accent: #3b3c40;
+  --accent-2: #3b3c40;
+  --border: #d4d4d6;
+  --strong: #222326;
+  --on-strong: #f1f1f1;
+  --nav-muted: #c4c4c8;
+  --nav-pill: #4a4b50;
+  --nav-pill-fg: #f1f1f1;
+  --primary: #222326;
+  --on-primary: #f1f1f1;
+}
+
+/* ---------- Palette scure ---------- */
+[data-mode='dark'][data-palette='salvia'] {
+  --bg: #000000;
+  --surface: #0f120f;
+  --surface-2: #1c221b;
+  --text: #e9efe6;
+  --text-muted: #a4b1a0;
+  --accent: #a8c49f;
+  --accent-2: #a8c49f;
+  --border: #283026;
+  --strong: #1c221b;
+  --on-strong: #e9efe6;
+  --nav-muted: #a4b1a0;
+  --nav-pill: #a8c49f;
+  --nav-pill-fg: #14110e;
+  --primary: #a8c49f;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='oliva'],
 [data-mode='dark']:not([data-palette]) {
   --bg: #000000;
-  --surface: #121110;
-  --surface-2: #211e1b;
-  --text: #f1ebe3;
-  --text-muted: #b3a797;
-  --accent: #d2b48c;
-  --border: #2e2a26;
+  --surface: #11120e;
+  --surface-2: #1f211a;
+  --text: #eeede4;
+  --text-muted: #b2b4a0;
+  --accent: #bcc49c;
+  --accent-2: #bcc49c;
+  --border: #2b2d24;
+  --strong: #1f211a;
+  --on-strong: #eeede4;
+  --nav-muted: #b2b4a0;
+  --nav-pill: #bcc49c;
+  --nav-pill-fg: #14110e;
+  --primary: #bcc49c;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='smeraldo'] {
+  --bg: #15130f;
+  --surface: #1f1c18;
+  --surface-2: #2c2823;
+  --text: #f0e9dd;
+  --text-muted: #b9ae9c;
+  --accent: #c9a96a;
+  --accent-2: #c9a96a;
+  --border: #3a342e;
+  --strong: #154230;
+  --on-strong: #f0e9dd;
+  --nav-muted: #a9c2b1;
+  --nav-pill: #c9a96a;
+  --nav-pill-fg: #14110e;
+  --primary: #c9a96a;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='oceano'] {
+  --bg: #000000;
+  --surface: #0d1214;
+  --surface-2: #18232a;
+  --text: #e6eef1;
+  --text-muted: #a3b6bd;
+  --accent: #9cc3cf;
+  --accent-2: #9cc3cf;
+  --border: #24323a;
+  --strong: #18232a;
+  --on-strong: #e6eef1;
+  --nav-muted: #a3b6bd;
+  --nav-pill: #9cc3cf;
+  --nav-pill-fg: #14110e;
+  --primary: #9cc3cf;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='petrolio'] {
+  --bg: #000000;
+  --surface: #0c1214;
+  --surface-2: #172226;
+  --text: #e7eef0;
+  --text-muted: #a4b6bc;
+  --accent: #8ec3d3;
+  --accent-2: #e0a383;
+  --border: #22313a;
+  --strong: #172226;
+  --on-strong: #e7eef0;
+  --nav-muted: #a4b6bc;
+  --nav-pill: #8ec3d3;
+  --nav-pill-fg: #14110e;
+  --primary: #8ec3d3;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='notte'] {
+  --bg: #000000;
+  --surface: #0e1018;
+  --surface-2: #1a1d2b;
+  --text: #e9ebf5;
+  --text-muted: #a8adc4;
+  --accent: #aab7ef;
+  --accent-2: #aab7ef;
+  --border: #282c3e;
+  --strong: #1a1d2b;
+  --on-strong: #e9ebf5;
+  --nav-muted: #a8adc4;
+  --nav-pill: #aab7ef;
+  --nav-pill-fg: #14110e;
+  --primary: #aab7ef;
+  --on-primary: #14110e;
 }
 [data-mode='dark'][data-palette='cipria'] {
   --bg: #000000;
@@ -54,41 +395,119 @@
   --text: #f5e9ea;
   --text-muted: #bfa5a7;
   --accent: #e3a3aa;
+  --accent-2: #e3a3aa;
   --border: #33282a;
+  --strong: #241c1d;
+  --on-strong: #f5e9ea;
+  --nav-muted: #bfa5a7;
+  --nav-pill: #e3a3aa;
+  --nav-pill-fg: #14110e;
+  --primary: #e3a3aa;
+  --on-primary: #14110e;
 }
-[data-mode='dark'][data-palette='salvia'] {
+[data-mode='dark'][data-palette='argilla'] {
   --bg: #000000;
-  --surface: #0f120f;
-  --surface-2: #1c221b;
-  --text: #e9efe6;
-  --text-muted: #a4b1a0;
-  --accent: #a8c49f;
-  --border: #283026;
+  --surface: #140f0c;
+  --surface-2: #241b16;
+  --text: #f4e9e2;
+  --text-muted: #bfa99b;
+  --accent: #e5a07c;
+  --accent-2: #e5a07c;
+  --border: #352a23;
+  --strong: #241b16;
+  --on-strong: #f4e9e2;
+  --nav-muted: #bfa99b;
+  --nav-pill: #e5a07c;
+  --nav-pill-fg: #14110e;
+  --primary: #e5a07c;
+  --on-primary: #14110e;
 }
-[data-mode='dark'][data-palette='lavanda'] {
+[data-mode='dark'][data-palette='prugna'] {
   --bg: #000000;
-  --surface: #111018;
-  --surface-2: #1e1c28;
-  --text: #ece9f6;
-  --text-muted: #aca7c2;
-  --accent: #b7aef0;
-  --border: #2b2838;
+  --surface: #140e10;
+  --surface-2: #251a1d;
+  --text: #f5e9ec;
+  --text-muted: #c0a6ad;
+  --accent: #dba3b2;
+  --accent-2: #dba3b2;
+  --border: #36282c;
+  --strong: #251a1d;
+  --on-strong: #f5e9ec;
+  --nav-muted: #c0a6ad;
+  --nav-pill: #dba3b2;
+  --nav-pill-fg: #14110e;
+  --primary: #dba3b2;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='sabbia'] {
+  --bg: #000000;
+  --surface: #121110;
+  --surface-2: #211e1b;
+  --text: #f1ebe3;
+  --text-muted: #b3a797;
+  --accent: #d2b48c;
+  --accent-2: #d2b48c;
+  --border: #2e2a26;
+  --strong: #211e1b;
+  --on-strong: #f1ebe3;
+  --nav-muted: #b3a797;
+  --nav-pill: #d2b48c;
+  --nav-pill-fg: #14110e;
+  --primary: #d2b48c;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='pietra'] {
+  --bg: #000000;
+  --surface: #12110f;
+  --surface-2: #211f1c;
+  --text: #efebe5;
+  --text-muted: #b5ada2;
+  --accent: #d2c7b7;
+  --accent-2: #d2c7b7;
+  --border: #302d29;
+  --strong: #211f1c;
+  --on-strong: #efebe5;
+  --nav-muted: #b5ada2;
+  --nav-pill: #d2c7b7;
+  --nav-pill-fg: #14110e;
+  --primary: #d2c7b7;
+  --on-primary: #14110e;
+}
+[data-mode='dark'][data-palette='grafite'] {
+  --bg: #000000;
+  --surface: #111112;
+  --surface-2: #1f1f21;
+  --text: #ededee;
+  --text-muted: #b0b0b4;
+  --accent: #d9d9dd;
+  --accent-2: #d9d9dd;
+  --border: #2e2e31;
+  --strong: #1f1f21;
+  --on-strong: #ededee;
+  --nav-muted: #b0b0b4;
+  --nav-pill: #d9d9dd;
+  --nav-pill-fg: #14110e;
+  --primary: #d9d9dd;
+  --on-primary: #14110e;
 }
 
+/* ---------- Comuni ---------- */
 :root {
   --accent-contrast: #ffffff;
   --danger: #b3261e;
   --warning-bg: #fff4d6;
   --warning-text: #6b4e00;
-  --font-serif: 'Noto Serif', Georgia, 'Times New Roman', serif;
-  --font-sans: system-ui, -apple-system, 'Roboto', 'Segoe UI', sans-serif;
+  /* Bordo delle card: invisibile sul chiaro (le card si staccano dal fondo), sottile sullo scuro. */
+  --card-border: transparent;
+  --shadow-soft: 0 1px 2px rgb(42 40 34 / 0.05), 0 4px 16px rgb(42 40 34 / 0.05);
   --safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
   --safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
   --safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
   --safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
-  --topbar-h: 56px;
-  --navbar-h: 64px;
-  --radius: 14px;
+  --topbar-h: 60px;
+  --navbar-h: 72px;
+  --radius: 18px;
+  --radius-tile: 20px;
   /* Livelli: pulsante + 20 · pagine 25 · fogli 40 · editor 70 · foto a schermo intero 75 ·
      attesa 80 · dialoghi 85 · toast 95. Un dialogo deve sempre stare sopra a tutto il resto. */
   color-scheme: light;
@@ -98,7 +517,31 @@
   --danger: #f2b8b5;
   --warning-bg: #3a2f10;
   --warning-text: #f3dc9b;
+  --card-border: var(--border);
+  --shadow-soft: none;
   color-scheme: dark;
+}
+
+/* ---------- Caratteri: Classico (predefinito), Rivista, Elegante ---------- */
+:root,
+[data-font='classico'] {
+  --font-serif: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  --font-sans: 'Jost', system-ui, -apple-system, 'Roboto', sans-serif;
+  /* Il Cormorant è sottile e piccolo: titoli un po' più grandi e pieni. */
+  --display-weight: 500;
+  --display-scale: 1.12;
+}
+[data-font='rivista'] {
+  --font-serif: 'Playfair Display', 'Noto Serif', Georgia, serif;
+  --font-sans: 'DM Sans', system-ui, -apple-system, 'Roboto', sans-serif;
+  --display-weight: 400;
+  --display-scale: 1;
+}
+[data-font='elegante'] {
+  --font-serif: 'Bodoni Moda', 'Noto Serif', Georgia, serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Roboto', sans-serif;
+  --display-weight: 400;
+  --display-scale: 1;
 }
 
 *,
@@ -115,6 +558,7 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   font-size: 16px;
+  font-variant-numeric: lining-nums;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
@@ -147,7 +591,16 @@ h1,
 h2,
 h3 {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: var(--display-weight);
+  /* Numeri tutti alti anche con i caratteri che li disegnano "all'antica" (Cormorant). */
+  font-variant-numeric: lining-nums;
+}
+
+/* Parola in corsivo nei titoli grandi ("Il tuo <em>armadio</em>"). */
+h1 em,
+h2 em {
+  font-style: italic;
+  color: var(--accent-2);
 }
 
 /* ---------- Componenti di base riutilizzabili ---------- */
@@ -159,7 +612,7 @@ h3 {
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  font-weight: 600;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -175,9 +628,9 @@ h3 {
   cursor: default;
 }
 .btn-primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--on-primary);
 }
 .btn-danger {
   background: transparent;
@@ -218,10 +671,18 @@ h3 {
 .input {
   min-height: 48px;
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 10px 16px;
+  border-radius: 14px;
   border: 1px solid var(--border);
   background: var(--surface);
+}
+/* Le ricerche sono a pillola. */
+.input[type='search'] {
+  border-radius: 999px;
+  padding-left: 44px;
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='1.7' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-4-4'/%3E%3C/svg%3E")
+    no-repeat 16px center;
 }
 .input:focus {
   outline: 2px solid var(--accent);
@@ -236,29 +697,31 @@ select.input:focus {
 
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 16px;
+  box-shadow: var(--shadow-soft);
 }
 
 .section-title {
-  margin: 24px 4px 8px;
+  margin: 26px 4px 10px;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
 .list {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
   overflow: hidden;
+  box-shadow: var(--shadow-soft);
 }
 .row {
-  min-height: 56px;
+  min-height: 58px;
   width: 100%;
   display: flex;
   align-items: center;
@@ -302,9 +765,48 @@ select.input:focus {
 }
 .segmented button[aria-pressed='true'] {
   background: var(--surface);
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
-  box-shadow: 0 1px 4px rgb(0 0 0 / 0.08);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+}
+/* Sullo scuro la scelta si vede meglio piena. */
+[data-mode='dark'] .segmented button[aria-pressed='true'] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  box-shadow: none;
+}
+
+/* Filtri a pillola: quello scelto è pieno. */
+.chip {
+  flex: none;
+  min-height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.chip[aria-pressed='true'],
+.chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 500;
+}
+
+/* Etichetta in maiuscolo spaziato (titoletti, marchio). */
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .note {
