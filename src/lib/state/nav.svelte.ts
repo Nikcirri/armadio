@@ -9,6 +9,7 @@ export type AltroPageId =
   | 'updates'
   | 'wishlist'
   | 'sizes'
+  | 'care'
   | 'declutter'
   | 'stats'
   | 'armocromia';

@@ -1,5 +1,14 @@
 # Novità
 
+## [1.10.0] - 2026-11-16
+
+- Nuova "Guida macchie e lavaggio" in Altro, funziona anche senza internet. È divisa in tre parti:
+  - **Macchie**: le regole d'oro e 20 macchie (vino, caffè, olio, sugo, sangue, sudore, trucco, penna, cera, gomma…), ognuna con i passi in ordine e cosa evitare. Puoi cercare anche con parole simili, come "unto" o "penna".
+  - **Tessuti**: come lavare, asciugare, stirare e conservare cotone, lino, lana, cashmere, seta, viscosa, sintetici, elasticizzati, jeans, pelle e camoscio, più i consigli per il bucato.
+  - **Simboli**: i disegnini dell'etichetta spiegati uno per uno, con l'etichetta di lavaggio dell'app che corrisponde.
+- Dalla scheda di un capo, "Come lavarlo e smacchiarlo" apre la guida con i suoi tessuti in alto.
+- In Lavanderia, sotto le macchie da pre-trattare, "Come smacchiare: la guida".
+
 ## [1.9.0] - 2026-11-16
 
 - Leggi l'etichetta: nella scheda di un capo fotografa l'etichetta interna e l'app compila marca, taglia, tessuto e lavaggio. Prima ti mostra cosa ha trovato, con una spunta per ogni voce, e poi salvi tu.

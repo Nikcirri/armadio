@@ -17,7 +17,10 @@
   import { live } from '../../lib/state/live.svelte';
   import { showToast, showUndoToast } from '../../lib/state/ui.svelte';
   import { reportError } from '../../lib/errors';
+  import Icon from '../../lib/ui/Icon.svelte';
   import Page from '../../lib/ui/Page.svelte';
+  import Sheet from '../../lib/ui/Sheet.svelte';
+  import CareGuide from '../altro/care/CareGuide.svelte';
   import PhotoThumb from '../../lib/ui/PhotoThumb.svelte';
   import LaundryRow from './LaundryRow.svelte';
 
@@ -88,6 +91,7 @@
       .join(' e ');
 
   const isDryClean = (l: Load) => l.program === 'dryClean';
+  let careGuide = $state(false);
 </script>
 
 <Page title="Lavanderia" {onclose}>
@@ -114,6 +118,9 @@
         </LaundryRow>
       {/each}
     </div>
+    <button class="btn btn-ghost btn-block guide-btn" onclick={() => (careGuide = true)}>
+      <Icon name="droplet" size={20} /> Come smacchiare: la guida
+    </button>
   {/if}
 
   {#if loads.length}
@@ -239,6 +246,12 @@
   {/if}
 </Page>
 
+{#if careGuide}
+  <Sheet title="Guida macchie e lavaggio" onclose={() => (careGuide = false)}>
+    <CareGuide />
+  </Sheet>
+{/if}
+
 <style>
   .summary {
     margin: 4px 4px 8px;
@@ -334,6 +347,9 @@
     border-radius: 10px;
     overflow: hidden;
     cursor: pointer;
+  }
+  .guide-btn {
+    margin-top: 8px;
   }
   .stain {
     position: absolute;

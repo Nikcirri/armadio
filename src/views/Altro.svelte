@@ -17,6 +17,7 @@
     declutter: lazyComponent(() => import('./altro/DeclutterPage.svelte')),
     stats: lazyComponent(() => import('./altro/StatsPage.svelte')),
     armocromia: lazyComponent(() => import('./altro/ArmocromiaPage.svelte')),
+    care: lazyComponent(() => import('./altro/CareGuidePage.svelte')),
   };
   const toLists = () => (nav.altroPage = 'lists');
   // Aggiornamenti aperto da Informazioni torna a Informazioni; dal menu o da Altro torna ad Altro.
@@ -41,6 +42,7 @@
         { page: 'armocromia', label: 'Armocromia', sub: 'La tua stagione e i colori che ti stanno meglio', icon: 'palette' },
         { page: 'wishlist', label: 'Wishlist', sub: 'Cosa vorresti comprare', icon: 'sparkles' },
         { page: 'sizes', label: 'Taglie e misure', sub: 'Da consultare in negozio', icon: 'tag' },
+        { page: 'care', label: 'Guida macchie e lavaggio', sub: 'Come smacchiare, lavare e leggere i simboli', icon: 'droplet' },
         { page: 'declutter', label: 'Decluttering', sub: 'Cosa vendere e annunci pronti', icon: 'copy' },
         { page: 'stats', label: 'Statistiche', sub: 'Valore, utilizzi, capsule score', icon: 'info' },
       ],
@@ -99,6 +101,8 @@
   <Lazy loader={PAGES.declutter} title="Decluttering" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'stats'}
   <Lazy loader={PAGES.stats} title="Statistiche" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
+{:else if nav.altroPage === 'care'}
+  <Lazy loader={PAGES.care} title="Guida macchie e lavaggio" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'armocromia'}
   <Lazy loader={PAGES.armocromia} title="Armocromia" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {/if}

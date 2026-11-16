@@ -52,6 +52,7 @@
   import Sheet from '../../lib/ui/Sheet.svelte';
   import Switch from '../../lib/ui/Switch.svelte';
   import ItemPickerSheet from '../outfit/ItemPickerSheet.svelte';
+  import CareGuide from '../altro/care/CareGuide.svelte';
   import LabelReadSheet, { type LabelChoice } from './LabelReadSheet.svelte';
   import PieceThumb from './PieceThumb.svelte';
 
@@ -89,6 +90,7 @@
   let menuFor = $state<string | null>(null);
   let saving = $state(false);
   let readingLabel = $state(false);
+  let careGuide = $state(false);
   // Intimo: per un capo Intimo, i capi sotto cui va ("Va sotto a"); si salva con "Salva".
   let underFor = $state<string[] | null>(null);
   let underForOriginal = '[]';
@@ -555,6 +557,9 @@
           value={d.washTags}
           onchange={(v) => (d.washTags = v as WashTag[])}
         />
+        <button class="btn btn-ghost btn-block guide-btn" onclick={() => (careGuide = true)}>
+          <Icon name="droplet" size={20} /> Come lavarlo e smacchiarlo
+        </button>
         <div class="list top">
           <Switch
             label="Si lava dopo un certo numero di utilizzi"
@@ -693,6 +698,12 @@
     />
   {/if}
 
+  {#if careGuide}
+    <Sheet title="Come lavarlo e smacchiarlo" onclose={() => (careGuide = false)}>
+      <CareGuide fabrics={d.fabrics} />
+    </Sheet>
+  {/if}
+
   {#if readingLabel}
     <LabelReadSheet
       {ownBrands}
@@ -799,6 +810,9 @@
   }
   .label-btn {
     margin-top: 12px;
+  }
+  .guide-btn {
+    margin-top: 8px;
   }
   .note.center {
     text-align: center;
