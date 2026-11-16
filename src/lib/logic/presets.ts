@@ -338,5 +338,6 @@ export function defaultSettings(
     endOfDay: null,
     updates: { ...EMPTY_UPDATE_STATE },
     colorProfile: null,
+    wardrobeLayout: 'grid2',
   };
 }

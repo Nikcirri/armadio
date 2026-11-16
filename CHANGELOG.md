@@ -1,5 +1,10 @@
 # Novità
 
+## [1.13.0] - 2026-11-16
+
+- Armadio: puoi scegliere come vedere i capi con i pulsanti accanto a "I tuoi capi": Lista (foto piccola, nome, categoria, ultima volta e stato su una riga), 2 per riga, 3 per riga o 4 per riga (solo foto e nome, per vedere tanti capi insieme).
+- L'app si ricorda la vista che hai scelto.
+
 ## [1.12.0] - 2026-11-16
 
 - Nuova grafica, ispirata alle tue foto: sfondo chiaro e caldo, capi su tessere con gli angoli morbidi, pulsanti e filtri a pillola, titoli eleganti e il nome "ARMADIO" in alto con le lettere spaziate.

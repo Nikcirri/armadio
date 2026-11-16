@@ -1,4 +1,4 @@
-import type { ColorId, ItemRecord, ItemStatus, SlotType, WishlistRecord } from '../db/types';
+import type { ColorId, ItemRecord, ItemStatus, SlotType, WardrobeLayout, WishlistRecord } from '../db/types';
 
 // Regole sui capi: stati, disponibilità, costo per utilizzo, ricerca, filtri, ordinamento, doppioni.
 
@@ -60,6 +60,19 @@ export interface ItemFilters {
   favoritesOnly: boolean;
   /** Filtro veloce per tipo di capo (i pulsanti sotto la ricerca); null = Tutti. */
   slotGroup: SlotGroupId | null;
+}
+
+/** Viste dei capi nell'Armadio (SPEC.md, sezione 8.1): colonne e spazio tra i riquadri. */
+export const WARDROBE_LAYOUTS: readonly { id: WardrobeLayout; label: string; columns: number; gap: number }[] = [
+  { id: 'list', label: 'Lista', columns: 1, gap: 8 },
+  { id: 'grid2', label: '2 per riga', columns: 2, gap: 14 },
+  { id: 'grid3', label: '3 per riga', columns: 3, gap: 10 },
+  { id: 'grid4', label: '4 per riga', columns: 4, gap: 6 },
+];
+
+/** Vista salvata → quella da usare (2 per riga se manca o è sconosciuta). */
+export function layoutInfo(id: WardrobeLayout | string | null | undefined): (typeof WARDROBE_LAYOUTS)[number] {
+  return WARDROBE_LAYOUTS.find((l) => l.id === id) ?? WARDROBE_LAYOUTS[1]!;
 }
 
 /** Tipi di capo dei filtri veloci dell'Armadio (SPEC.md, sezione 7). */

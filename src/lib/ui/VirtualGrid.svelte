@@ -13,6 +13,7 @@
     gap = 12,
     threshold = VIRTUAL_THRESHOLD,
     label,
+    columns,
   }: {
     items: readonly T[];
     tile: Snippet<[T]>;
@@ -20,6 +21,8 @@
     gap?: number;
     threshold?: number;
     label?: string;
+    /** Colonne fisse (al posto di quante ne entrano con minCol). */
+    columns?: number;
   } = $props();
 
   let ul = $state<HTMLUListElement>();
@@ -29,7 +32,7 @@
   let viewHeight = $state(800);
 
   const virtual = $derived(items.length > threshold);
-  const cols = $derived(gridColumns(width, minCol, gap));
+  const cols = $derived(columns ?? gridColumns(width, minCol, gap));
   // Prima della misura vera: foto 3:4 più due righe di testo.
   const estimate = $derived(width > 0 ? ((width - (cols - 1) * gap) / cols) * (4 / 3) + 40 : 180);
   const win = $derived(
@@ -92,7 +95,7 @@
   class="vgrid"
   bind:this={ul}
   aria-label={label}
-  style:grid-template-columns={virtual ? `repeat(${cols}, minmax(0, 1fr))` : `repeat(auto-fill, minmax(${minCol}px, 1fr))`}
+  style:grid-template-columns={virtual || columns ? `repeat(${cols}, minmax(0, 1fr))` : `repeat(auto-fill, minmax(${minCol}px, 1fr))`}
   style:gap="{gap}px"
   style:padding-top="{win.padTop}px"
   style:padding-bottom="{win.padBottom}px"

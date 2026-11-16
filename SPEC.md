@@ -138,6 +138,7 @@ Scarpe e accessori non usano la soglia di lavaggio; possono andare in manutenzio
 
 ### 8.1 Armadio
 - Ricerca su nome, brand, note e tessuto. Filtri combinabili a chip: categoria, stato, posizione (con interruttore "nascondi scatola cambio stagione"), proprietario, colore, stagione, pesantezza, taglio, occasione, preferiti. Contatore dei risultati e "Azzera filtri".
+- Vista dei capi (pulsanti accanto al conteggio): Lista (miniatura, nome, categoria, ultima volta e stato su una riga), 2 per riga (predefinita), 3 per riga, 4 per riga (solo foto e nome). La scelta si ricorda.
 - Ordinamento: più recenti, più indossati, meno indossati, non indossati da più tempo, miglior costo per utilizzo, nome A-Z, prezzo.
 - Controlla doppioni: gruppi di capi con stessa categoria e stesso colore principale (e tessuto simile), confrontati anche con la wishlist.
 - Selezione multipla: si attiva con il pulsante "Seleziona" oppure tenendo premuto un capo (che risulta già selezionato, con una leggera vibrazione). Azioni: cambia stato, sposta posizione, metti in valigia (scegli il viaggio), aggiungi a un outfit, elimina. Ogni azione di massa ha "Annulla".

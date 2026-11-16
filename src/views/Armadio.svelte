@@ -10,13 +10,15 @@
     restoreBulk,
     type BulkSnapshot,
   } from '../lib/db/items';
-  import { deleteItemCascade, getCategories, restoreItemDeletion, type ItemDeletionSnapshot } from '../lib/db/repo';
+  import { deleteItemCascade, getCategories, restoreItemDeletion, setSetting, type ItemDeletionSnapshot } from '../lib/db/repo';
   import type { CategoryRecord, ItemRecord, ItemStatus, ListRecord, OutfitRecord, TripRecord, WishlistRecord } from '../lib/db/types';
   import type { Img } from '../lib/logic/imageOps';
   import { draftNames } from '../lib/logic/itemPhotos';
   import {
     SLOT_GROUPS,
     SORTS,
+    WARDROBE_LAYOUTS,
+    layoutInfo,
     activeFilterCount,
     filterItems,
     findDuplicates,
@@ -28,7 +30,8 @@
   } from '../lib/logic/items';
   import { STATUSES, statusInfo } from '../lib/logic/labels';
   import { greeting } from '../lib/logic/theme';
-  import { formatDateIt } from '../lib/logic/util';
+  import { formatDateIt, formatDateShortIt } from '../lib/logic/util';
+  import type { WardrobeLayout } from '../lib/db/types';
   import { settings } from '../lib/state/settings.svelte';
   import { MAX_BATCH, chooseFromGallery, takePhoto } from '../lib/media/acquire';
   import { bumpPhoto } from '../lib/media/photoCache.svelte';
@@ -101,6 +104,14 @@
   const hello = $derived(greeting(new Date().getHours(), settings.value.profile?.userName ?? ''));
   const groups = $derived(slotGroupsPresent(items.value, filters.slotGroup));
   const anyFilter = $derived(filterCount > 0 || !!filters.query || filters.slotGroup !== null);
+
+  // Vista dei capi (SPEC.md, sezione 8.1): si ricorda nelle impostazioni.
+  const layout = $derived(layoutInfo(settings.value.wardrobeLayout));
+  const LAYOUT_ICONS = { list: 'viewList', grid2: 'grid2', grid3: 'grid3', grid4: 'grid4' } as const;
+  function pickLayout(id: WardrobeLayout) {
+    if (id === layout.id) return;
+    setSetting(db, 'wardrobeLayout', id).catch((e) => reportError(e));
+  }
 
   function pickGroup(id: SlotGroupId | null) {
     wardrobeView.filters = { ...filters, slotGroup: id };
@@ -438,9 +449,18 @@
 
     <div class="summary">
       <span class="eyebrow">{visible.length === items.value.length ? `I tuoi capi · ${items.value.length}` : `${visible.length} di ${items.value.length} capi`}</span>
-      {#if anyFilter}
-        <button class="link" onclick={clearAll}>Azzera filtri</button>
-      {/if}
+      <span class="sumright">
+        {#if anyFilter}
+          <button class="link" onclick={clearAll}>Azzera filtri</button>
+        {/if}
+        <span class="layouts" role="radiogroup" aria-label="Vista dei capi">
+          {#each WARDROBE_LAYOUTS as l (l.id)}
+            <button class="lay" role="radio" aria-checked={layout.id === l.id} aria-label={l.label} title={l.label} onclick={() => pickLayout(l.id)}>
+              <Icon name={LAYOUT_ICONS[l.id]} size={18} />
+            </button>
+          {/each}
+        </span>
+      </span>
     </div>
     {#if hiddenInBox > 0}
       <p class="note hint">
@@ -455,7 +475,8 @@
         <button class="btn" onclick={clearAll}>Azzera filtri</button>
       </div>
     {:else}
-      <VirtualGrid items={visible} label="Capi" minCol={140} gap={14}>
+      <div class="grid-wrap" data-layout={layout.id}>
+      <VirtualGrid items={visible} label="Capi" columns={layout.columns} gap={layout.gap}>
         {#snippet tile(item: ItemRecord)}
           {@const b = badge(item)}
           {@const isSel = selected.includes(item.id)}
@@ -467,19 +488,26 @@
             use:longpress={{ onlong: () => onLongPress(item) }}
           >
             <span class="pic">
-              <PhotoThumb photoId={item.photoIds[0]} alt={item.name} />
+              <!-- Il nome è già il testo del pulsante: la foto è decorativa per i lettori di schermo. -->
+              <PhotoThumb photoId={item.photoIds[0]} alt="" />
               {#if item.favorite}<span class="dotbadge fav" role="img" aria-label="Preferito"><Icon name="heartFilled" size={16} /></span>{/if}
               {#if item.hasStain}<span class="dotbadge stain" role="img" aria-label="Macchia da pre-trattare"><Icon name="droplet" size={16} /></span>{/if}
-              {#if b}<span class="state">{b}</span>{/if}
+              {#if b && layout.id !== 'list'}<span class="state">{b}</span>{/if}
               {#if selecting}<span class="check" class:on={isSel} aria-hidden="true">{#if isSel}<Icon name="check" size={18} />{/if}</span>{/if}
             </span>
-            <span class="name">{item.name}</span>
-            <span class="cat">
-              {catById.get(item.categoryId)?.name ?? ''}{item.lastWornDate ? ` · ${formatDateIt(item.lastWornDate).replace(/ \d{4}$/, '')}` : ''}
+            <span class="txt">
+              <span class="name">{item.name}</span>
+              {#if layout.id !== 'grid4'}
+                <span class="cat">
+                  {catById.get(item.categoryId)?.name ?? ''}{item.lastWornDate ? ` · ${formatDateShortIt(item.lastWornDate)}` : ''}
+                </span>
+              {/if}
+              {#if b && layout.id === 'list'}<span class="state-inline">{b}</span>{/if}
             </span>
           </button>
         {/snippet}
       </VirtualGrid>
+      </div>
     {/if}
   {/if}
 </div>
@@ -761,8 +789,127 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
     min-height: 40px;
     margin: 14px 2px 6px;
+  }
+  .sumright {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .layouts {
+    display: flex;
+    padding: 3px;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+  .lay {
+    width: 36px;
+    height: 34px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .lay[aria-checked='true'] {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .txt {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  /* Lista: miniatura a sinistra, testo a destra, su una card. */
+  .grid-wrap[data-layout='list'] .tile {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px 8px 8px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-soft);
+  }
+  .grid-wrap[data-layout='list'] .pic {
+    flex: none;
+    width: 60px;
+    border-radius: 12px;
+  }
+  .grid-wrap[data-layout='list'] .dotbadge {
+    top: 3px;
+    width: 20px;
+    height: 20px;
+  }
+  .grid-wrap[data-layout='list'] .dotbadge :global(svg) {
+    width: 12px;
+    height: 12px;
+  }
+  .grid-wrap[data-layout='list'] .fav {
+    right: 3px;
+  }
+  .grid-wrap[data-layout='list'] .stain {
+    left: 3px;
+  }
+  .grid-wrap[data-layout='list'] .check {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .grid-wrap[data-layout='list'] .cat {
+    margin-top: 0;
+  }
+  .state-inline {
+    align-self: flex-start;
+    margin: 2px 4px 0;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 0.75rem;
+  }
+  /* 3 per riga: testi più piccoli. */
+  .grid-wrap[data-layout='grid3'] .name {
+    font-size: 0.8125rem;
+  }
+  .grid-wrap[data-layout='grid3'] .dotbadge,
+  .grid-wrap[data-layout='grid4'] .dotbadge {
+    top: 5px;
+    width: 24px;
+    height: 24px;
+  }
+  .grid-wrap[data-layout='grid3'] .fav,
+  .grid-wrap[data-layout='grid4'] .fav {
+    right: 5px;
+  }
+  .grid-wrap[data-layout='grid3'] .stain,
+  .grid-wrap[data-layout='grid4'] .stain {
+    left: 5px;
+  }
+  .grid-wrap[data-layout='grid3'] .dotbadge :global(svg),
+  .grid-wrap[data-layout='grid4'] .dotbadge :global(svg) {
+    width: 13px;
+    height: 13px;
+  }
+  .grid-wrap[data-layout='grid3'] .state,
+  .grid-wrap[data-layout='grid4'] .state {
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    padding: 2px 6px;
+    font-size: 0.625rem;
+  }
+  /* 4 per riga: solo foto e nome. */
+  .grid-wrap[data-layout='grid4'] .pic {
+    border-radius: 14px;
+  }
+  .grid-wrap[data-layout='grid4'] .name {
+    font-size: 0.75rem;
+    padding: 0 2px;
   }
   .link {
     border: 0;

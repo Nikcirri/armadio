@@ -6,6 +6,8 @@ import {
   costPerWear,
   emptyFilters,
   SLOT_GROUPS,
+  WARDROBE_LAYOUTS,
+  layoutInfo,
   slotGroupsPresent,
   filterItems,
   findDuplicates,
@@ -87,6 +89,18 @@ describe('ricerca e filtri', () => {
     ).toEqual(['Maglione']);
     expect(filterItems(items, { ...emptyFilters(), favoritesOnly: true }, null)).toHaveLength(1);
     expect(activeFilterCount({ ...emptyFilters(), colors: ['red'], favoritesOnly: true, query: 'x' })).toBe(2);
+  });
+
+  it('viste dei capi: lista, 2, 3 e 4 per riga; 2 per riga se manca', () => {
+    expect(WARDROBE_LAYOUTS.map((l) => [l.id, l.columns])).toEqual([
+      ['list', 1],
+      ['grid2', 2],
+      ['grid3', 3],
+      ['grid4', 4],
+    ]);
+    expect(layoutInfo(undefined).id).toBe('grid2');
+    expect(layoutInfo('strana').id).toBe('grid2');
+    expect(layoutInfo('grid4').columns).toBe(4);
   });
 
   it('filtro veloce per tipo di capo: si somma agli altri e non conta tra i filtri', () => {

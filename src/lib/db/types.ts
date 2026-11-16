@@ -296,6 +296,9 @@ export interface EndOfDayPending {
   itemIds: string[];
 }
 
+/** Vista dei capi nell'Armadio (SPEC.md, sezione 8.1). */
+export type WardrobeLayout = 'list' | 'grid2' | 'grid3' | 'grid4';
+
 export interface SettingsMap {
   app: { appName: string; onboarded: boolean; createdAt: string };
   profile: {
@@ -327,6 +330,8 @@ export interface SettingsMap {
   lastVersion: string;
   /** Armocromia (SPEC 8.6); null se non è stata fatta. */
   colorProfile: ColorProfile | null;
+  /** Vista dei capi nell'Armadio; senza valore (fino alla 1.12) vale 2 per riga. */
+  wardrobeLayout: WardrobeLayout;
 }
 
 export type SeasonId =

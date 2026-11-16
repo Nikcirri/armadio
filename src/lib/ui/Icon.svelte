@@ -34,7 +34,11 @@
     | 'alert'
     | 'droplet'
     | 'bag'
-    | 'sliders';
+    | 'sliders'
+    | 'viewList'
+    | 'grid2'
+    | 'grid3'
+    | 'grid4';
 </script>
 
 <script lang="ts">
@@ -77,6 +81,14 @@
     />
   {:else if name === 'droplet'}
     <path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z" />
+  {:else if name === 'viewList'}
+    <rect x="3" y="4" width="5" height="5" rx="1.2" /><rect x="3" y="15" width="5" height="5" rx="1.2" /><path d="M11 6.5h10M11 17.5h10" />
+  {:else if name === 'grid2'}
+    <rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" />
+  {:else if name === 'grid3'}
+    <rect x="2.5" y="3" width="5" height="7" rx="1" /><rect x="9.5" y="3" width="5" height="7" rx="1" /><rect x="16.5" y="3" width="5" height="7" rx="1" /><rect x="2.5" y="14" width="5" height="7" rx="1" /><rect x="9.5" y="14" width="5" height="7" rx="1" /><rect x="16.5" y="14" width="5" height="7" rx="1" />
+  {:else if name === 'grid4'}
+    <path d="M3 3h3v3H3zM8 3h3v3H8zM13 3h3v3h-3zM18 3h3v3h-3zM3 10.5h3v3H3zM8 10.5h3v3H8zM13 10.5h3v3h-3zM18 10.5h3v3h-3zM3 18h3v3H3zM8 18h3v3H8zM13 18h3v3h-3zM18 18h3v3h-3z" />
   {:else if name === 'sliders'}
     <path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" />
   {:else if name === 'bag'}
