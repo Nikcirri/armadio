@@ -24,6 +24,7 @@
     <p><strong>Cosa metto?</strong>: scegli il clima e l’app ti propone un abbinamento. Con il lucchetto tieni fermo un capo. Nelle Opzioni puoi scegliere più occasioni: “Una qualsiasi” per un look adatto ad almeno una, “Tutte insieme” per un look che vada bene per tutte (es. dall’ufficio all’aperitivo).</p>
     <p><strong>Agenda</strong>: pianifica i giorni e prepara la valigia dei viaggi.</p>
     <p><strong>Altro</strong>: wishlist, taglie, decluttering, statistiche, liste e impostazioni.</p>
+    <p><strong>Modalità negozio</strong> (in Altro e nella Wishlist): fotografi un capo in negozio e vedi con quanti dei tuoi si abbina, se ne hai già di simili e se il colore ti dona. Poi lo metti in wishlist o, se lo compri, nell’armadio.</p>
     <p><strong>Guida macchie e lavaggio</strong> (in Altro, nella scheda di un capo e in Lavanderia): come togliere le macchie più comuni, come trattare ogni tessuto e cosa vogliono dire i simboli dell’etichetta.</p>
     <p><strong>Scorciatoie e widget</strong>: tieni premuta l’icona di Armadio per aprire subito “Cosa metto?”, “Aggiungi capo” o “Fine giornata”. Sulla schermata Home puoi aggiungere il widget “Armadio – Oggi” con l’outfit del giorno: tieni premuto uno spazio vuoto, tocca Widget e cerca Armadio.</p>
     <p><strong>Aggiornamenti</strong>: quando esce una versione nuova compare un avviso in alto. Tocca <strong>Aggiorna</strong>: l’app la scarica e apre l’installazione di Android; i tuoi dati restano.</p>

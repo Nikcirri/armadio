@@ -18,6 +18,7 @@
     stats: lazyComponent(() => import('./altro/StatsPage.svelte')),
     armocromia: lazyComponent(() => import('./altro/ArmocromiaPage.svelte')),
     care: lazyComponent(() => import('./altro/CareGuidePage.svelte')),
+    shop: lazyComponent(() => import('./altro/ShopModePage.svelte')),
   };
   const toLists = () => (nav.altroPage = 'lists');
   // Aggiornamenti aperto da Informazioni torna a Informazioni; dal menu o da Altro torna ad Altro.
@@ -35,11 +36,37 @@
   };
   const toCategories = () => (nav.altroPage = 'categories');
 
+  // Modalità negozio aperta dalla Wishlist torna alla Wishlist; l'armocromia aperta dalla modalità negozio torna lì.
+  let shopFromWishlist = $state(false);
+  let armocromiaFromShop = $state(false);
+  $effect(() => {
+    const page = nav.altroPage;
+    if (page !== 'shop' && page !== 'wishlist' && page !== 'armocromia') shopFromWishlist = false;
+    if (page !== 'shop' && page !== 'armocromia') armocromiaFromShop = false;
+  });
+  const toShopFromWishlist = () => {
+    shopFromWishlist = true;
+    nav.altroPage = 'shop';
+  };
+  const closeShop = () => {
+    nav.altroPage = shopFromWishlist ? 'wishlist' : null;
+    shopFromWishlist = false;
+  };
+  const toArmocromiaFromShop = () => {
+    armocromiaFromShop = true;
+    nav.altroPage = 'armocromia';
+  };
+  const closeArmocromia = () => {
+    nav.altroPage = armocromiaFromShop ? 'shop' : null;
+    armocromiaFromShop = false;
+  };
+
   const GROUPS: { title: string; entries: { page: AltroPageId; label: string; sub: string; icon: IconName }[] }[] = [
     {
       title: 'Il tuo armadio',
       entries: [
         { page: 'armocromia', label: 'Armocromia', sub: 'La tua stagione e i colori che ti stanno meglio', icon: 'palette' },
+        { page: 'shop', label: 'Modalità negozio', sub: 'Fotografa un capo in negozio: si abbina? Ce l’hai già?', icon: 'bag' },
         { page: 'wishlist', label: 'Wishlist', sub: 'Cosa vorresti comprare', icon: 'sparkles' },
         { page: 'sizes', label: 'Taglie e misure', sub: 'Da consultare in negozio', icon: 'tag' },
         { page: 'care', label: 'Guida macchie e lavaggio', sub: 'Come smacchiare, lavare e leggere i simboli', icon: 'droplet' },
@@ -94,7 +121,9 @@
 {:else if nav.altroPage === 'updates'}
   <Lazy loader={PAGES.updates} title="Aggiornamenti" onclose={closeUpdates} props={{ onclose: closeUpdates }} />
 {:else if nav.altroPage === 'wishlist'}
-  <Lazy loader={PAGES.wishlist} title="Wishlist" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
+  <Lazy loader={PAGES.wishlist} title="Wishlist" onclose={closeAltroPage} props={{ onclose: closeAltroPage, onshop: toShopFromWishlist }} />
+{:else if nav.altroPage === 'shop'}
+  <Lazy loader={PAGES.shop} title="Modalità negozio" onclose={closeShop} props={{ onclose: closeShop, onarmocromia: toArmocromiaFromShop }} />
 {:else if nav.altroPage === 'sizes'}
   <Lazy loader={PAGES.sizes} title="Taglie e misure" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'declutter'}
@@ -104,7 +133,7 @@
 {:else if nav.altroPage === 'care'}
   <Lazy loader={PAGES.care} title="Guida macchie e lavaggio" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
 {:else if nav.altroPage === 'armocromia'}
-  <Lazy loader={PAGES.armocromia} title="Armocromia" onclose={closeAltroPage} props={{ onclose: closeAltroPage }} />
+  <Lazy loader={PAGES.armocromia} title="Armocromia" onclose={closeArmocromia} props={{ onclose: closeArmocromia }} />
 {/if}
 
 <style>

@@ -34,6 +34,28 @@ export async function addItem(
   });
 }
 
+/**
+ * "L'ho comprato" dalla modalità negozio (SPEC.md, sezione 8.5): il capo entra nell'armadio
+ * con prezzo, data di acquisto e negozio nelle note.
+ */
+export async function addPurchasedItem(
+  db: ArmadioDB,
+  input: { name: string; categoryId: string; colors: ColorId[]; photoIds: string[]; price: number | null; purchaseDate: string; store: string },
+): Promise<ItemRecord> {
+  return db.transaction('rw', db.items, db.categories, db.lists, async () => {
+    const base = await addItem(db, { name: input.name, categoryId: input.categoryId, colors: input.colors, photoIds: input.photoIds });
+    const store = input.store.trim();
+    const item: ItemRecord = {
+      ...base,
+      price: input.price,
+      purchaseDate: input.purchaseDate,
+      notes: store ? `Comprato da: ${store}` : '',
+    };
+    await db.items.put(item);
+    return item;
+  });
+}
+
 export async function updateItemFields(
   db: ArmadioDB,
   id: string,

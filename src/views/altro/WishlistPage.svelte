@@ -18,7 +18,7 @@
   import WishSheet from './WishSheet.svelte';
 
   /** Wishlist (SPEC 8.5). */
-  let { onclose }: { onclose: () => void } = $props();
+  let { onclose, onshop }: { onclose: () => void; onshop: () => void } = $props();
 
   const wishlist = live(() => db.wishlist.toArray(), [] as WishlistRecord[]);
   const items = live(() => db.items.toArray(), [] as ItemRecord[]);
@@ -69,7 +69,10 @@
 </script>
 
 <Page title="Wishlist" {onclose}>
-  <button class="btn btn-primary btn-block" onclick={() => (editing = { wish: null })}><Icon name="plus" size={20} /> Nuovo desiderio</button>
+  <div class="top-actions">
+    <button class="btn btn-primary" onclick={() => (editing = { wish: null })}><Icon name="plus" size={20} /> Nuovo desiderio</button>
+    <button class="btn" onclick={onshop}><Icon name="bag" size={20} /> Modalità negozio</button>
+  </div>
 
   {#if wishlist.ready && !wishlist.value.length}
     <div class="empty">
@@ -148,6 +151,11 @@
 {/if}
 
 <style>
+  .top-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
   .summary {
     margin: 12px 4px 8px;
   }

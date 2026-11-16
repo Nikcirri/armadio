@@ -1,5 +1,16 @@
 # Novità
 
+## [1.11.0] - 2026-11-16
+
+- Nuova "Modalità negozio" (in Altro e in cima alla Wishlist): in negozio fotografi un capo e vedi subito se vale la pena comprarlo.
+  - In cima un riepilogo con ✓ e ⚠: con quanti dei tuoi capi si abbina, se ne hai già di simili e se il colore ti dona.
+  - "Si abbina con N capi": i tuoi capi divisi per tipo (sopra, sotto, scarpe…) che possono stare nello stesso outfit e con colori che stanno bene insieme. Avvisa anche se, per esempio, compri una maglia ma nessun pantalone che hai ci sta bene.
+  - "Ne hai già di simili?": capi e desideri della stessa categoria e dello stesso colore, e quanti capi hai già in quella categoria.
+  - Con l'armocromia fatta: se il colore ti valorizza, va bene o è da evitare vicino al viso (per pantaloni e scarpe conta meno).
+  - Con il prezzo: quanto costa a utilizzo se lo metti 30 volte.
+- Colori e, sul telefono, categoria li propone l'app dalla foto; tocchi la foto per ritagliarla o scontornarla e avere colori più precisi.
+- Poi "+ Wishlist" lo salva tra i desideri, "L'ho comprato" lo mette nell'armadio con prezzo, data e negozio. La foto si salva solo così; "Nuova foto" e Indietro la scartano, con "Annulla" per riaverla.
+
 ## [1.10.0] - 2026-11-16
 
 - Nuova "Guida macchie e lavaggio" in Altro, funziona anche senza internet. È divisa in tre parti:

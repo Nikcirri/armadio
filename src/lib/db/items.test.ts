@@ -5,6 +5,7 @@ import { getCategories, setupNewWardrobe } from './repo';
 import {
   addItem,
   addPhotoToItem,
+  addPurchasedItem,
   addWear,
   bulkAddToOutfit,
   bulkAddToTrip,
@@ -73,6 +74,28 @@ describe('capi e foto', () => {
     expect(await db.photos.get('b')).toBeUndefined();
     await updateItemFields(db, item.id, { name: ' Felpa grigia ', colors: ['grey'] });
     expect((await db.items.get(item.id))?.name).toBe('Felpa grigia');
+  });
+
+  it('"L’ho comprato" dalla modalità negozio salva prezzo, data e negozio', async () => {
+    const cat = (await getCategories(db)).find((c) => c.slotType === 'top_base')!;
+    await db.photos.add(photo('p'));
+    const item = await addPurchasedItem(db, {
+      name: '',
+      categoryId: cat.id,
+      colors: ['red'],
+      photoIds: ['p'],
+      price: 29.9,
+      purchaseDate: '2026-11-16',
+      store: '  Zara ',
+    });
+    const saved = await db.items.get(item.id);
+    expect(saved?.name).toBe(cat.name);
+    expect(saved?.price).toBe(29.9);
+    expect(saved?.purchaseDate).toBe('2026-11-16');
+    expect(saved?.notes).toBe('Comprato da: Zara');
+    expect(saved?.colors).toEqual(['red']);
+    const noStore = await addPurchasedItem(db, { name: 'Maglia', categoryId: cat.id, colors: [], photoIds: [], price: null, purchaseDate: '2026-11-16', store: ' ' });
+    expect((await db.items.get(noStore.id))?.notes).toBe('');
   });
 
   it('elimina in blocco le bozze con le loro foto', async () => {

@@ -31,6 +31,10 @@ const COMPLEMENT: Record<SlotType, readonly SlotType[]> = {
   underwear: ['top_base', 'top_layer', 'full_body'],
 };
 
+export function complementSlots(slot: SlotType): readonly SlotType[] {
+  return COMPLEMENT[slot];
+}
+
 export function seasonsCompatible(a: Season | null, b: Season | null): boolean {
   if (!a || !b) return true;
   return !((a === 'springSummer' && b === 'autumnWinter') || (a === 'autumnWinter' && b === 'springSummer'));
@@ -45,7 +49,7 @@ export function matchingItems(
   items: readonly ItemRecord[],
   matrix: readonly (readonly [string, string])[],
 ): ItemRecord[] {
-  const slots = COMPLEMENT[wish.slot];
+  const slots = complementSlots(wish.slot);
   return items.filter(
     (i) =>
       i.status !== 'forSale' &&

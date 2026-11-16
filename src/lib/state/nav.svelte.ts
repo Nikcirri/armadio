@@ -8,6 +8,7 @@ export type AltroPageId =
   | 'info'
   | 'updates'
   | 'wishlist'
+  | 'shop'
   | 'sizes'
   | 'care'
   | 'declutter'

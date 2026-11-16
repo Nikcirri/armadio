@@ -32,7 +32,8 @@
     | 'shuffle'
     | 'palette'
     | 'alert'
-    | 'droplet';
+    | 'droplet'
+    | 'bag';
 </script>
 
 <script lang="ts">
@@ -75,6 +76,8 @@
     />
   {:else if name === 'droplet'}
     <path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.3 0z" />
+  {:else if name === 'bag'}
+    <path d="M5 8h14l-1.2 12.1a1 1 0 0 1-1 .9H7.2a1 1 0 0 1-1-.9z" /><path d="M9 10V7a3 3 0 0 1 6 0v3" />
   {:else if name === 'tag'}
     <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
     <circle cx="7.5" cy="7.5" r="1.2" />
